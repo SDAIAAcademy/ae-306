@@ -1,0 +1,739 @@
+{
+  "$schema": "https://sdaiaacademy.github.io/engine/schemas/course.schema.json",
+  "engine": "1",
+  "id": "data-engineering",
+  "version": "2026.1.0",
+  "lang": "en",
+  "title": "Modern Data Engineering",
+  "tagline": "From raw sources to a tested, governed lakehouse: the bridge from a CS degree to the work a data team does every day.",
+  "track": "ai-engineering",
+  "audience": "Fresh CS graduates, or anyone comfortable with Python and basic SQL (SELECT, JOIN, GROUP BY). No data engineering experience needed.",
+  "prerequisites": [
+    "Google Colab, or a laptop with uv. No Docker or cloud account. Lab 1.1 starts with 00_setup_check; see labs/README.md."
+  ],
+  "site": {
+    "url": "https://sdaiaacademy.github.io/data-engineering/",
+    "repo": "SDAIAAcademy/data-engineering"
+  },
+  "outcomes": [
+    {
+      "id": "LO1",
+      "text": "Explain how a data platform fits together and choose between warehouse, lake and lakehouse"
+    },
+    {
+      "id": "LO2",
+      "text": "Write analytical SQL, including window functions, over databases and files"
+    },
+    {
+      "id": "LO3",
+      "text": "Build ingestion that is incremental and safe to re-run, from APIs and change feeds"
+    },
+    {
+      "id": "LO4",
+      "text": "Clean data, model it as a star schema and transform it with dbt under tests"
+    },
+    {
+      "id": "LO5",
+      "text": "Orchestrate pipelines and catch bad data before it reaches a report"
+    },
+    {
+      "id": "LO6",
+      "text": "Decide when Iceberg, Spark or streaming is worth it, and protect personal data under PDPL"
+    }
+  ],
+  "case_study": {
+    "name": "Qafila",
+    "summary": "Qafila, a fictional grocery delivery app in Riyadh, Jeddah and Dammam. Its messy sources feed one data platform, and every lab adds a piece of it. All data is synthetic and generated on your machine."
+  },
+  "format": "intensive",
+  "unit": "day",
+  "days": [
+    {
+      "id": "day1",
+      "kind": "day",
+      "title": "Store & Query",
+      "deck": "slides/day1.html",
+      "sessions": [
+        {
+          "title": "The job and the platform",
+          "outcomes": [
+            "Trace one order through the records it leaves",
+            "Tell OLTP from OLAP, and warehouse from lake from lakehouse",
+            "Explain ELT and the bronze, silver and gold layers"
+          ],
+          "lab": {
+            "id": "1.1",
+            "title": "Platform tour",
+            "minutes": 25,
+            "summary": "Run the setup check, follow order 5043883 through the sources, and write the first issue log.",
+            "href": "D1_1_platform_tour.ipynb",
+            "steps": [
+              {
+                "text": "Run 00_setup_check in a second tab",
+                "minutes": 3
+              },
+              {
+                "text": "Tour the sources without loading anything",
+                "minutes": 5
+              },
+              {
+                "text": "Follow order 5043883 through four tables",
+                "minutes": 5
+              },
+              {
+                "text": "Count orders per day in Riyadh time",
+                "minutes": 5
+              },
+              {
+                "text": "Find the problems and write the issue log",
+                "minutes": 7
+              }
+            ],
+            "stretch": "Explain the biggest day of the two months"
+          }
+        },
+        {
+          "title": "Analytical SQL with DuckDB",
+          "outcomes": [
+            "Explain why column stores win at big reads",
+            "Query CSV and JSON files where they are, and check their types",
+            "Answer a business question with joins and aggregates, and test the total"
+          ],
+          "lab": {
+            "id": "1.2",
+            "title": "Analytical SQL with DuckDB",
+            "minutes": 25,
+            "summary": "Race two engines, read files in place, catch a wrong type, and measure what a join loses.",
+            "href": "D1_2_duckdb_sql.ipynb",
+            "steps": [
+              {
+                "text": "Race SQLite and DuckDB on one question",
+                "minutes": 5
+              },
+              {
+                "text": "Query CSV and JSON files in place",
+                "minutes": 5
+              },
+              {
+                "text": "SUMMARIZE a table and catch a wrong type",
+                "minutes": 4
+              },
+              {
+                "text": "Join and aggregate: revenue by city",
+                "minutes": 6
+              },
+              {
+                "text": "Measure the revenue an inner join loses",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Find the payments that don't match their order"
+          }
+        },
+        {
+          "title": "Window functions",
+          "outcomes": [
+            "Compute an answer next to every row with OVER and PARTITION BY",
+            "Remove repeats and keep the latest with ROW_NUMBER",
+            "Compare a row with its neighbours using LAG and LEAD"
+          ],
+          "lab": {
+            "id": "1.3",
+            "title": "Window functions",
+            "minutes": 25,
+            "summary": "Remove repeated events, keep the latest of each order, and measure how long orders wait at each step.",
+            "href": "D1_3_sql_windows.ipynb",
+            "steps": [
+              {
+                "text": "GROUP BY vs. OVER on eight orders",
+                "minutes": 4
+              },
+              {
+                "text": "Running revenue per city",
+                "minutes": 5
+              },
+              {
+                "text": "ROW_NUMBER: remove repeats, keep the latest",
+                "minutes": 7
+              },
+              {
+                "text": "LEAD: minutes at each step",
+                "minutes": 6
+              },
+              {
+                "text": "Break it: order by arrival instead of event time",
+                "minutes": 3
+              }
+            ],
+            "stretch": "ROW_NUMBER, RANK and DENSE_RANK on a tie"
+          }
+        },
+        {
+          "title": "Files for analytics",
+          "outcomes": [
+            "Measure CSV against Parquet on the same rows",
+            "Use sorting and min-max statistics to skip most of a file",
+            "Partition by date, and recognize too many small files"
+          ],
+          "lab": {
+            "id": "1.4",
+            "title": "Files for analytics",
+            "minutes": 25,
+            "summary": "Measure CSV against Parquet, make a filter skip 33 of 35 row groups by sorting, and pay for too many files.",
+            "href": "D1_4_files_parquet.ipynb",
+            "steps": [
+              {
+                "text": "CSV vs. Parquet: size and scan time",
+                "minutes": 6
+              },
+              {
+                "text": "Read the min and max of each row group",
+                "minutes": 5
+              },
+              {
+                "text": "Sort the file and count row groups skipped",
+                "minutes": 6
+              },
+              {
+                "text": "Partition by date and query one day",
+                "minutes": 5
+              },
+              {
+                "text": "Over-partition on purpose and measure",
+                "minutes": 3
+              }
+            ],
+            "stretch": "Prove the partition caveat in the plan"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day2",
+      "kind": "day",
+      "title": "Ingest & Clean",
+      "deck": "slides/day2.html",
+      "sessions": [
+        {
+          "title": "Batch ingestion by hand",
+          "outcomes": [
+            "Follow an API's pages and survive a 429 with backoff",
+            "Choose between a full load and an incremental load with a cursor",
+            "Prove that running a load twice changes nothing"
+          ],
+          "lab": {
+            "id": "2.1",
+            "title": "Ingest an API by hand",
+            "minutes": 25,
+            "summary": "Pages, a 429, a cursor, and a load you can safely run twice, against the local payments API.",
+            "href": "D2_1_api_ingestion.ipynb",
+            "steps": [
+              {
+                "text": "Make one request and read the response",
+                "minutes": 3
+              },
+              {
+                "text": "Follow every page",
+                "minutes": 5
+              },
+              {
+                "text": "Survive a 429 with backoff",
+                "minutes": 6
+              },
+              {
+                "text": "Compare a full load with an incremental load",
+                "minutes": 4
+              },
+              {
+                "text": "Prove a re-run doesn't double-load",
+                "minutes": 7
+              }
+            ],
+            "stretch": "· Keep the rows and the cursor in one transaction"
+          }
+        },
+        {
+          "title": "Ingestion with dlt",
+          "outcomes": [
+            "Load an API incrementally into DuckDB in a few lines",
+            "Pick a write disposition per table: append, replace or merge",
+            "Explain what dlt does when the source adds a column"
+          ],
+          "lab": {
+            "id": "2.2",
+            "title": "The same job with dlt",
+            "minutes": 25,
+            "summary": "The payments API and the app database land in DuckDB's raw schema, safe to re-run.",
+            "href": "D2_2_dlt_pipeline.ipynb",
+            "steps": [
+              {
+                "text": "Write the resource and run the pipeline",
+                "minutes": 7
+              },
+              {
+                "text": "Read what dlt created: tables, columns, cursor",
+                "minutes": 3
+              },
+              {
+                "text": "Re-run it, then prove the merge updated rows",
+                "minutes": 5
+              },
+              {
+                "text": "Load the app tables: replace stores, merge orders",
+                "minutes": 5
+              },
+              {
+                "text": "Spot the new wallet_provider column; read the load log",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Load the supplier CSVs: what happens in week 39?"
+          }
+        },
+        {
+          "title": "Changes and history",
+          "outcomes": [
+            "Explain why a copy goes stale, and what a change feed adds",
+            "Handle the feed's duplicates and late events with latest-per-key and MERGE",
+            "Keep every version with SCD Type 2"
+          ],
+          "lab": {
+            "id": "2.3",
+            "title": "From a change feed to history",
+            "minutes": 25,
+            "summary": "Replay September's changes on the 1 September snapshot, end exactly where the app is, and keep the history.",
+            "href": "D2_3_cdc_merge_scd.ipynb",
+            "steps": [
+              {
+                "text": "Read the feed; find duplicates and late events",
+                "minutes": 4
+              },
+              {
+                "text": "Keep the latest change per customer",
+                "minutes": 6
+              },
+              {
+                "text": "MERGE the changes into our copy",
+                "minutes": 6
+              },
+              {
+                "text": "Reconcile with the app (0 differences)",
+                "minutes": 4
+              },
+              {
+                "text": "Build the SCD2 history",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· As-of join: revenue by customer city at order time"
+          }
+        },
+        {
+          "title": "Bronze to silver with Polars",
+          "outcomes": [
+            "Use Polars expressions: select, filter, with_columns, group_by",
+            "Parse three timestamp formats into UTC, remove duplicates, add Riyadh time",
+            "Write silver as Parquet and read it with another engine"
+          ],
+          "lab": {
+            "id": "2.4",
+            "title": "Bronze to silver with Polars",
+            "minutes": 25,
+            "summary": "Turn the couriers' raw events into a clean silver table: one type, no duplicates, Riyadh time, Parquet.",
+            "href": "D2_4_bronze_to_silver.ipynb",
+            "steps": [
+              {
+                "text": "Meet Polars: expressions on the bronze events",
+                "minutes": 5
+              },
+              {
+                "text": "Parse three timestamp formats into UTC",
+                "minutes": 6
+              },
+              {
+                "text": "Deduplicate and convert to Riyadh time",
+                "minutes": 6
+              },
+              {
+                "text": "Measure how late events arrive",
+                "minutes": 3
+              },
+              {
+                "text": "Write silver Parquet and read it back",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Clean the customers' mobile numbers to one format"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day3",
+      "kind": "day",
+      "title": "Model & Test",
+      "deck": "slides/day3.html",
+      "sessions": [
+        {
+          "title": "Dimensional modeling",
+          "outcomes": [
+            "Write down what a number means before computing it",
+            "State the grain of a table, and test it",
+            "Build a star, and avoid fan-out and lost sales"
+          ],
+          "lab": {
+            "id": "3.1",
+            "title": "A star schema for Qafila",
+            "minutes": 25,
+            "summary": "Write the definition, test the grain, build the star by hand, and walk into the fan-out on purpose.",
+            "href": "D3_1_dimensional_modeling.ipynb",
+            "steps": [
+              {
+                "text": "1 · Compare three revenue totals",
+                "minutes": 4
+              },
+              {
+                "text": "2 · Test the grain of the order lines",
+                "minutes": 4
+              },
+              {
+                "text": "3 · Build the dimensions with an unknown member",
+                "minutes": 6
+              },
+              {
+                "text": "4 · Build the fact table and reconcile it",
+                "minutes": 6
+              },
+              {
+                "text": "5 · Spot the fan-out and fix it",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Measure the National Day uplift per city"
+          }
+        },
+        {
+          "title": "dbt",
+          "outcomes": [
+            "Turn a folder of SELECTs into a star, built in the right order",
+            "Use source and ref, and choose view or table",
+            "Read the lineage dbt works out for itself"
+          ],
+          "lab": {
+            "id": "3.2",
+            "title": "The same star in dbt",
+            "minutes": 25,
+            "summary": "Tour a real project, write a staging model and a mart, build the star, and read the lineage.",
+            "href": "D3_2_dbt_project.ipynb",
+            "steps": [
+              {
+                "text": "1 · Tour the project and list its models",
+                "minutes": 4
+              },
+              {
+                "text": "2 · Write stg_orders from a source",
+                "minutes": 6
+              },
+              {
+                "text": "3 · Run dbt build and read the log",
+                "minutes": 5
+              },
+              {
+                "text": "4 · Write a mart with ref and build it",
+                "minutes": 6
+              },
+              {
+                "text": "5 · Read the lineage",
+                "minutes": 4
+              }
+            ],
+            "stretch": "· Split your mart by month"
+          }
+        },
+        {
+          "title": "Data quality",
+          "outcomes": [
+            "Read dbt test results, and add a test that finds real problems",
+            "Decide whether a failure warns or stops the build",
+            "Check files with Pandera, and quarantine the bad rows"
+          ],
+          "lab": {
+            "id": "3.3",
+            "title": "Tests and quarantine",
+            "minutes": 25,
+            "summary": "Read test results, add a test that catches real orphans, choose its severity, then guard the supplier files.",
+            "href": "D3_3_data_quality.ipynb",
+            "steps": [
+              {
+                "text": "1 · Run the tests and read the warnings",
+                "minutes": 5
+              },
+              {
+                "text": "2 · Add a relationships test that finds orphans",
+                "minutes": 6
+              },
+              {
+                "text": "3 · Choose warn or error",
+                "minutes": 5
+              },
+              {
+                "text": "4 · Validate the supplier files with Pandera",
+                "minutes": 6
+              },
+              {
+                "text": "5 · Quarantine the bad rows",
+                "minutes": 3
+              }
+            ],
+            "stretch": "· Store the failing rows in the warehouse"
+          }
+        },
+        {
+          "title": "Orchestration with Dagster",
+          "outcomes": [
+            "Say why a nightly script isn't enough",
+            "Model a pipeline as assets, with dbt in the same graph",
+            "Schedule it, block bad data, and watch the volume"
+          ],
+          "lab": {
+            "id": "3.4",
+            "title": "Orchestrating Qafila with Dagster",
+            "minutes": 25,
+            "summary": "Write assets, put dbt in the same graph, schedule it, and add a blocking check and a volume check.",
+            "href": "D3_4_orchestration_dagster.ipynb",
+            "steps": [
+              {
+                "text": "1 · Write ingestion assets",
+                "minutes": 5
+              },
+              {
+                "text": "2 · Put dbt in the graph",
+                "minutes": 6
+              },
+              {
+                "text": "3 · Schedule the graph",
+                "minutes": 3
+              },
+              {
+                "text": "4 · Stop bad data with a blocking check",
+                "minutes": 6
+              },
+              {
+                "text": "5 · Add a volume check",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Retry a flaky API"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day4",
+      "kind": "day",
+      "title": "Scale & Production",
+      "deck": "slides/day4.html",
+      "sessions": [
+        {
+          "title": "Lakehouse with Iceberg",
+          "outcomes": [
+            "Explain why a folder of files can't give readers one consistent version",
+            "Follow an Iceberg table from its catalog down to its Parquet files",
+            "Go back in time, add a column and read one table with two engines"
+          ],
+          "lab": {
+            "id": "4.1",
+            "title": "A table on a folder: Iceberg",
+            "minutes": 25,
+            "summary": "Catch a folder mid-rewrite, then build the table that fixes it, time-travel it and read it with two engines.",
+            "href": "D4_1_iceberg_lakehouse.ipynb",
+            "steps": [
+              {
+                "text": "Catch a folder mid-rewrite",
+                "minutes": 4
+              },
+              {
+                "text": "Create an Iceberg table and load two batches",
+                "minutes": 6
+              },
+              {
+                "text": "Walk the metadata tree on disk",
+                "minutes": 4
+              },
+              {
+                "text": "Change rows and time travel",
+                "minutes": 6
+              },
+              {
+                "text": "Add a column; read with DuckDB and Polars",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Expire old snapshots and see which files stay on disk"
+          }
+        },
+        {
+          "title": "Spark",
+          "outcomes": [
+            "Decide whether a job needs a cluster at all",
+            "Explain driver, executors, partitions and why nothing runs until an action",
+            "Find the shuffles in a physical plan"
+          ],
+          "lab": {
+            "id": "4.2",
+            "title": "Spark: when you need it, and how to read it",
+            "minutes": 25,
+            "summary": "Run on Colab: time it on one machine, run Spark with DataFrames and SQL, find the shuffles, count the files.",
+            "href": "D4_2_spark.ipynb",
+            "steps": [
+              {
+                "text": "Do you need a cluster? Time it on one machine",
+                "minutes": 3
+              },
+              {
+                "text": "Start Spark; see that nothing runs until an action",
+                "minutes": 6
+              },
+              {
+                "text": "Daily sales per city: DataFrame API and SQL",
+                "minutes": 6
+              },
+              {
+                "text": "Read the plan and find the shuffles",
+                "minutes": 5
+              },
+              {
+                "text": "Write partitioned output; count the files",
+                "minutes": 5
+              }
+            ],
+            "stretch": "· Open the Spark UI and find your shuffle"
+          }
+        },
+        {
+          "title": "Streaming",
+          "outcomes": [
+            "Decide when a stream is worth it, and when batch is enough",
+            "Explain logs, offsets and how to survive crashes and repeats",
+            "Choose between event time and processing time, and set a watermark"
+          ],
+          "lab": {
+            "id": "4.3",
+            "title": "Streaming: a log, a crash and a watermark",
+            "minutes": 25,
+            "summary": "Build a small log, crash a consumer, make its count idempotent, then close windows with a watermark in plain Python.",
+            "href": "D4_3_streaming_fundamentals.ipynb",
+            "steps": [
+              {
+                "text": "Write the events into a log with offsets",
+                "minutes": 4
+              },
+              {
+                "text": "Consume, crash and count too many",
+                "minutes": 5
+              },
+              {
+                "text": "Make the count idempotent",
+                "minutes": 6
+              },
+              {
+                "text": "Event time vs. processing time",
+                "minutes": 4
+              },
+              {
+                "text": "Windows and a watermark: measure the trade-off",
+                "minutes": 6
+              }
+            ],
+            "stretch": "· Replay the log from offset 0 with a new reader"
+          }
+        },
+        {
+          "title": "Governance + capstone kickoff",
+          "outcomes": [
+            "Say what PDPL and the NDMO levels ask of a data engineer",
+            "Find personal data by content and classify every column",
+            "Protect it with keyed tokens and masked views, then pick your capstone"
+          ],
+          "lab": {
+            "id": "4.4",
+            "title": "Find it, label it, protect it",
+            "minutes": 25,
+            "summary": "Scan values for PII, classify every column, swap IDs for keyed tokens and build a view per role.",
+            "href": "D4_4_governance_privacy.ipynb",
+            "steps": [
+              {
+                "text": "Look at where personal data hides",
+                "minutes": 3
+              },
+              {
+                "text": "Find PII by content: a pattern plus a checksum",
+                "minutes": 6
+              },
+              {
+                "text": "Classify every column",
+                "minutes": 4
+              },
+              {
+                "text": "Pseudonymize with a keyed hash",
+                "minutes": 6
+              },
+              {
+                "text": "Build a masked view per role",
+                "minutes": 6
+              }
+            ],
+            "stretch": "· Redact free-text notes before they leave the platform"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day5",
+      "kind": "capstone",
+      "title": "Capstone Project Presentations",
+      "deck": "slides/day5.html"
+    }
+  ],
+  "capstone": {
+    "summary": "Teams of 2–3 build a working data platform, choosing one of: Qafila Lakehouse: from raw sources to governed marts and an operations view; Open Data Platform: Saudi open datasets with tests and a small dashboard; Real-time Operations Monitor: replayed courier events, event-time KPIs and SLA alerts.",
+    "submission": "Submit a public GitHub repository link before Day 5 with working code, a README, the grain of every fact table, and test results. Starter kit: labs/capstone/.",
+    "rubric": [
+      {
+        "criterion": "Functional end-to-end pipeline",
+        "weight": 30
+      },
+      {
+        "criterion": "Architecture & data modeling decisions",
+        "weight": 25
+      },
+      {
+        "criterion": "Data quality & testing",
+        "weight": 20
+      },
+      {
+        "criterion": "Orchestration & governance",
+        "weight": 15
+      },
+      {
+        "criterion": "Presentation & reproducibility",
+        "weight": 10
+      }
+    ],
+    "talk_minutes": 10,
+    "qa_minutes": 5
+  },
+  "labs": {
+    "kind": "notebooks",
+    "base": "labs/"
+  },
+  "extensions": {
+    "css": [
+      "assets/course.css",
+      "assets/migrated.css"
+    ],
+    "js": [
+      "assets/course.js"
+    ]
+  }
+}

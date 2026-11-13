@@ -1,0 +1,12 @@
+/* Rules that the old decks wrote in their own <head>. They now apply to every deck of the course. */
+
+/* from the <style> of the old slides/day5.html line 10 */
+  .timers { display: flex; gap: 90px; justify-content: center; }
+  .timers > div { text-align: center; }
+  .timers .timer { font-size: 150px; margin: 10px 0; }
+  .timers h3 { color: #fff; margin: 0; }
+  .presenting input {
+    font: 700 64px var(--font); color: #fff; background: transparent; border: none; border-bottom: 2px dashed rgba(255,255,255,.35);
+    text-align: center; width: 1100px; outline: none;
+  }
+  .order td input { font: inherit; border: none; background: transparent; width: 100%; color: var(--ink); outline: none; }

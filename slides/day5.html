@@ -1,0 +1,266 @@
+<section class="slide title" data-label="Welcome" id="title">
+  <div class="kicker">SDAIA Academy · Modern Data Engineering</div>
+  <h1>Capstone Project Presentations</h1>
+  <p class="lead mt">Day 5: demonstrate, explain and defend a working data platform</p>
+  <div class="meta">
+    <span class="track">AI Engineering Track</span>
+    <span>Day 5 of 5</span>
+    <span>Team demos · technical Q&amp;A · peer review</span>
+  </div>
+</section>
+
+<section class="slide" data-label="Agenda" id="day-5-agenda">
+  <div class="kicker">Today</div>
+  <h2>Day 5 agenda</h2>
+  <div class="agenda">
+    <div class="item"><span><b>Session 1 · Opening + presentations</b><small>Evaluation expectations, then teams 1–2</small></span></div>
+    <div class="item"><span><b>Session 2 · Presentations</b><small>Teams 3–5</small></span></div>
+    <div class="item"><span><b>Session 3 · Presentations</b><small>Teams 6–8</small></span></div>
+    <div class="item"><span><b>Session 4 · Final presentations + review</b><small>Teams 9–10, peer feedback, instructor review, lessons learned, closing</small></span></div>
+  </div>
+  <aside class="notes">Default plan fits 10 teams at 15 minutes each. With fewer teams, extend Q&amp;A or the review in Session 4; with more, cut Q&amp;A to 4 minutes.</aside>
+</section>
+
+<section class="slide section" id="opening-evaluation-expectations">
+  <div class="kicker">Session 1</div>
+  <h1>Opening &amp; evaluation expectations</h1>
+  <ul class="bullets outcomes tight">
+    <li>How each presentation runs and how it's scored</li>
+    <li>What strong answers to technical questions look like</li>
+    <li>How you give useful peer feedback</li>
+  </ul>
+  <div class="sess-no">01</div>
+</section>
+
+<section class="slide" id="15-minutes-per-team">
+  <div class="kicker">Format</div>
+  <h2>15 minutes per team</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><div class="big" style="color:var(--teal)">10'</div><h4 class="mt-s">Talk + live demo</h4><p class="small mb0">Every member speaks. Run the pipeline live, then show a re-run that changes nothing.</p></div>
+    <div class="card c-coral"><div class="big" style="color:var(--coral)">5'</div><h4 class="mt-s">Technical Q&amp;A</h4><p class="small mb0">Instructor first, then the audience. Answer with evidence: a query, a test result, a lineage graph.</p></div>
+    <div class="card c-navy"><div class="big">↻</div><h4 class="mt-s">Changeover</h4><p class="small mb0">Next team connects during Q&amp;A. Have your laptop ready, the warehouse built and the UI open.</p></div>
+  </div>
+  <div class="callout warn mt small"><b>Timekeeping:</b> signal at 3 minutes left and 1 minute left. When the talk timer ends we move to Q&amp;A. A long job or a broken demo? Switch to your <b>recorded backup</b> immediately.</div>
+</section>
+
+<section class="slide" id="eight-slides-that-tell">
+  <div class="kicker">Suggested structure</div>
+  <h2>Eight slides that tell the whole story</h2>
+  <div class="cols cols-2">
+    <ol class="bullets small">
+      <li><b>Problem</b>: who needs this data, for which decisions, how fresh</li>
+      <li><b>Sources</b>: types, volumes, refresh, the nasty surprises you found</li>
+      <li><b>Architecture</b>: one diagram, tools at each layer, and why</li>
+      <li><b>Model</b>: facts and dimensions, with the grain in one sentence each</li>
+    </ol>
+    <ol class="bullets small" start="5" style="counter-reset: n 4">
+      <li><b>Trust</b>: tests and checks, the real problem one of them caught</li>
+      <li><b>Operations + governance</b>: schedule, re-runs, personal data</li>
+      <li><b>Live demo</b>: run it, re-run it, query the result</li>
+      <li><b>Lessons and next steps</b>: what breaks first at 100× the data</li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide" id="what-each-criterion-looks">
+  <div class="kicker">Scoring guide</div>
+  <h2>What each criterion looks like at its best</h2>
+  <table class="t small">
+    <tr><th>Criterion</th><th class="num">Weight</th><th>Strong evidence</th></tr>
+    <tr><td>Functional end-to-end pipeline</td><td class="num">30%</td><td>Two or more source types to analytics-ready tables with one command, from a clean clone, live</td></tr>
+    <tr><td>Architecture &amp; data modeling</td><td class="num">25%</td><td>Layers with clear jobs; grain stated and tested; tool choices justified by data size, freshness and team</td></tr>
+    <tr><td>Data quality &amp; testing</td><td class="num">20%</td><td>8+ data tests with severities; one caught a real issue; freshness or volume checked</td></tr>
+    <tr><td>Orchestration &amp; governance</td><td class="num">15%</td><td>Idempotent incremental loads shown live; a schedule; personal data classified and protected</td></tr>
+    <tr><td>Presentation &amp; reproducibility</td><td class="num">10%</td><td>Clear story, on time; README lets a stranger rebuild everything</td></tr>
+  </table>
+</section>
+
+<section class="slide" id="questions-you-should-be">
+  <div class="kicker">Technical Q&amp;A</div>
+  <h2>Questions you should be ready for</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>What's the grain of this fact table? Show me the test that proves it.</li>
+      <li>What happens if tonight's load runs twice? Or fails halfway?</li>
+      <li>A source renames a column tomorrow. Where does it break, and who finds out?</li>
+      <li>How do you handle late or duplicated records?</li>
+    </ul>
+    <ul class="bullets small">
+      <li>Which columns hold personal data? Who can see them raw?</li>
+      <li>A customer asks to be erased. Walk me through every place their data lives.</li>
+      <li>What would you change at 100× today's volume? Would you need Spark?</li>
+      <li>Why this tool and not the simpler alternative?</li>
+    </ul>
+  </div>
+  <div class="callout tip mt small"><b>Great answers</b> point to a query, a test, a run in the orchestrator or a line in the README. "We didn't handle that, and here's how we would" is a fine answer too.</div>
+</section>
+
+<section class="slide" id="give-feedback-that-helps">
+  <div class="kicker">Peer feedback</div>
+  <h2>Give feedback that helps: 1 · 1 · 1</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>One strength</h4><p class="small mb0">Be specific: "Showing the re-run with identical row counts made idempotency obvious."</p></div>
+    <div class="card c-cyan"><h4>One question</h4><p class="small mb0">Something you genuinely want to know about their choices or trade-offs.</p></div>
+    <div class="card c-coral"><h4>One suggestion</h4><p class="small mb0">A concrete next step: "Make the payment load incremental with a look-back window."</p></div>
+  </div>
+  <div class="callout note mt small">Write feedback for each team on the shared form while they present. It's shared with the team after the session.</div>
+</section>
+
+<section class="slide order" data-label="Running order" id="teams-time-slots">
+  <div class="kicker">Running order</div>
+  <h2>Teams and time slots</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>#</th><th>Session</th><th>Team</th><th>Option</th></tr>
+      <tr><td>1</td><td>Session 1</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>2</td><td>Session 1</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>3</td><td>Session 2</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>4</td><td>Session 2</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>5</td><td>Session 2</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+    </table>
+    <table class="t small">
+      <tr><th>#</th><th>Session</th><th>Team</th><th>Option</th></tr>
+      <tr><td>6</td><td>Session 3</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>7</td><td>Session 3</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>8</td><td>Session 3</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>9</td><td>Session 4</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+      <tr><td>10</td><td>Session 4</td><td><input placeholder="Team name"></td><td><input placeholder="Option"></td></tr>
+    </table>
+  </div>
+  <p class="xsmall muted mt">Click a cell to type team names before the session. They stay until the page is reloaded.</p>
+</section>
+
+<section class="slide dark presenting" data-label="Presentations" id="talk-demo">
+  <div class="kicker">Now presenting</div>
+  <div class="center"><input value="Team name" aria-label="Team name"></div>
+  <div class="timers mt">
+    <div><h3>Talk + demo</h3><div class="timer" data-minutes="10"></div></div>
+    <div><h3>Q&amp;A</h3><div class="timer" data-minutes="5"></div></div>
+  </div>
+  <aside class="notes">T starts or pauses the talk timer; use the buttons for the Q&amp;A timer. Reset both between teams.</aside>
+</section>
+
+
+<section class="slide section" id="presentations-teams-3-5">
+  <div class="kicker">Session 2</div>
+  <h1>Presentations: teams 3–5</h1>
+  <div class="sess-no">02</div>
+</section>
+
+<section class="slide dark presenting" data-label="Presentations" id="talk-demo-2">
+  <div class="kicker">Now presenting</div>
+  <div class="center"><input value="Team name" aria-label="Team name"></div>
+  <div class="timers mt">
+    <div><h3>Talk + demo</h3><div class="timer" data-minutes="10"></div></div>
+    <div><h3>Q&amp;A</h3><div class="timer" data-minutes="5"></div></div>
+  </div>
+</section>
+
+
+<section class="slide section" id="presentations-teams-6-8">
+  <div class="kicker">Session 3</div>
+  <h1>Presentations: teams 6–8</h1>
+  <div class="sess-no">03</div>
+</section>
+
+<section class="slide dark presenting" data-label="Presentations" id="talk-demo-3">
+  <div class="kicker">Now presenting</div>
+  <div class="center"><input value="Team name" aria-label="Team name"></div>
+  <div class="timers mt">
+    <div><h3>Talk + demo</h3><div class="timer" data-minutes="10"></div></div>
+    <div><h3>Q&amp;A</h3><div class="timer" data-minutes="5"></div></div>
+  </div>
+</section>
+
+
+<section class="slide section" id="final-presentations-review-closing">
+  <div class="kicker">Session 4</div>
+  <h1>Final presentations, review &amp; closing</h1>
+  <ul class="bullets outcomes tight">
+    <li>Teams 9–10</li>
+    <li>Peer feedback and instructor review</li>
+    <li>Lessons learned and where to go next</li>
+  </ul>
+  <div class="sess-no">04</div>
+</section>
+
+<section class="slide dark presenting" data-label="Presentations" id="talk-demo-4">
+  <div class="kicker">Now presenting</div>
+  <div class="center"><input value="Team name" aria-label="Team name"></div>
+  <div class="timers mt">
+    <div><h3>Talk + demo</h3><div class="timer" data-minutes="10"></div></div>
+    <div><h3>Q&amp;A</h3><div class="timer" data-minutes="5"></div></div>
+  </div>
+</section>
+
+<section class="slide" data-label="Review" id="patterns-across-projects">
+  <div class="kicker">Instructor review</div>
+  <h2>Patterns across projects</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal"><h4>What worked</h4>
+      <ul class="small"><li>Writing the grain down first, and testing it</li><li>Showing a re-run that changes nothing</li><li>Tests with severities and owners, not just "it passed"</li><li>Keeping it simple: DuckDB + dbt until the data said otherwise</li></ul></div>
+    <div class="card c-coral"><h4>What to watch</h4>
+      <ul class="small"><li>Append-only loads that duplicate on retry</li><li>Fan-out joins inflating revenue</li><li>Personal data copied into every layer "just in case"</li><li>Demos that only work on the presenter's laptop</li></ul></div>
+  </div>
+  <aside class="notes">Adapt this slide live: replace bullets with specific observations from today's presentations before the session or during the last break.</aside>
+</section>
+
+<section class="slide top" data-label="The platform" data-read="scaled" id="every-stage-end-end">
+  <div class="kicker">What you can now build</div>
+  <h2>Every stage, end to end</h2>
+  <div class="pmap" data-here=""></div>
+  <aside class="notes">The map from Day 1. Point at each stage and ask a team to name what theirs used, and why.</aside>
+</section>
+
+<section class="slide" data-label="Recap" id="from-raw-sources-governed">
+  <div class="kicker">The whole journey</div>
+  <h2>From raw sources to governed, trusted data</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>Land</b>files, APIs, CDC, dlt</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Model</b>DuckDB, star schema, dbt</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Trust</b>tests, checks, quarantine</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Scale</b>Iceberg, Spark, streams</div>
+    <div class="arrow">→</div>
+    <div class="step c-coral"><b>Operate</b>orchestration, monitors</div>
+    <div class="arrow">→</div>
+    <div class="step c-amber"><b>Govern</b>PDPL, masking, access</div>
+  </div>
+  <table class="t small mt">
+    <tr><th>If you need…</th><th>Start with…</th></tr>
+    <tr><td>Analytics on up to ~100s of GB</td><td>DuckDB or Polars on one machine, Parquet files, dbt</td></tr>
+    <tr><td>Many engines on one copy of the data</td><td>Iceberg tables over Parquet files</td></tr>
+    <tr><td>Fresh data within minutes</td><td>CDC or events into a log, read by an idempotent consumer</td></tr>
+    <tr><td>Terabytes per job, or a shared cluster</td><td>Spark (managed), with an eye on shuffles and file sizes</td></tr>
+    <tr><td>Consistent numbers across every report</td><td>A tested star schema, with each metric defined once</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-label="What next" id="where-go-from-here">
+  <div class="kicker">Keep going</div>
+  <h2>Where to go from here</h2>
+  <div class="cols cols-4 gap-s">
+    <div class="card c-amber"><h4>Cloud data platforms</h4><p class="small mb0">Object storage, IAM, managed warehouses and catalogs, cost control</p></div>
+    <div class="card c-amber"><h4>Streaming at scale</h4><p class="small mb0">Kafka operations, Flink, exactly-once end to end</p></div>
+    <div class="card c-amber"><h4>Data governance</h4><p class="small mb0">Catalogs, lineage, policy-as-code, privacy engineering</p></div>
+    <div class="card c-amber"><h4>Data for ML &amp; AI</h4><p class="small mb0">Feature pipelines, embeddings (Applied NLP), MLOps</p></div>
+  </div>
+  <div class="cols cols-2 mt">
+    <div class="callout tip small"><b>This week:</b> push your capstone repository (public or internal), add an architecture diagram, and write a short post on one thing that surprised you.</div>
+    <div class="callout note small"><b>Keep practising:</b> the dbt, DuckDB, Dagster and Apache Iceberg docs, the <i>Fundamentals of Data Engineering</i> book (Reis &amp; Housley), and Saudi open data to build on.</div>
+  </div>
+</section>
+
+<section class="slide dark" data-label="Thank you" id="thank-you">
+  <div class="kicker">Modern Data Engineering · SDAIA Academy</div>
+  <h1>Thank you</h1>
+  <p class="lead mt">Please complete the course feedback survey before you leave. It directly shapes the next cohort.</p>
+  <div class="art-row mt" style="justify-content:center"><div class="art customer" style="width:130px"></div><div class="art courier" style="width:130px"></div><div class="art engineer" style="width:130px"></div><div class="art analyst" style="width:130px"></div><div class="art steward" style="width:130px"></div></div>
+  <div class="cols cols-3 mt">
+    <div class="card c-teal"><h4>Survey</h4><p class="small mb0">Link shared in the course channel</p></div>
+    <div class="card c-cyan"><h4>Certificates</h4><p class="small mb0">Issued after capstone submission is confirmed</p></div>
+    <div class="card c-coral"><h4>Stay in touch</h4><p class="small mb0">Course channel stays open for capstone follow-ups</p></div>
+  </div>
+</section>
