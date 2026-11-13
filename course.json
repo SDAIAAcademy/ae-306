@@ -2,14 +2,29 @@
   "$schema": "https://sdaiaacademy.github.io/engine/schemas/course.schema.json",
   "engine": "1",
   "id": "data-engineering",
-  "version": "2026.1.0",
+  "code": "AE-306",
+  "version": "2027.1.0",
   "lang": "en",
-  "title": "Modern Data Engineering",
-  "tagline": "From raw sources to a tested, governed lakehouse: the bridge from a CS degree to the work a data team does every day.",
+  "title": {
+    "en": "Modern Data Engineering",
+    "ar": "هندسة البيانات الحديثة"
+  },
+  "tagline": "Build one batch pipeline from raw extracts to a tested, governed open table that two engines read",
+  "description": "Participants build one batch pipeline end to end for Qafila, the fictional trading company of the Academy's data engineering course, whose margin report nobody trusts. They query raw extracts with analytical SQL, ingest an API and a database change feed incrementally, clean with dataframes, model a star schema with a slowly changing supplier dimension, write tested transformations and a data contract, orchestrate them, and land the result in an open table format that a second engine reads. Day four adds distributed processing, streaming and governance.",
   "track": "ai-engineering",
-  "audience": "Fresh CS graduates, or anyone comfortable with Python and basic SQL (SELECT, JOIN, GROUP BY). No data engineering experience needed.",
+  "level": 300,
+  "badge": {
+    "name": "AI Engineering",
+    "level": "Associate"
+  },
+  "audience": "Practitioners. Engineers who have completed the level 200 set or can show equivalent work: a deployed model or language model application they built and can explain.",
   "prerequisites": [
-    "Google Colab, or a laptop with uv. No Docker or cloud account. Lab 1.1 starts with 00_setup_check; see labs/README.md."
+    "FN-102 Command Line, Git and Reproducible Projects",
+    "FN-104 SQL and Data Wrangling",
+    "Writes SQL joins, grouping and simple window functions",
+    "Filters and joins tables with a Python dataframe library",
+    "Commits with Git from a shell",
+    "Setup: a laptop CPU with uv, or Google Colab. No model, no key, no Docker, no cloud account. Run 00_setup_check before Day 1; see labs/README.md."
   ],
   "site": {
     "url": "https://sdaiaacademy.github.io/data-engineering/",
@@ -18,192 +33,212 @@
   "outcomes": [
     {
       "id": "LO1",
-      "text": "Explain how a data platform fits together and choose between warehouse, lake and lakehouse"
+      "text": "Analyse raw transactional extracts with analytical SQL, including window functions and incremental predicates, given three months of synthetic orders, shipments and prices in columnar files",
+      "level": "Applied",
+      "evidence": "queries that reproduce the reference monthly margin and a note on two defects found"
     },
     {
       "id": "LO2",
-      "text": "Write analytical SQL, including window functions, over databases and files"
+      "text": "Implement incremental ingestion from an API and a change feed, keeping supplier history as a slowly changing dimension, given a paginated API and a feed with updates and deletes",
+      "level": "Applied",
+      "evidence": "loads that add no duplicates on re-run and correct validity ranges"
     },
     {
       "id": "LO3",
-      "text": "Build ingestion that is incremental and safe to re-run, from APIs and change feeds"
+      "text": "Design a dimensional model at a stated grain and build it as tested, version-controlled transformations, given the finance team's five margin questions",
+      "level": "Performance",
+      "evidence": "a star schema, passing tests and a rebuild that skips unchanged models"
     },
     {
       "id": "LO4",
-      "text": "Clean data, model it as a star schema and transform it with dbt under tests"
+      "text": "Build an orchestrated pipeline with a data contract, quality gates, retries and backfills that fails safely when an upstream feed breaks, given a supplier feed that changes its schema without notice",
+      "level": "Performance",
+      "evidence": "a run log showing the violation caught, the mart left unrefreshed and a backfill after the fix"
     },
     {
       "id": "LO5",
-      "text": "Orchestrate pipelines and catch bad data before it reaches a report"
+      "text": "Configure an open table format with partitioning, schema evolution and time travel, and read it from a second engine, given the margin mart and one schema change",
+      "level": "Applied",
+      "evidence": "identical results from two engines and a query against an earlier snapshot"
     },
     {
       "id": "LO6",
-      "text": "Decide when Iceberg, Spark or streaming is worth it, and protect personal data under PDPL"
+      "text": "Classify every field under the national classification levels and apply minimisation, masking and access rules, given the customer and supplier tables",
+      "level": "Applied",
+      "evidence": "a classification register and a masked view that passes access tests"
     }
   ],
   "case_study": {
-    "name": "Qafila",
-    "summary": "Qafila, a fictional grocery delivery app in Riyadh, Jeddah and Dammam. Its messy sources feed one data platform, and every lab adds a piece of it. All data is synthetic and generated on your machine."
+    "name": "Qafila Trading",
+    "summary": "Qafila Trading is a fictional importer and wholesaler of food and household goods in Jeddah, Riyadh and Dammam, selling to 240 shops, restaurants and hotels and buying from 18 suppliers in five countries. Its finance controller, Lujain Al-Zamil, does not trust the monthly margin report. Participants rebuild it as one pipeline: order extracts, a paginated supplier price API, a supplier change feed and a shipment event stream, all synthetic, generated with a fixed seed and planted with the problems the labs find."
   },
   "format": "intensive",
+  "format_note": "Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task",
+  "hours": {
+    "instruction": 6,
+    "lab": 7,
+    "guided_self_study": 6,
+    "assessment": 1,
+    "capstone": 6
+  },
   "unit": "day",
   "days": [
     {
       "id": "day1",
       "kind": "day",
-      "title": "Store & Query",
+      "title": "Store and query",
       "deck": "slides/day1.html",
       "sessions": [
         {
-          "title": "The job and the platform",
+          "title": "Platform shapes",
+          "summary": "Transactional and analytical systems, ELT, and the layers of a lakehouse, placed on Qafila's workloads",
           "outcomes": [
-            "Trace one order through the records it leaves",
-            "Tell OLTP from OLAP, and warehouse from lake from lakehouse",
-            "Explain ELT and the bronze, silver and gold layers"
+            "Tell a transactional workload from an analytical one by its access pattern",
+            "Measure a point lookup and an aggregate on a row store and a column store",
+            "Place a workload in a layer and justify it in one sentence"
+          ],
+          "lo": [
+            "LO1"
           ],
           "lab": {
             "id": "1.1",
-            "title": "Platform tour",
+            "title": "Ten workloads, three layers",
             "minutes": 25,
-            "summary": "Run the setup check, follow order 5043883 through the sources, and write the first issue log.",
-            "href": "D1_1_platform_tour.ipynb",
+            "summary": "Time a point lookup and a monthly aggregate in SQLite and DuckDB, then place ten Qafila workloads in transactional, warehouse or lakehouse layers and justify each.",
+            "href": "D1_1_platform_shapes.ipynb",
             "steps": [
               {
-                "text": "Run 00_setup_check in a second tab",
-                "minutes": 3
-              },
-              {
-                "text": "Tour the sources without loading anything",
-                "minutes": 5
-              },
-              {
-                "text": "Follow order 5043883 through four tables",
-                "minutes": 5
-              },
-              {
-                "text": "Count orders per day in Riyadh time",
-                "minutes": 5
-              },
-              {
-                "text": "Find the problems and write the issue log",
-                "minutes": 7
-              }
-            ],
-            "stretch": "Explain the biggest day of the two months"
-          }
-        },
-        {
-          "title": "Analytical SQL with DuckDB",
-          "outcomes": [
-            "Explain why column stores win at big reads",
-            "Query CSV and JSON files where they are, and check their types",
-            "Answer a business question with joins and aggregates, and test the total"
-          ],
-          "lab": {
-            "id": "1.2",
-            "title": "Analytical SQL with DuckDB",
-            "minutes": 25,
-            "summary": "Race two engines, read files in place, catch a wrong type, and measure what a join loses.",
-            "href": "D1_2_duckdb_sql.ipynb",
-            "steps": [
-              {
-                "text": "Race SQLite and DuckDB on one question",
-                "minutes": 5
-              },
-              {
-                "text": "Query CSV and JSON files in place",
-                "minutes": 5
-              },
-              {
-                "text": "SUMMARIZE a table and catch a wrong type",
+                "text": "Open the order database and the extracts",
                 "minutes": 4
               },
               {
-                "text": "Join and aggregate: revenue by city",
+                "text": "A point lookup and an aggregate, in both engines",
+                "minutes": 7
+              },
+              {
+                "text": "Place ten workloads, with a reason each",
+                "minutes": 10
+              },
+              {
+                "text": "Compare with the key and defend one difference",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Where would a nightly copy of the order database live, and why?"
+          }
+        },
+        {
+          "title": "Analytical SQL on a single node",
+          "summary": "Query extracts in place with an in-process engine and reproduce a number before trusting it",
+          "outcomes": [
+            "Query CSV and JSON files in place with DuckDB",
+            "Join lines to a price list valid on the order date",
+            "Reproduce a reference figure and explain each difference"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.2",
+            "title": "Reproduce the monthly margin",
+            "minutes": 25,
+            "summary": "Query the raw extracts in place and reproduce finance's monthly margin without AI assistance; trace the gap to two defects and write them down.",
+            "href": "D1_2_margin_sql.ipynb",
+            "steps": [
+              {
+                "text": "Read the extracts in place and profile them",
+                "minutes": 5
+              },
+              {
+                "text": "Revenue and cost per line, with the price valid on the order date",
+                "minutes": 8
+              },
+              {
+                "text": "The monthly margin against finance's reference",
                 "minutes": 6
               },
               {
-                "text": "Measure the revenue an inner join loses",
-                "minutes": 5
+                "text": "Find the two defects and write the note",
+                "minutes": 6
               }
             ],
-            "stretch": "Find the payments that don't match their order"
+            "stretch": "An incremental predicate: recompute only the month that changed"
           }
         },
         {
           "title": "Window functions",
+          "summary": "Running totals, changes from the previous row and first and last per group, without collapsing rows",
           "outcomes": [
-            "Compute an answer next to every row with OVER and PARTITION BY",
-            "Remove repeats and keep the latest with ROW_NUMBER",
-            "Compare a row with its neighbours using LAG and LEAD"
+            "Write a running total with a window frame",
+            "Detect changes with LAG over an ordered partition",
+            "Keep one row per group with ROW_NUMBER and QUALIFY"
+          ],
+          "lo": [
+            "LO1"
           ],
           "lab": {
             "id": "1.3",
-            "title": "Window functions",
+            "title": "Running margin, price changes, first and last orders",
             "minutes": 25,
-            "summary": "Remove repeated events, keep the latest of each order, and measure how long orders wait at each step.",
-            "href": "D1_3_sql_windows.ipynb",
+            "summary": "Compute the running margin by month, each supplier price change with its size, and every customer's first and last order.",
+            "href": "D1_3_windows.ipynb",
             "steps": [
               {
-                "text": "GROUP BY vs. OVER on eight orders",
+                "text": "GROUP BY against OVER on one week",
                 "minutes": 4
               },
               {
-                "text": "Running revenue per city",
-                "minutes": 5
-              },
-              {
-                "text": "ROW_NUMBER: remove repeats, keep the latest",
-                "minutes": 7
-              },
-              {
-                "text": "LEAD: minutes at each step",
+                "text": "Running margin that restarts each month",
                 "minutes": 6
               },
               {
-                "text": "Break it: order by arrival instead of event time",
-                "minutes": 3
+                "text": "Supplier price changes with LAG",
+                "minutes": 7
+              },
+              {
+                "text": "First and last order per customer",
+                "minutes": 8
               }
             ],
             "stretch": "ROW_NUMBER, RANK and DENSE_RANK on a tie"
           }
         },
         {
-          "title": "Files for analytics",
+          "title": "Columnar files and partitioning",
+          "summary": "Parquet, row-group statistics and partitions, measured in time and bytes",
           "outcomes": [
-            "Measure CSV against Parquet on the same rows",
-            "Use sorting and min-max statistics to skip most of a file",
-            "Partition by date, and recognize too many small files"
+            "Convert row files to Parquet and compare size and scan time",
+            "Read row-group statistics and see which groups a filter skips",
+            "Partition by month and measure what a one-month query reads"
+          ],
+          "lo": [
+            "LO5"
           ],
           "lab": {
             "id": "1.4",
-            "title": "Files for analytics",
+            "title": "Partitioned columnar files, measured",
             "minutes": 25,
-            "summary": "Measure CSV against Parquet, make a filter skip 33 of 35 row groups by sorting, and pay for too many files.",
-            "href": "D1_4_files_parquet.ipynb",
+            "summary": "Convert the order-line extracts to Parquet partitioned by month, and measure query time and bytes read against the CSV.",
+            "href": "D1_4_columnar.ipynb",
             "steps": [
               {
-                "text": "CSV vs. Parquet: size and scan time",
+                "text": "CSV against Parquet: size and scan time",
                 "minutes": 6
               },
               {
-                "text": "Read the min and max of each row group",
-                "minutes": 5
-              },
-              {
-                "text": "Sort the file and count row groups skipped",
+                "text": "Row groups and their statistics",
                 "minutes": 6
               },
               {
-                "text": "Partition by date and query one day",
-                "minutes": 5
+                "text": "Partition by month and query one month",
+                "minutes": 8
               },
               {
-                "text": "Over-partition on purpose and measure",
-                "minutes": 3
+                "text": "Too many small files, measured",
+                "minutes": 5
               }
             ],
-            "stretch": "Prove the partition caveat in the plan"
+            "stretch": "Prove the pruning in the query plan"
           }
         }
       ]
@@ -211,159 +246,163 @@
     {
       "id": "day2",
       "kind": "day",
-      "title": "Ingest & Clean",
+      "title": "Ingest and clean",
       "deck": "slides/day2.html",
       "sessions": [
         {
-          "title": "Batch ingestion by hand",
+          "title": "Ingesting from APIs",
+          "summary": "Pages, cursors, rate limits and loads that can run twice",
           "outcomes": [
-            "Follow an API's pages and survive a 429 with backoff",
-            "Choose between a full load and an incremental load with a cursor",
-            "Prove that running a load twice changes nothing"
+            "Follow every page of a cursor-paginated API",
+            "Back off on 429 responses",
+            "Store load state with the data so a re-run adds nothing"
+          ],
+          "lo": [
+            "LO2"
           ],
           "lab": {
             "id": "2.1",
-            "title": "Ingest an API by hand",
+            "title": "An incremental, idempotent API load",
             "minutes": 25,
-            "summary": "Pages, a 429, a cursor, and a load you can safely run twice, against the local payments API.",
+            "summary": "Load the paginated supplier price API into DuckDB with a stored cursor, survive rate limits, and show that a re-run adds no duplicates.",
             "href": "D2_1_api_ingestion.ipynb",
             "steps": [
               {
-                "text": "Make one request and read the response",
-                "minutes": 3
-              },
-              {
-                "text": "Follow every page",
-                "minutes": 5
-              },
-              {
-                "text": "Survive a 429 with backoff",
-                "minutes": 6
-              },
-              {
-                "text": "Compare a full load with an incremental load",
+                "text": "One request: read the page and the cursor",
                 "minutes": 4
               },
               {
-                "text": "Prove a re-run doesn't double-load",
+                "text": "Follow every page, back off on 429",
                 "minutes": 7
+              },
+              {
+                "text": "Load with a key and a stored cursor",
+                "minutes": 8
+              },
+              {
+                "text": "Run it twice, then after new data",
+                "minutes": 6
               }
             ],
-            "stretch": "· Keep the rows and the cursor in one transaction"
+            "stretch": "Keep the rows and the cursor in one transaction"
           }
         },
         {
-          "title": "Ingestion with dlt",
+          "title": "Declarative ingestion pipelines",
+          "summary": "The same load as a declared resource: cursor, merge, schema evolution and load state",
           "outcomes": [
-            "Load an API incrementally into DuckDB in a few lines",
-            "Pick a write disposition per table: append, replace or merge",
-            "Explain what dlt does when the source adds a column"
+            "Declare a REST resource with an incremental cursor and a primary key",
+            "Absorb a new source column and find it in the schema",
+            "Read a pipeline's load state and load history"
+          ],
+          "lo": [
+            "LO2"
           ],
           "lab": {
             "id": "2.2",
-            "title": "The same job with dlt",
+            "title": "The supplier load with dlt",
             "minutes": 25,
-            "summary": "The payments API and the app database land in DuckDB's raw schema, safe to re-run.",
+            "summary": "Rebuild the supplier price load with dlt, absorb the new incoterm column, and inspect the stored state and load history.",
             "href": "D2_2_dlt_pipeline.ipynb",
             "steps": [
               {
-                "text": "Write the resource and run the pipeline",
+                "text": "Declare the resource and run the pipeline",
                 "minutes": 7
               },
               {
-                "text": "Read what dlt created: tables, columns, cursor",
-                "minutes": 3
-              },
-              {
-                "text": "Re-run it, then prove the merge updated rows",
+                "text": "Read what was created: tables, columns, state",
                 "minutes": 5
               },
               {
-                "text": "Load the app tables: replace stores, merge orders",
-                "minutes": 5
+                "text": "New data with a new column: run again",
+                "minutes": 7
               },
               {
-                "text": "Spot the new wallet_provider column; read the load log",
-                "minutes": 5
+                "text": "Prove the merge: no duplicates, corrections applied",
+                "minutes": 6
               }
             ],
-            "stretch": "· Load the supplier CSVs: what happens in week 39?"
+            "stretch": "Freeze the schema and watch the next new column fail"
           }
         },
         {
-          "title": "Changes and history",
+          "title": "Change data capture, merge and history",
+          "summary": "Change events, ordering by log position, MERGE, and supplier history as a type 2 dimension",
           "outcomes": [
-            "Explain why a copy goes stale, and what a change feed adds",
-            "Handle the feed's duplicates and late events with latest-per-key and MERGE",
-            "Keep every version with SCD Type 2"
+            "Read a change event envelope and order events by log position",
+            "Apply updates and deletes to a copy with MERGE",
+            "Keep history as a type 2 dimension with valid ranges"
+          ],
+          "lo": [
+            "LO2"
           ],
           "lab": {
             "id": "2.3",
-            "title": "From a change feed to history",
+            "title": "Supplier changes and their history",
             "minutes": 25,
-            "summary": "Replay September's changes on the 1 September snapshot, end exactly where the app is, and keep the history.",
-            "href": "D2_3_cdc_merge_scd.ipynb",
+            "summary": "Apply the supplier change feed of updates and deletes, reconcile with the source, and keep supplier history as a slowly changing dimension with correct validity ranges.",
+            "href": "D2_3_cdc_scd.ipynb",
             "steps": [
               {
-                "text": "Read the feed; find duplicates and late events",
-                "minutes": 4
-              },
-              {
-                "text": "Keep the latest change per customer",
-                "minutes": 6
-              },
-              {
-                "text": "MERGE the changes into our copy",
-                "minutes": 6
-              },
-              {
-                "text": "Reconcile with the app (0 differences)",
-                "minutes": 4
-              },
-              {
-                "text": "Build the SCD2 history",
+                "text": "Read the feed: duplicates and out-of-order events",
                 "minutes": 5
+              },
+              {
+                "text": "Latest state per supplier with MERGE",
+                "minutes": 7
+              },
+              {
+                "text": "Reconcile with the source snapshot",
+                "minutes": 4
+              },
+              {
+                "text": "Type 2 history with valid ranges",
+                "minutes": 9
               }
             ],
-            "stretch": "· As-of join: revenue by customer city at order time"
+            "stretch": "As-of join: margin by supplier country at order time"
           }
         },
         {
-          "title": "Bronze to silver with Polars",
+          "title": "Cleaning with dataframes",
+          "summary": "Expressions, lazy plans and cleaning rules kept as data, with a log of what each rule changed",
           "outcomes": [
-            "Use Polars expressions: select, filter, with_columns, group_by",
-            "Parse three timestamp formats into UTC, remove duplicates, add Riyadh time",
-            "Write silver as Parquet and read it with another engine"
+            "Write cleaning steps as Polars expressions",
+            "Convert currencies and units to one cost per piece in SAR",
+            "Normalise Arabic names and log every rule with the rows it changed"
+          ],
+          "lo": [
+            "LO3"
           ],
           "lab": {
             "id": "2.4",
-            "title": "Bronze to silver with Polars",
+            "title": "Currencies, units and Arabic names",
             "minutes": 25,
-            "summary": "Turn the couriers' raw events into a clean silver table: one type, no duplicates, Riyadh time, Parquet.",
-            "href": "D2_4_bronze_to_silver.ipynb",
+            "summary": "Clean the supplier prices with Polars: currencies, units, Arabic supplier names and Arabic-Indic digits, logging every rule applied, then reconcile with the ERP price list.",
+            "href": "D2_4_cleaning.ipynb",
             "steps": [
               {
-                "text": "Meet Polars: expressions on the bronze events",
-                "minutes": 5
+                "text": "Profile the raw prices",
+                "minutes": 4
               },
               {
-                "text": "Parse three timestamp formats into UTC",
+                "text": "Digits and currencies",
                 "minutes": 6
               },
               {
-                "text": "Deduplicate and convert to Riyadh time",
+                "text": "Units: cartons to pieces",
+                "minutes": 5
+              },
+              {
+                "text": "Arabic supplier names to one id",
                 "minutes": 6
               },
               {
-                "text": "Measure how late events arrive",
-                "minutes": 3
-              },
-              {
-                "text": "Write silver Parquet and read it back",
-                "minutes": 5
+                "text": "The rule log and the reconciliation",
+                "minutes": 4
               }
             ],
-            "stretch": "· Clean the customers' mobile numbers to one format"
+            "stretch": "The same rules as a lazy plan: read the optimised plan"
           }
         }
       ]
@@ -371,159 +410,159 @@
     {
       "id": "day3",
       "kind": "day",
-      "title": "Model & Test",
+      "title": "Model and test",
       "deck": "slides/day3.html",
       "sessions": [
         {
-          "title": "Dimensional modeling",
+          "title": "Dimensional modelling",
+          "summary": "State the grain, then facts and dimensions that answer finance's questions",
           "outcomes": [
-            "Write down what a number means before computing it",
-            "State the grain of a table, and test it",
-            "Build a star, and avoid fan-out and lost sales"
+            "State the grain of a fact table in one sentence and test it",
+            "Build dimensions with an unknown member and a type 2 supplier",
+            "Find and fix a fan-out before it reaches a report"
+          ],
+          "lo": [
+            "LO3"
           ],
           "lab": {
             "id": "3.1",
-            "title": "A star schema for Qafila",
+            "title": "The margin star schema",
             "minutes": 25,
-            "summary": "Write the definition, test the grain, build the star by hand, and walk into the fan-out on purpose.",
-            "href": "D3_1_dimensional_modeling.ipynb",
+            "summary": "Draw the margin star schema at order-line grain, build it, and check it against the finance team's five margin questions.",
+            "href": "D3_1_star_schema.ipynb",
             "steps": [
               {
-                "text": "1 · Compare three revenue totals",
-                "minutes": 4
-              },
-              {
-                "text": "2 · Test the grain of the order lines",
-                "minutes": 4
-              },
-              {
-                "text": "3 · Build the dimensions with an unknown member",
+                "text": "Draw the star: grain, facts, dimensions",
                 "minutes": 6
               },
               {
-                "text": "4 · Build the fact table and reconcile it",
-                "minutes": 6
-              },
-              {
-                "text": "5 · Spot the fan-out and fix it",
+                "text": "Dimensions with an unknown member",
                 "minutes": 5
+              },
+              {
+                "text": "The fact table, and a grain test",
+                "minutes": 6
+              },
+              {
+                "text": "Five finance questions against the key",
+                "minutes": 8
               }
             ],
-            "stretch": "· Measure the National Day uplift per city"
+            "stretch": "Allocate freight by weight instead of revenue: which answers move?"
           }
         },
         {
-          "title": "dbt",
+          "title": "Transformations as code",
+          "summary": "SQL models in git, environments, and plans that rebuild only what changed",
           "outcomes": [
-            "Turn a folder of SELECTs into a star, built in the right order",
-            "Use source and ref, and choose view or table",
-            "Read the lineage dbt works out for itself"
+            "Write staging and mart models as SQL files under version control",
+            "Plan a change in a development environment before production",
+            "Show that a rebuild skips unchanged models"
+          ],
+          "lo": [
+            "LO3"
           ],
           "lab": {
             "id": "3.2",
-            "title": "The same star in dbt",
+            "title": "Models, environments and a state-aware rebuild",
             "minutes": 25,
-            "summary": "Tour a real project, write a staging model and a mart, build the star, and read the lineage.",
-            "href": "D3_2_dbt_project.ipynb",
+            "summary": "Build Qafila's staging and mart models as version-controlled SQL with SQLMesh, plan them in dev and prod, and show that a change rebuilds only what depends on it.",
+            "href": "D3_2_transformations.ipynb",
             "steps": [
               {
-                "text": "1 · Tour the project and list its models",
-                "minutes": 4
-              },
-              {
-                "text": "2 · Write stg_orders from a source",
-                "minutes": 6
-              },
-              {
-                "text": "3 · Run dbt build and read the log",
+                "text": "The project and its first commit",
                 "minutes": 5
               },
               {
-                "text": "4 · Write a mart with ref and build it",
+                "text": "Write the mart model",
                 "minutes": 6
               },
               {
-                "text": "5 · Read the lineage",
-                "minutes": 4
+                "text": "Plan dev, then promote to prod",
+                "minutes": 6
+              },
+              {
+                "text": "Change one model: what rebuilds?",
+                "minutes": 8
               }
             ],
-            "stretch": "· Split your mart by month"
+            "stretch": "Review an agent-written model: run it against your tests before you trust it"
           }
         },
         {
-          "title": "Data quality",
+          "title": "Data quality tests and contracts",
+          "summary": "Tests on data, a contract with the producer, and a gate that holds when the feed breaks",
           "outcomes": [
-            "Read dbt test results, and add a test that finds real problems",
-            "Decide whether a failure warns or stops the build",
-            "Check files with Pandera, and quarantine the bad rows"
+            "Write not-null, unique, accepted-value and relationship tests",
+            "Write a data contract for a feed and compile it to SQL checks",
+            "Block a refresh when the contract fails, and say why"
+          ],
+          "lo": [
+            "LO4"
           ],
           "lab": {
             "id": "3.3",
-            "title": "Tests and quarantine",
+            "title": "A contract that holds",
             "minutes": 25,
-            "summary": "Read test results, add a test that catches real orphans, choose its severity, then guard the supplier files.",
-            "href": "D3_3_data_quality.ipynb",
+            "summary": "Write tests and an ODCS contract for the supplier feed, compile the contract to SQL checks, break the feed on purpose and watch the gate keep the mart unchanged.",
+            "href": "D3_3_contracts.ipynb",
             "steps": [
               {
-                "text": "1 · Run the tests and read the warnings",
-                "minutes": 5
-              },
-              {
-                "text": "2 · Add a relationships test that finds orphans",
+                "text": "Tests on the staged prices",
                 "minutes": 6
               },
               {
-                "text": "3 · Choose warn or error",
-                "minutes": 5
-              },
-              {
-                "text": "4 · Validate the supplier files with Pandera",
+                "text": "The contract in YAML",
                 "minutes": 6
               },
               {
-                "text": "5 · Quarantine the bad rows",
-                "minutes": 3
+                "text": "Compile the contract to SQL checks",
+                "minutes": 6
+              },
+              {
+                "text": "Break the feed: the gate holds",
+                "minutes": 7
               }
             ],
-            "stretch": "· Store the failing rows in the warehouse"
+            "stretch": "Quarantine the failing rows instead of blocking: when is that right?"
           }
         },
         {
-          "title": "Orchestration with Dagster",
+          "title": "Orchestration",
+          "summary": "Assets with dependencies, partitions, retries, blocking checks and backfills",
           "outcomes": [
-            "Say why a nightly script isn't enough",
-            "Model a pipeline as assets, with dbt in the same graph",
-            "Schedule it, block bad data, and watch the volume"
+            "Declare the pipeline as assets with dependencies and monthly partitions",
+            "Retry a flaky source and block on a failed check",
+            "Backfill one month after a fix"
+          ],
+          "lo": [
+            "LO4"
           ],
           "lab": {
             "id": "3.4",
-            "title": "Orchestrating Qafila with Dagster",
+            "title": "Assets, a failure, a retry and a backfill",
             "minutes": 25,
-            "summary": "Write assets, put dbt in the same graph, schedule it, and add a blocking check and a volume check.",
-            "href": "D3_4_orchestration_dagster.ipynb",
+            "summary": "Declare the pipeline as Dagster assets, watch a retry absorb a flaky API, let the contract check block the mart, fix the feed and backfill one month.",
+            "href": "D3_4_orchestration.ipynb",
             "steps": [
               {
-                "text": "1 · Write ingestion assets",
-                "minutes": 5
-              },
-              {
-                "text": "2 · Put dbt in the graph",
+                "text": "Assets and their graph",
                 "minutes": 6
               },
               {
-                "text": "3 · Schedule the graph",
-                "minutes": 3
-              },
-              {
-                "text": "4 · Stop bad data with a blocking check",
-                "minutes": 6
-              },
-              {
-                "text": "5 · Add a volume check",
+                "text": "A flaky source and a retry policy",
                 "minutes": 5
+              },
+              {
+                "text": "The broken feed: the check blocks the mart",
+                "minutes": 7
+              },
+              {
+                "text": "Fix, then backfill one month",
+                "minutes": 7
               }
             ],
-            "stretch": "· Retry a flaky API"
+            "stretch": "Emit lineage events for each run"
           }
         }
       ]
@@ -531,159 +570,159 @@
     {
       "id": "day4",
       "kind": "day",
-      "title": "Scale & Production",
+      "title": "Scale and production",
       "deck": "slides/day4.html",
       "sessions": [
         {
-          "title": "Lakehouse with Iceberg",
+          "title": "Open table formats",
+          "summary": "Snapshots, schema evolution, partition specs and time travel, read by more than one engine",
           "outcomes": [
-            "Explain why a folder of files can't give readers one consistent version",
-            "Follow an Iceberg table from its catalog down to its Parquet files",
-            "Go back in time, add a column and read one table with two engines"
+            "Write a table in an open format with a partition spec",
+            "Evolve its schema without rewriting data",
+            "Query an earlier snapshot from a second engine"
+          ],
+          "lo": [
+            "LO5"
           ],
           "lab": {
             "id": "4.1",
-            "title": "A table on a folder: Iceberg",
+            "title": "The mart as an Iceberg table",
             "minutes": 25,
-            "summary": "Catch a folder mid-rewrite, then build the table that fixes it, time-travel it and read it with two engines.",
-            "href": "D4_1_iceberg_lakehouse.ipynb",
+            "summary": "Write the margin mart to an Iceberg table partitioned by month, add a column, append a month, and read the current and an earlier snapshot from DuckDB with identical results.",
+            "href": "D4_1_table_format.ipynb",
             "steps": [
               {
-                "text": "Catch a folder mid-rewrite",
-                "minutes": 4
-              },
-              {
-                "text": "Create an Iceberg table and load two batches",
+                "text": "Create the table and its partition spec",
                 "minutes": 6
               },
               {
-                "text": "Walk the metadata tree on disk",
+                "text": "Walk the metadata on disk",
                 "minutes": 4
               },
               {
-                "text": "Change rows and time travel",
+                "text": "Evolve the schema and append",
                 "minutes": 6
               },
               {
-                "text": "Add a column; read with DuckDB and Polars",
-                "minutes": 5
+                "text": "Two engines, two snapshots",
+                "minutes": 9
               }
             ],
-            "stretch": "· Expire old snapshots and see which files stay on disk"
+            "stretch": "Expire old snapshots and see which files go"
           }
         },
         {
-          "title": "Spark",
+          "title": "Distributed processing when measured",
+          "summary": "Partitions, shuffles and stages, and the measurement that decides whether you need them",
           "outcomes": [
-            "Decide whether a job needs a cluster at all",
-            "Explain driver, executors, partitions and why nothing runs until an action",
-            "Find the shuffles in a physical plan"
+            "Explain partitions, shuffles and stages in a distributed engine",
+            "Run the same transformation on a local cluster and a single node",
+            "Decide from measured time and memory, not from habit"
+          ],
+          "lo": [
+            "LO4"
           ],
           "lab": {
             "id": "4.2",
-            "title": "Spark: when you need it, and how to read it",
+            "title": "One node or a local cluster",
             "minutes": 25,
-            "summary": "Run on Colab: time it on one machine, run Spark with DataFrames and SQL, find the shuffles, count the files.",
-            "href": "D4_2_spark.ipynb",
+            "summary": "Run the heaviest transformation, the as-of margin join, on Dask in local cluster mode and on DuckDB, and compare run time and peak memory at two data sizes.",
+            "href": "D4_2_distributed.ipynb",
             "steps": [
               {
-                "text": "Do you need a cluster? Time it on one machine",
-                "minutes": 3
-              },
-              {
-                "text": "Start Spark; see that nothing runs until an action",
-                "minutes": 6
-              },
-              {
-                "text": "Daily sales per city: DataFrame API and SQL",
-                "minutes": 6
-              },
-              {
-                "text": "Read the plan and find the shuffles",
+                "text": "The heaviest transformation on one node",
                 "minutes": 5
               },
               {
-                "text": "Write partitioned output; count the files",
+                "text": "The same on a local cluster",
+                "minutes": 8
+              },
+              {
+                "text": "Read the task graph: where is the shuffle?",
                 "minutes": 5
+              },
+              {
+                "text": "Time and memory at two sizes",
+                "minutes": 7
               }
             ],
-            "stretch": "· Open the Spark UI and find your shuffle"
+            "stretch": "Find the size at which the cluster wins on your laptop"
           }
         },
         {
-          "title": "Streaming",
+          "title": "Streaming fundamentals",
+          "summary": "Logs, offsets, delivery guarantees, event time, windows and watermarks, reconciled with batch",
           "outcomes": [
-            "Decide when a stream is worth it, and when batch is enough",
-            "Explain logs, offsets and how to survive crashes and repeats",
-            "Choose between event time and processing time, and set a watermark"
+            "Consume a log by offset and commit progress",
+            "Make a consumer idempotent under at-least-once delivery",
+            "Window by event time with a watermark and reconcile with batch"
+          ],
+          "lo": [
+            "LO4"
           ],
           "lab": {
             "id": "4.3",
-            "title": "Streaming: a log, a crash and a watermark",
+            "title": "Shipment events with a watermark",
             "minutes": 25,
-            "summary": "Build a small log, crash a consumer, make its count idempotent, then close windows with a watermark in plain Python.",
-            "href": "D4_3_streaming_fundamentals.ipynb",
+            "summary": "Consume shipment events from a local single-broker log, survive a crash without double counting, handle late arrivals with a watermark and reconcile daily deliveries with the batch result.",
+            "href": "D4_3_streaming.ipynb",
             "steps": [
               {
-                "text": "Write the events into a log with offsets",
-                "minutes": 4
-              },
-              {
-                "text": "Consume, crash and count too many",
+                "text": "Produce and consume by offset",
                 "minutes": 5
               },
               {
-                "text": "Make the count idempotent",
-                "minutes": 6
+                "text": "Crash, replay and count once",
+                "minutes": 7
               },
               {
-                "text": "Event time vs. processing time",
-                "minutes": 4
+                "text": "Daily windows with a watermark",
+                "minutes": 8
               },
               {
-                "text": "Windows and a watermark: measure the trade-off",
-                "minutes": 6
+                "text": "Reconcile with the batch result",
+                "minutes": 5
               }
             ],
-            "stretch": "· Replay the log from offset 0 with a new reader"
+            "stretch": "Two watermarks: what each one drops and how late it answers"
           }
         },
         {
-          "title": "Governance + capstone kickoff",
+          "title": "Governance with PDPL and NDMO",
+          "summary": "Classification levels, minimisation, masking and access rules, and erasure against history",
           "outcomes": [
-            "Say what PDPL and the NDMO levels ask of a data engineer",
-            "Find personal data by content and classify every column",
-            "Protect it with keyed tokens and masked views, then pick your capstone"
+            "Classify every field under the national classification levels",
+            "Drop what the report does not need and mask the rest per role",
+            "Test that a role cannot read what it must not"
+          ],
+          "lo": [
+            "LO6"
           ],
           "lab": {
             "id": "4.4",
-            "title": "Find it, label it, protect it",
+            "title": "Classification, masking and access tests",
             "minutes": 25,
-            "summary": "Scan values for PII, classify every column, swap IDs for keyed tokens and build a view per role.",
-            "href": "D4_4_governance_privacy.ipynb",
+            "summary": "Classify every customer and supplier field, drop what the margin report does not need, mask customer contact data for the analyst role, and test that the role cannot read it.",
+            "href": "D4_4_governance.ipynb",
             "steps": [
               {
-                "text": "Look at where personal data hides",
-                "minutes": 3
+                "text": "The classification register",
+                "minutes": 7
               },
               {
-                "text": "Find PII by content: a pattern plus a checksum",
-                "minutes": 6
-              },
-              {
-                "text": "Classify every column",
+                "text": "Minimise: drop what the report does not need",
                 "minutes": 4
               },
               {
-                "text": "Pseudonymize with a keyed hash",
-                "minutes": 6
+                "text": "Masked views per role",
+                "minutes": 7
               },
               {
-                "text": "Build a masked view per role",
-                "minutes": 6
+                "text": "Access tests for the analyst role",
+                "minutes": 7
               }
             ],
-            "stretch": "· Redact free-text notes before they leave the platform"
+            "stretch": "Trace an erased customer through history and snapshots"
           }
         }
       ]
@@ -691,49 +730,104 @@
     {
       "id": "day5",
       "kind": "capstone",
-      "title": "Capstone Project Presentations",
+      "title": "Capstone: the margin mart and its defence",
       "deck": "slides/day5.html"
     }
   ],
   "capstone": {
-    "summary": "Teams of 2–3 build a working data platform, choosing one of: Qafila Lakehouse: from raw sources to governed marts and an operations view; Open Data Platform: Saudi open datasets with tests and a small dashboard; Real-time Operations Monitor: replayed courier events, event-time KPIs and SLA alerts.",
-    "submission": "Submit a public GitHub repository link before Day 5 with working code, a README, the grain of every fact table, and test results. Starter kit: labs/capstone/.",
+    "summary": "The margin mart from raw sources to an Apache Iceberg table, built on the course's Qafila capstone starter (labs/capstone/): incremental ingestion of the supplier API and the change feed with supplier history, a star schema at order-line grain, tested transformations and a data contract, an orchestrated run that blocks on a broken feed and backfills after the fix, and classification and masking of customer and supplier fields.",
+    "submission": "A public GitHub repository link. The assessor re-runs the pipeline from a clean checkout; the README reports row counts, test results and run times, and the commit history and run logs are in the repository. Then an eight-minute defence of one modelling decision, in which the participant also explains one transformation the assessor selects.",
+    "talk_minutes": 8,
     "rubric": [
       {
-        "criterion": "Functional end-to-end pipeline",
-        "weight": 30
-      },
-      {
-        "criterion": "Architecture & data modeling decisions",
+        "criterion": "Correctness of the mart",
         "weight": 25
       },
       {
-        "criterion": "Data quality & testing",
+        "criterion": "Ingestion and history",
         "weight": 20
       },
       {
-        "criterion": "Orchestration & governance",
+        "criterion": "Tests and contract",
+        "weight": 20
+      },
+      {
+        "criterion": "Orchestration and recovery",
         "weight": 15
       },
       {
-        "criterion": "Presentation & reproducibility",
+        "criterion": "Table format and governance",
+        "weight": 10
+      },
+      {
+        "criterion": "Reproducibility",
         "weight": 10
       }
-    ],
-    "talk_minutes": 10,
-    "qa_minutes": 5
+    ]
   },
   "labs": {
     "kind": "notebooks",
     "base": "labs/"
   },
-  "extensions": {
-    "css": [
-      "assets/course.css",
-      "assets/migrated.css"
-    ],
-    "js": [
-      "assets/course.js"
-    ]
-  }
+  "tools": [
+    {
+      "slot": "Single-node analytical engine and dataframes",
+      "examples": [
+        "DuckDB",
+        "Polars"
+      ]
+    },
+    {
+      "slot": "Ingestion",
+      "examples": [
+        "dlt",
+        "plain Python with stored load state"
+      ]
+    },
+    {
+      "slot": "Transformation framework with tests",
+      "examples": [
+        "SQLMesh",
+        "dbt",
+        "plain SQL files with Pandera checks"
+      ]
+    },
+    {
+      "slot": "Data contract specification",
+      "examples": [
+        "Open Data Contract Standard",
+        "contract checks compiled to SQL tests"
+      ]
+    },
+    {
+      "slot": "Orchestrator",
+      "examples": [
+        "Dagster",
+        "Apache Airflow"
+      ]
+    },
+    {
+      "slot": "Open table format and catalogue",
+      "examples": [
+        "Apache Iceberg with a REST catalogue",
+        "Delta Lake",
+        "DuckLake"
+      ]
+    },
+    {
+      "slot": "Distributed engine",
+      "examples": [
+        "Apache Spark",
+        "Trino"
+      ]
+    },
+    {
+      "slot": "Event streaming and lineage",
+      "examples": [
+        "Apache Kafka",
+        "Apache Flink",
+        "OpenLineage"
+      ]
+    }
+  ]
 }
