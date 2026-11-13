@@ -829,5 +829,87 @@
         "OpenLineage"
       ]
     }
+  ],
+  "sources": [
+    {
+      "group": "National references",
+      "items": [
+        {
+          "title": "SDAIA: Data Classification Policy",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf"
+        },
+        {
+          "title": "SDAIA: Personal Data Protection Law",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf"
+        }
+      ]
+    },
+    {
+      "group": "Modelling, change and contracts",
+      "items": [
+        {
+          "title": "Kimball Group: Type 2, add new row",
+          "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2/"
+        },
+        {
+          "title": "Debezium: PostgreSQL connector, change event structure",
+          "url": "https://debezium.io/documentation/reference/stable/connectors/postgresql.html"
+        },
+        {
+          "title": "Bitol: Open Data Contract Standard (ODCS)",
+          "url": "https://bitol-io.github.io/open-data-contract-standard/latest/"
+        },
+        {
+          "title": "Bitol: ODCS data quality",
+          "url": "https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/"
+        }
+      ]
+    },
+    {
+      "group": "Files and table formats",
+      "items": [
+        {
+          "title": "Apache Parquet: file format",
+          "url": "https://parquet.apache.org/docs/file-format/"
+        },
+        {
+          "title": "Apache Iceberg: table specification",
+          "url": "https://iceberg.apache.org/spec/"
+        },
+        {
+          "title": "PyIceberg documentation",
+          "url": "https://py.iceberg.apache.org/"
+        }
+      ]
+    },
+    {
+      "group": "Tools used in the labs",
+      "items": [
+        {
+          "title": "DuckDB documentation",
+          "url": "https://duckdb.org/docs/"
+        },
+        {
+          "title": "Polars documentation",
+          "url": "https://docs.pola.rs/"
+        },
+        {
+          "title": "dlt documentation",
+          "url": "https://dlthub.com/docs/intro"
+        },
+        {
+          "title": "SQLMesh documentation",
+          "url": "https://sqlmesh.readthedocs.io/en/stable/"
+        },
+        {
+          "title": "Dagster documentation",
+          "url": "https://docs.dagster.io/"
+        },
+        {
+          "title": "Dask documentation",
+          "url": "https://docs.dask.org/en/stable/"
+        }
+      ]
+    }
   ]
 }

@@ -554,7 +554,6 @@ def main(force: bool = False) -> Path:
     write_csv(RAW / "suppliers" / "suppliers_2026-10-31.csv", sorted(final_state.values(), key=lambda r: r["supplier_id"]))
     write_csv(RAW / "customers_2026-09-30.csv", customers)       # last quarter's customer snapshot, before the erasure
     write_jsonl(RAW / "events" / "shipment_events.jsonl", events)
-    (RAW / "PLANTED.txt").write_text(PLANTED.strip() + "\n", encoding="utf-8", newline="\n")
 
     fa = answers(orders, lines, products, erp, kept, shipments, history)
     write_json(REF / "finance_answers.json", fa)

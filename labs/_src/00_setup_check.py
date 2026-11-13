@@ -1,14 +1,11 @@
 # %% [markdown]
 # # Setup check
 #
-# Day 1 · Session 1: Lab 1.1 starts here (2–5 minutes, run it in a second tab). It:
+# Run this once before Day 1 (3 to 5 minutes). It installs the packages on Colab, generates Qafila's synthetic data,
+# checks the package versions and runs a short smoke test of the tools the labs use. No model, no API key, no Docker
+# and no cloud account are needed.
 #
-# - installs packages on Colab and generates the Qafila course data,
-# - checks your Python packages and tool versions,
-# - builds the shared DuckDB warehouse that later labs start from,
-# - runs a short smoke test of DuckDB, Iceberg, dbt, and Java for Spark.
-#
-# Locally: `cd labs && uv sync && uv run jupyter lab`. On Colab: just run the cells (a CPU runtime is enough).
+# Locally: `cd labs && uv sync && uv run jupyter lab`. On Colab: run the cells; a CPU runtime is enough.
 
 # %%
 import os, sys, subprocess
@@ -22,13 +19,13 @@ if IN_COLAB:
     os.chdir("/content/data-engineering/labs")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("de_utils.py").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("qafila.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-import de_utils as U
-U.ensure_data()
-print("data:", U.RAW, "| quick mode:", U.QUICK)
+import qafila as Q
+Q.ensure_data()
+print("data:", Q.RAW.relative_to(Q.LABS).as_posix(), "| quick mode:", Q.QUICK)
 
 # %% [markdown]
 # ## 1 · Packages
@@ -37,80 +34,63 @@ print("data:", U.RAW, "| quick mode:", U.QUICK)
 import platform
 from importlib.metadata import PackageNotFoundError, version
 
-packages = ["duckdb", "polars", "pyarrow", "pandas", "dlt", "dbt-core", "dbt-duckdb", "pyiceberg",
-            "pandera", "dagster", "dagster-dbt", "pyspark"]
+import pandas as pd
+
 rows = []
-for name in packages:
+for name in ["duckdb", "polars", "pyarrow", "pandas", "dlt", "sqlmesh", "pyiceberg", "dagster", "dask", "psutil"]:
     try:
         rows.append((name, version(name)))
     except PackageNotFoundError:
-        rows.append((name, "optional: Lab 4.2 only" if name == "pyspark" else "MISSING"))
-
-import pandas as pd
-
+        rows.append((name, "MISSING"))
 print("Python", platform.python_version(), "|", platform.system(), "| CPUs:", os.cpu_count())
+Q.check(all(v != "MISSING" for _, v in rows), "every package the labs use is installed")
 pd.DataFrame(rows, columns=["package", "version"])
 
 # %% [markdown]
-# ## 2 · Data and the shared warehouse
+# ## 2 · Qafila's data
 #
-# `prepare_data.py` generated Qafila's raw sources (deterministic and synthetic: no real personal data). `build_warehouse()` loads them into the `raw` schema of `warehouse/qafila.duckdb`, the starting point of many labs.
+# The sources are synthetic and generated with a fixed seed by `qafila_data.py`: no real personal data.
 
 # %%
 import duckdb
 
 con = duckdb.connect()
-U.attach_app(con)
-sources = {t: con.sql(f"SELECT count(*) FROM app.{t}").fetchall()[0][0] for t in ["customers", "stores", "products", "orders", "order_items"]}
-for name, path in [("payments (API)", "api/payments.jsonl"), ("customer CDC", "cdc/customers_changes.jsonl"),
-                   ("delivery events", "events/delivery_events.jsonl")]:
-    sources[name] = con.sql(f"SELECT count(*) FROM read_json('{(U.RAW / path).as_posix()}', format='newline_delimited')").fetchall()[0][0]
-sources["supplier files"] = len(list((U.RAW / "suppliers").glob("*.csv")))
-sources["reviews"] = con.sql(f"SELECT count(*) FROM read_csv('{(U.RAW / 'reviews.csv').as_posix()}')").fetchall()[0][0]
+counts = {p.stem: con.sql(f"SELECT count(*) FROM read_csv('{Q.posix(p)}')").fetchall()[0][0]
+          for p in sorted(Q.EXTRACTS.glob("*.csv"))}
+counts["supplier change events"] = con.sql(
+    f"SELECT count(*) FROM read_json('{Q.posix(Q.RAW / 'suppliers' / 'supplier_changes.jsonl')}', format = 'newline_delimited')"
+).fetchall()[0][0]
 con.close()
-
-db = U.build_warehouse()
-with U.connect(db, read_only=True) as wh:
-    raw_tables = wh.sql("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'raw'").fetchall()[0][0]
-U.check(raw_tables >= 9, f"warehouse ready: {raw_tables} raw tables in {db.name}")
-pd.DataFrame(sources.items(), columns=["source", "rows / files"])
+Q.check(len(counts) >= 5 and all(n > 0 for n in counts.values()), "the extracts and the change feed are readable")
+pd.DataFrame(counts.items(), columns=["source", "rows"])
 
 # %% [markdown]
-# ## 3 · Smoke test: Iceberg, DuckDB and dbt
+# ## 3 · Smoke test: the supplier API, Polars and Iceberg
 
 # %%
+import polars as pl
 import pyarrow as pa
+import requests
+from pyiceberg.catalog.sql import SqlCatalog
 
-lab = U.lab_dir("00_setup", reset=True)
-catalog = U.get_catalog(lab / "iceberg")
+api = Q.SupplierAPI(release=1)
+page = requests.get(f"{api.url}/prices", timeout=10).json()
+api.stop()
+Q.check(len(page["data"]) > 0, f"the local supplier API answered with {len(page['data'])} prices")
+
+df = pl.DataFrame({"city": ["Jeddah", "Riyadh", "Dammam"], "orders": [3, 2, 1]})
+Q.check(df["orders"].sum() == 6, "Polars works")
+
+lab = Q.lab_dir("00_setup")
+catalog = SqlCatalog("smoke", uri=f"sqlite:///{Q.posix(lab)}/catalog.db", warehouse=Q.posix(lab))
 catalog.create_namespace_if_not_exists("smoke")
-table = catalog.create_table("smoke.hello", schema=pa.schema([("id", pa.int64()), ("city", pa.string())]))
-table.append(pa.table({"id": [1, 2, 3], "city": ["Riyadh", "Jeddah", "Dammam"]}))
-
-con = duckdb.connect()
-U.duckdb_iceberg(con)
-n = con.sql(f"SELECT count(*) FROM iceberg_scan('{table.metadata_location}')").fetchall()[0][0]
-con.close()
-U.check(n == 3, "PyIceberg wrote a table and DuckDB read it back")
-
-res = U.run_dbt(["parse"], db_path=lab / "dbt_smoke.duckdb", quiet=True)
-U.check(res.success, "dbt parsed the Qafila project")
-
-# %% [markdown]
-# ## 4 · Java for Spark (Lab 4.2)
-#
-# Spark 4 needs **Java 17+**. On Colab, Lab 4.2 installs it for you. Locally, install a JDK (for example Temurin 21), set `JAVA_HOME`, and run `uv sync --extra spark`. If you don't have Java, run Lab 4.2 on Colab.
-
-# %%
-java = U._java_major()
-if java >= 17:
-    print(f"Java {java}: Lab 4.2 can run locally (after `uv sync --extra spark`).")
-elif IN_COLAB:
-    print("Colab: Lab 4.2 installs Java 17 when it starts Spark.")
-else:
-    print(f"Java {java or 'not found'}: run Lab 4.2 on Colab, or install Java 17+.")
+table = catalog.create_table("smoke.cities", schema=df.to_arrow().schema)
+table.append(df.to_arrow())
+Q.check(table.scan().to_arrow().num_rows == 3, "PyIceberg wrote a table and read it back")
 
 # %% [markdown]
 # ## You're ready
 #
-# If every package shows a version (PySpark is optional) and every ✅ printed, go back to Lab 1.1.
+# If every check printed ✅, go to Lab 1.1. If a package is missing, run `uv sync` again (locally) or re-run the
+# first cell (Colab). On Windows, if an import fails with "The filename or extension is too long", see
+# `labs/README.md`.
