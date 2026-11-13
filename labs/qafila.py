@@ -170,15 +170,17 @@ class SupplierAPI:
 
     GET /prices?updated_since=<iso>&cursor=<opaque>  -> {"data": [...], "next_cursor": "..." | null}
     Pages of `page_size` records ordered by (updated_at, price_id). Every `throttle_every`-th request answers 429
-    with a Retry-After header. `release` 1 serves what existed on 15 October, release 2 everything to 31 October.
+    with a Retry-After header. `release` 1 serves what existed on 15 October, release 2 everything to 31 October; `until` (an ISO date) overrides it.
     `fail_first` makes the first n requests answer 503 (a flaky source, for the retry lab).
     """
 
-    def __init__(self, release: int = 1, page_size: int = 20, throttle_every: int = 4, fail_first: int = 0):
+    def __init__(self, release: int = 1, page_size: int = 20, throttle_every: int = 4, fail_first: int = 0,
+                 until: str | None = None):
         ensure_data()
         lines = (RAW / "supplier_api" / "price_records.jsonl").read_text(encoding="utf-8").splitlines()
         self.records = [json.loads(x) for x in lines if x.strip()]
         self.release, self.page_size, self.throttle_every, self.fail_first = release, page_size, throttle_every, fail_first
+        self.until = until
         self.requests = 0
         api = self
 
@@ -222,7 +224,7 @@ class SupplierAPI:
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
 
     def visible(self):
-        cut = "2026-10-16" if self.release == 1 else "9999"
+        cut = self.until or ("2026-10-16" if self.release == 1 else "9999")
         return [r for r in self.records if r["updated_at"] < cut]
 
     def stop(self):

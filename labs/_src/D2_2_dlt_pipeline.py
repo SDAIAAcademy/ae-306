@@ -1,21 +1,20 @@
 # %% [markdown]
-# # Lab 2.2 · The same job with dlt
+# # Lab 2.2 · The supplier load with dlt
 #
-# Day 2 · Session 2 · 25 min
+# Day 2 · Session 2 (Declarative ingestion pipelines) · 25 min. In Lab 2.1 you wrote paging, back-off, a key and a
+# stored cursor by hand. Here you declare the same load with dlt, an open-source Python ingestion library: a
+# resource with an incremental cursor and a primary key, merged into DuckDB. Then the supplier adds a column
+# (`incoterm`) and you watch the pipeline absorb it and record it.
 #
-# In Lab 2.1 you wrote pages, retries, a cursor and an upsert by hand. **dlt** (data load tool) is a Python library that
-# does all of that for you. What you'll do:
-# - load the payments API into DuckDB incrementally, in a few lines, and re-run it safely;
-# - choose a write disposition per table: replace for stores, merge for orders;
-# - watch dlt handle a new column, and read the load log it keeps.
+# **Reference state.** `Q.SupplierAPI(until="2026-10-01")` serves the API as it stood at the end of September
+# (before `incoterm` existed); `release=2` everything to 31 October. Nothing from another lab is needed.
 #
 # **Tasks**
-# - [ ] 1 · Write the resource and run the pipeline (7')
-# - [ ] 2 · Read what dlt created: tables, columns, cursor (3')
-# - [ ] 3 · Re-run it, then prove the merge updated rows (5')
-# - [ ] 4 · Load the app tables: replace stores, merge orders (5')
-# - [ ] 5 · Spot the new `wallet_provider` column; read the load log (5')
-# - [ ] ✱ Stretch · Load the supplier CSVs: what happens in week 39?
+# - [ ] 1 · Declare the resource and run the pipeline (7')
+# - [ ] 2 · Read what was created: tables, columns, state (5')
+# - [ ] 3 · New data with a new column: run again (7')
+# - [ ] 4 · Prove the merge: no duplicates, corrections applied (6')
+# - [ ] ✱ Stretch · Freeze the schema and watch the next new column fail
 
 # %%
 import os, sys, subprocess
@@ -29,313 +28,204 @@ if IN_COLAB:
     os.chdir("/content/data-engineering/labs")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("de_utils.py").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("qafila.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-import de_utils as U
-U.ensure_data()
-print("data:", U.RAW, "| quick mode:", U.QUICK)
+import qafila as Q
 
-# %%
-os.environ["RUNTIME__LOG_LEVEL"] = "ERROR"          # keep dlt's log quiet in the notebook
+WORK = Q.lab_dir("D2_2")
+os.environ["DLT_DATA_DIR"] = str(WORK / "dlt_home")          # keep dlt's working state inside the lab folder
+os.environ["RUNTIME__LOG_LEVEL"] = "WARNING"
+
+import time
+
 import dlt
-from dlt.sources.helpers.rest_client import RESTClient
-from dlt.sources.helpers.rest_client.paginators import JSONLinkPaginator
-from dlt.sources.sql_database import sql_table
+import duckdb
+import requests
 
-OUT = U.lab_dir("D2_2_dlt", reset=True)
-LAKE_DB = OUT / "qafila_lake.duckdb"                # our destination: a DuckDB file
-
-# The same mock provider as Lab 2.1: pages of 500, a cursor parameter, and a 429 every 25th request. "Today" is 15 September.
-api = U.PaymentsAPI(page_size=500, rate_limit_every=25, clock="2026-09-15T00:00:00.000Z")
-BASE = api.start()
-print("payments API running at", BASE)
+print("dlt", dlt.__version__)
 
 # %% [markdown]
-# ## 1 · Write the resource and run the pipeline (7')
+# ## 1 · Declare the resource and run the pipeline (7')
 #
-# A dlt **resource** is a Python generator that yields records (or pages of records), with load instructions on its
-# decorator. Everything you wrote by hand in Lab 2.1 now has a one-line home:
+# A dlt **resource** is a generator that yields records. Three declarations replace most of Lab 2.1's code:
+# - `primary_key="price_id"` and `write_disposition="merge"`: a record with a known key replaces the stored one;
+# - `dlt.sources.incremental("updated_at")`: dlt keeps the highest `updated_at` seen in its **state**, stored in
+#   the destination, and passes it to the next run.
 #
-# | Lab 2.1, by hand | dlt |
-# |---|---|
-# | the `while page` loop, and `get_with_retry` | `RESTClient`: follows the `next` link, retries 429s with backoff |
-# | the `ingest_state` cursor | `dlt.sources.incremental("updated_at", ...)`: gives you `.last_value` each run |
-# | `load_upsert` | `primary_key="payment_id"`, `write_disposition="merge"` |
-# | `CREATE TABLE` and `COLS` | nothing: dlt infers the table from the data |
-#
-# ✏️ **Exercise** · Complete the resource in one line: yield every page from `/payments`, passing the cursor.
-#
-# Hint: `yield from client.paginate("/payments", params={"updated_since": updated_at.last_value})`.
+# ✏️ **Exercise** · Complete `supplier_prices(base_url, updated_at=...)`: request `/prices` with
+# `updated_since=updated_at.last_value` (an empty string on the first run), follow `next_cursor`, wait on a `429`,
+# and `yield` each page's `data`.
 
 # %%
-client = RESTClient(base_url=BASE, paginator=JSONLinkPaginator(next_url_path="next"), data_selector="data")
-
-
-@dlt.resource(name="payments", primary_key="payment_id", write_disposition="merge")
-def payments(updated_at=dlt.sources.incremental("updated_at", initial_value="2026-08-01T00:00:00.000Z")):
+@dlt.resource(name="supplier_prices", primary_key="price_id", write_disposition="merge")
+def supplier_prices(base_url: str, updated_at=dlt.sources.incremental("updated_at", initial_value="")):
     # BEGIN SOLUTION
-    yield from client.paginate("/payments", params={"updated_since": updated_at.last_value})
+    params = {"updated_since": updated_at.last_value or ""}
+    while True:
+        resp = requests.get(f"{base_url}/prices", params=params, timeout=10)
+        if resp.status_code == 429:
+            time.sleep(float(resp.headers.get("Retry-After", "1")))
+            continue
+        resp.raise_for_status()
+        page = resp.json()
+        yield page["data"]
+        if not page["next_cursor"]:
+            break
+        params = {"cursor": page["next_cursor"]}
     # END SOLUTION
 
 
-pipe = dlt.pipeline(pipeline_name="qafila_ingest", destination=dlt.destinations.duckdb(str(LAKE_DB)),
-                    dataset_name="raw", pipelines_dir=str(OUT / ".dlt"))
+DB = WORK / "qafila_dlt.duckdb"
+
+
+def new_pipeline():
+    return dlt.pipeline(pipeline_name="qafila_supplier_prices", destination=dlt.destinations.duckdb(str(DB)),
+                        dataset_name="raw_suppliers", pipelines_dir=str(WORK / "pipelines"))
+
+
+def count(sql: str) -> int:
+    with duckdb.connect(str(DB), read_only=True) as c:
+        return c.execute(sql).fetchall()[0][0]
+
 
 # %%
-def q(sql):
-    """Run SQL against the pipeline's destination and return a DataFrame."""
-    with pipe.sql_client() as c:
-        with c.execute_query(sql) as cur:
-            return cur.df()
-
-
+api = Q.SupplierAPI(until="2026-10-01")
+pipeline = new_pipeline()
 try:
-    info = pipe.run(payments())
-except Exception as e:                             # dlt wraps errors from inside a resource, so look at the message
-    if "NotImplementedError" not in repr(e) and "NotImplementedError" not in str(e):
+    info = pipeline.run(supplier_prices(api.url))
+except Exception as e:  # noqa: BLE001 - safety net for a skipped exercise
+    if "NotImplementedError" not in repr(e):
         raise
-    print("✏️ Not done yet: using the reference resource so the rest of the lab runs.")
-    pipe.drop_pending_packages()
-
-    @dlt.resource(name="payments", primary_key="payment_id", write_disposition="merge")
-    def payments(updated_at=dlt.sources.incremental("updated_at", initial_value="2026-08-01T00:00:00.000Z")):
-        yield from client.paginate("/payments", params={"updated_since": updated_at.last_value})
-
-    info = pipe.run(payments())
+    import json as _json
+    rows = [_json.loads(x) for x in (Q.RAW / "supplier_api" / "price_records.jsonl").read_text(encoding="utf-8").splitlines()]
+    info = pipeline.run(dlt.resource([r for r in rows if r["updated_at"] < "2026-10-01"], name="supplier_prices",
+                                     primary_key="price_id", write_disposition="merge"))
 print(info)
-loaded = q("SELECT count(*) AS rows, count(DISTINCT payment_id) AS ids FROM raw.payments")
-print("expected: 29,526 rows, 29,526 ids")
-U.check(loaded.rows[0] == loaded.ids[0] == 29526, "one row per payment_id")
-print(f"requests: {api.requests} | 429s dlt retried for you: {api.throttled}")
-
-# %% [markdown]
-# 🔍 `pipe.run` did three steps: **extract** (rows to files in a *load package*), **normalize** (infer the schema, pick
-# types) and **load** (create the tables, merge the rows). If load fails, the package stays on disk and the next run
-# picks it up without calling the API again.
-#
-# ## 2 · Read what dlt created: tables, columns, cursor (3')
-#
-# Nothing to write. Three questions to answer from the output: which tables exist, what type did `updated_at` get, and
-# where is the cursor?
-
-# %%
-q("""SELECT table_name FROM information_schema.tables WHERE table_schema = 'raw' ORDER BY 1""")
-
-# %%
-q("""SELECT column_name, data_type FROM information_schema.columns
-     WHERE table_schema = 'raw' AND table_name = 'payments' ORDER BY ordinal_position""")
-
-# %%
-cursor = pipe.state["sources"]["qafila_ingest"]["resources"]["payments"]["incremental"]["updated_at"]["last_value"]
-print("cursor stored in the pipeline's state:", cursor)
-q("SELECT version, pipeline_name, created_at FROM raw._dlt_pipeline_state ORDER BY version")
-
-# %% [markdown]
-# 🔍 `updated_at` is a real timestamp, not text: dlt recognised the format. `_dlt_load_id` says which load wrote each
-# row. The cursor lives in `_dlt_pipeline_state`, **in the destination, in the same load as the data**: it moves with the
-# rows or not at all, which is what the stretch of Lab 2.1 had to build by hand. Delete the local folder, and the next
-# run reads it back from the database.
-#
-# ## 3 · Re-run it, then prove the merge updated rows (5')
-#
-# Run it again without changing anything. Then move the clock forward two weeks: new payments, plus refunds that update
-# old ones.
-
-# %%
-rows_before = q("SELECT count(*) AS n FROM raw.payments").n[0]
-pipe.run(payments())
-rows_rerun = q("SELECT count(*) AS n FROM raw.payments").n[0]
-U.check(rows_rerun == rows_before, f"the re-run changed nothing ({rows_before:,} rows)")
-
-api.set_clock("2026-09-29T00:00:00.000Z")          # two weeks later
-pipe.run(payments())
-after = q("SELECT count(*) AS rows, count(DISTINCT payment_id) AS ids FROM raw.payments")
-print(f"on 29 Sep: {after.rows[0]:,} rows, {after.ids[0]:,} distinct payment ids")
-q("SELECT payment_id, order_id, amount, method, status FROM raw.payments WHERE order_id = 5043883")
-
-# %% [markdown]
-# ✏️ **Exercise** · Prove the merge really **updated** rows instead of appending them. Payments created before
-# 15 September were all loaded by the first run. Complete the query: how many of them now carry a **different**
-# `_dlt_load_id` than the first load's?
-#
-# Hint: one `SELECT count(*) ... WHERE created_at < TIMESTAMPTZ '2026-09-15 00:00:00+00' AND _dlt_load_id <> '{first_load}'`.
-
-# %%
-first_load = q("SELECT min(load_id) AS id FROM raw._dlt_loads").id[0]
-
-
-def count_updated_by_merge():
-    # BEGIN SOLUTION
-    return q(f"""
-        SELECT count(*) AS n FROM raw.payments
-        WHERE created_at < TIMESTAMPTZ '2026-09-15 00:00:00+00' AND _dlt_load_id <> '{first_load}'
-    """).n[0]
-    # END SOLUTION
-
-# %%
-try:
-    updated_by_merge = count_updated_by_merge()
-except NotImplementedError:
-    print("✏️ Not done yet: using the reference query so the rest of the lab runs.")
-    updated_by_merge = q(f"""SELECT count(*) AS n FROM raw.payments
-        WHERE created_at < TIMESTAMPTZ '2026-09-15 00:00:00+00' AND _dlt_load_id <> '{first_load}'""").n[0]
-print(f"old payments replaced by the merge: {updated_by_merge:,} (expected: 61)")
-U.check(updated_by_merge == 61, "61 old payments were updated in place")
-U.check(after.rows[0] == after.ids[0], "still exactly one row per payment")
-q(f"""SELECT status, count(*) AS n FROM raw.payments
-      WHERE created_at < TIMESTAMPTZ '2026-09-15 00:00:00+00' AND _dlt_load_id <> '{first_load}' GROUP BY ALL""")
-
-# %% [markdown]
-# ## 4 · Load the app tables: replace stores, merge orders (5')
-#
-# The **write disposition** says what a run does with rows already in the table:
-#
-# | Disposition | A run… | Use it for |
-# |---|---|---|
-# | `append` | adds its rows | events and logs, where every row is new |
-# | `replace` | swaps the table for its rows | small tables you can resend whole |
-# | `merge` | upserts on the `primary_key` | records that change: payments, orders |
-#
-# dlt's `sql_table` reads a database table the same way. Stores are a small list: replace them each run. Orders are big
-# and growing: load them incrementally and merge.
-#
-# ✏️ **Exercise** · Make `orders_table` return an incremental, merged `sql_table` on `updated_at`, primary key `order_id`.
-# Start from `2026-09-25 00:00:00` so the first run is small.
-#
-# Hint: copy the `stores` call, then add `incremental=dlt.sources.incremental("updated_at", initial_value="2026-09-25 00:00:00")`,
-# `primary_key="order_id"`, `write_disposition="merge"`.
-
-# %%
-APP_DB = f"sqlite:///{(U.RAW / 'qafila_oltp.sqlite').as_posix()}"
-stores = sql_table(credentials=APP_DB, table="stores", write_disposition="replace", backend="pyarrow")
-
-
-def orders_table():
-    # BEGIN SOLUTION
-    return sql_table(credentials=APP_DB, table="orders", backend="pyarrow",
-                     incremental=dlt.sources.incremental("updated_at", initial_value="2026-09-25 00:00:00"),
-                     primary_key="order_id", write_disposition="merge")
-    # END SOLUTION
-
-# %%
-try:
-    orders = orders_table()
-except NotImplementedError:
-    print("✏️ Not done yet: using the reference table so the rest of the lab runs.")
-    orders = sql_table(credentials=APP_DB, table="orders", backend="pyarrow",
-                       incremental=dlt.sources.incremental("updated_at", initial_value="2026-09-25 00:00:00"),
-                       primary_key="order_id", write_disposition="merge")
-pipe.run([stores, orders])
-n1 = q("SELECT count(*) AS n FROM raw.orders").n[0]
-pipe.run([stores, orders])
-n2 = q("SELECT count(*) AS n FROM raw.orders").n[0]
-n_stores = q("SELECT count(*) AS n FROM raw.stores").n[0]
-print(f"orders {n1:,} -> {n2:,} after a re-run | stores {n_stores} (expected: orders stay the same, stores 12)")
-U.check(n1 == n2, "re-running the orders load adds nothing")
-U.check(n_stores == 12, "stores replaced, not duplicated")
-
-# %% [markdown]
-# 🔍 A merge only touches the keys it receives. If a store closes and leaves the list, why does `replace` notice, when
-# `merge` never would? And if an order row is **deleted** in the app, does this cursor see it? (No. Lab 2.3 handles that.)
-#
-# ## 5 · Spot the new `wallet_provider` column; read the load log (5')
-#
-# On 15 September the provider started sending `wallet_provider`. Nobody told us. Your Lab 2.1 script dropped it. dlt?
-
-# %%
-q("""SELECT column_name, data_type FROM information_schema.columns
-     WHERE table_schema = 'raw' AND table_name = 'payments' AND column_name = 'wallet_provider'""")
-
-# %%
-q("""SELECT method, wallet_provider, count(*) AS n FROM raw.payments
-     WHERE method = 'wallet' GROUP BY ALL ORDER BY n DESC""")
-
-# %% [markdown]
-# 🔍 dlt **evolved** the table: a new column, `NULL` on older rows. Nothing failed and nothing was lost. Good for bronze,
-# and also a risk: nobody was told. Downstream checks have to catch surprises (Day 3).
-#
-# Every load is recorded. `_dlt_loads` has one row per load, and every data row carries the `_dlt_load_id` of the load
-# that wrote it. So you can always answer "where did this number come from?"
-
-# %%
-load_log = q("""
-    SELECT l.load_id, l.inserted_at, count(p._dlt_id) AS payments_rows
-    FROM raw._dlt_loads l LEFT JOIN raw.payments p ON p._dlt_load_id = l.load_id
-    GROUP BY ALL ORDER BY l.inserted_at
-""")
-U.check(load_log.payments_rows.sum() == after.rows[0], "every payment row is traceable to a load")
-load_log
-
-# %% [markdown]
-# 🔍 The first load inserted 29,526 rows but now "owns" fewer: the refunds of the later load replaced some. Why are there
-# no rows for the re-run in Task 3? (It found nothing new, so it wrote no payments.) The last loads are the app tables.
-#
-# ## ✱ Stretch · Load the supplier CSVs: what happens in week 39?
-#
-# Load the four weekly price files with a resource (append, one file per run, in order) and inspect the columns after
-# each run. What did dlt do with week 38's `"9,49"` values, and with week 39's `cost_sar`?
-
-# %%
-import csv
-
-
-def load_suppliers():
-    # BEGIN SOLUTION
-    @dlt.resource(name="supplier_prices", write_disposition="append")
-    def supplier_file(path):
-        with open(path, encoding="utf-8-sig") as f:
-            for row in csv.DictReader(f):
-                for k in ("unit_cost", "cost_sar"):
-                    if k in row:
-                        try:
-                            row[k] = float(row[k])
-                        except ValueError:
-                            pass   # leave unparseable text as it is
-                row["_file"] = Path(path).name
-                yield row
-
-    for path in sorted((U.RAW / "suppliers").glob("prices_*.csv")):
-        pipe.run(supplier_file(path))
-    return q("SELECT _file, count(unit_cost) AS unit_cost, count(unit_cost__v_text) AS unit_cost_text, "
-             "count(cost_sar) AS cost_sar FROM raw.supplier_prices GROUP BY ALL ORDER BY _file")
-    # END SOLUTION
-
-# %%
-try:
-    display(load_suppliers())
-except NotImplementedError:
-    print("✱ Stretch not attempted: that's fine.")
-
-# %% [markdown]
-# 🔍 dlt never fails on these files: week 38's text lands in a **variant column** `unit_cost__v_text`, and week 39's
-# renamed column becomes a new column, leaving `unit_cost` empty. Bronze is complete, but a naive report on `unit_cost`
-# silently loses two weeks. Tolerant ingestion needs strict checks downstream (Lab 3.3).
-
-# %%
 api.stop()
+n1 = count("SELECT count(*) FROM raw_suppliers.supplier_prices")
+Q.check(n1 == 93, f"{n1} prices loaded from the September state of the API")
+
+# %% [markdown]
+# ## 2 · Read what was created: tables, columns, state (5')
+
+# %%
+with duckdb.connect(str(DB), read_only=True) as c:
+    print(c.sql("SELECT table_name FROM information_schema.tables WHERE table_schema = 'raw_suppliers' ORDER BY 1"))
+    print(c.sql("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'raw_suppliers' "
+                "AND table_name = 'supplier_prices' ORDER BY ordinal_position"))
+    print(c.sql("SELECT load_id, status, inserted_at FROM raw_suppliers._dlt_loads"))
+state = pipeline.state["sources"]
+print("stored cursor:", state)
+
+# %% [markdown]
+# 🔍 Three things you wrote by hand in Lab 2.1 are now tables: the data, the **load history** (`_dlt_loads`, one row
+# per load package) and the **state** with the cursor (`_dlt_pipeline_state`), all in the destination. dlt also
+# added `_dlt_load_id` and `_dlt_id` to every row: which load brought it.
+
+# %% [markdown]
+# ## 3 · New data with a new column: run again (7')
+#
+# From October, the API sends `incoterm` (the delivery terms: DAP, CIF, FOB). Run the same pipeline against
+# the 31 October state.
+#
+# ✏️ **Exercise** · Run the pipeline again with a **new** `Q.SupplierAPI(release=2)` and store the load info in
+# `info2`. Then find the new column in the destination.
+
+# %%
+api = Q.SupplierAPI(release=2)
+pipeline = new_pipeline()  # the same name: dlt restores the state from the destination
+# BEGIN SOLUTION
+info2 = pipeline.run(supplier_prices(api.url))
+# END SOLUTION
+api.stop()
+
+# %%
+try:
+    info2
+except NameError:  # safety net
+    api = Q.SupplierAPI(release=2)
+    info2 = pipeline.run(supplier_prices(api.url))
+    api.stop()
+with duckdb.connect(str(DB), read_only=True) as c:
+    cols = [r[0] for r in c.execute("SELECT column_name FROM information_schema.columns WHERE table_schema = 'raw_suppliers' "
+                                     "AND table_name = 'supplier_prices'").fetchall()]
+    print(c.sql("SELECT incoterm, count(*) AS prices FROM raw_suppliers.supplier_prices GROUP BY 1 ORDER BY 1"))
+    loads = c.execute("SELECT count(*) FROM raw_suppliers._dlt_loads").fetchall()[0][0]
+Q.check("incoterm" in cols, "the new column was added to the table, not dropped")
+Q.check(loads == 2, "two loads recorded")
+print("schema version:", pipeline.default_schema.version, "| tables:", list(pipeline.default_schema.data_table_names()))
+
+# %% [markdown]
+# ## 4 · Prove the merge: no duplicates, corrections applied (6')
+#
+# The reference is computed from the source file: the latest version of every `price_id`.
+#
+# ✏️ **Exercise** · Write the two checks: no `price_id` appears twice in the table, and every stored `cost` equals
+# the cost of the latest version in `latest` (a dict `price_id -> cost`).
+
+# %%
+import json
+
+src = [json.loads(x) for x in (Q.RAW / "supplier_api" / "price_records.jsonl").read_text(encoding="utf-8").splitlines()]
+latest = {}
+for r in sorted(src, key=lambda r: r["updated_at"]):
+    latest[r["price_id"]] = r["cost"]
+with duckdb.connect(str(DB), read_only=True) as c:
+    stored = dict(c.execute("SELECT price_id, cost FROM raw_suppliers.supplier_prices").fetchall())
+    # BEGIN SOLUTION
+    dupes = c.execute("SELECT count(*) - count(DISTINCT price_id) FROM raw_suppliers.supplier_prices").fetchall()[0][0]
+    wrong = [p for p, cost in latest.items() if stored.get(p) != cost]
+    # END SOLUTION
+
+# %%
+try:
+    dupes, wrong
+except NameError:  # safety net
+    dupes = len(stored) - len(set(stored))
+    wrong = [p for p, cost in latest.items() if stored.get(p) != cost]
+print(f"{len(stored)} prices stored | duplicates: {dupes} | not the latest version: {len(wrong)}")
+Q.check(dupes == 0 and not wrong and len(stored) == 102, "merge: one row per price, every correction applied")
+
+# %% [markdown]
+# 🔍 Lab 2.1 kept every version in raw; this merge keeps only the latest. Both are right for different layers. Which
+# would you choose for Qafila's raw layer, and what would you lose with the other?
+
+# %% [markdown]
+# ## ✱ Stretch · Freeze the schema
+#
+# A schema contract tells dlt what to do with a new column: `evolve` (the default), `freeze` (fail the load),
+# `discard_value` or `discard_row`. Freeze the columns and feed one record with an unknown field.
+
+# %%
+# BEGIN SOLUTION
+from dlt.pipeline.exceptions import PipelineStepFailed
+
+frozen = dlt.resource([{"price_id": "PR-99999", "cost": "1.00", "updated_at": "2026-11-02T06:00:00+03:00",
+                        "payment_terms": "60 days"}],
+                      name="supplier_prices", primary_key="price_id", write_disposition="merge",
+                      schema_contract={"columns": "freeze"})
+try:
+    new_pipeline().run(frozen)
+    print("loaded: the contract did not hold")
+except PipelineStepFailed as e:
+    print("refused:", type(e.__context__ or e).__name__)
+Q.check(count("SELECT count(*) FROM raw_suppliers.supplier_prices WHERE price_id = 'PR-99999'") == 0, "the frozen schema kept the record out")
+# END SOLUTION
 
 # %% [markdown]
 # ## Checkpoint
 #
-# **1.** Where does dlt keep the incremental cursor, and why does it matter that it's committed with the data?
+# 1. The supplier adds a column. What should the pipeline do?
+#    <details><summary>Answer</summary>Depends on the layer: raw evolves and records the change (nothing is lost);
+#    a contract on the curated layer may freeze and alert, so a downstream model does not change meaning silently.
+#    Lab 3.3 writes that contract.</details>
+# 2. Where does dlt keep the cursor, and why there?
+#    <details><summary>Answer</summary>In the destination (<code>_dlt_pipeline_state</code>), so a fresh machine
+#    resumes from the data's own state, as Lab 2.1 did by hand.</details>
+# 3. `merge` on `price_id` against `append` with a key on `(price_id, updated_at)`: which keeps history?
+#    <details><summary>Answer</summary>The append. Merge keeps the latest version only; history then needs a type 2
+#    table (Lab 2.3) or the raw versions.</details>
 #
-# <details><summary>Answer</summary>In the destination, in <code>_dlt_pipeline_state</code>, written in the same load as
-# the rows. The cursor can never be ahead of the data (rows lost) or behind it by surprise, even if the machine running
-# the job is replaced.</details>
-#
-# **2.** Which disposition would you pick for delivery events, for the list of stores, and for orders?
-#
-# <details><summary>Answer</summary>Events: <code>append</code>, every row is new. Stores: <code>replace</code>, small and
-# sent whole, so a closed store disappears. Orders: <code>merge</code> on <code>order_id</code>, because rows change.</details>
-#
-# **3.** The provider renames a column without warning. What does dlt do, and whose job is it to notice?
-#
-# <details><summary>Answer</summary>dlt adds the new column and leaves the old one empty on new rows. The load succeeds,
-# so it's your job: a data-quality check on silver has to fail loudly (Lab 3.3).</details>
-#
-# ## Carry forward
-#
-# You can load APIs and databases into bronze, safely. A cursor still can't see deletes, or the versions between two runs.
-# Lab 2.3 reads a change feed that can. Want more? `tools/dlt.ipynb`.
+# **Carry forward.** Lab 2.4 cleans these prices; it starts from the source file, not from this database.

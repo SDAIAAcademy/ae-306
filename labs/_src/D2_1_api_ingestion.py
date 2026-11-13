@@ -1,20 +1,19 @@
 # %% [markdown]
-# # Lab 2.1 · Ingest an API by hand
+# # Lab 2.1 · An incremental, idempotent API load
 #
-# Day 2 · Session 1 · 25 min
+# Day 2 · Session 1 (Ingesting from APIs) · 25 min. Ammar Basri's suppliers publish their prices through an API:
+# pages of 20 records, a cursor to the next page, a `429 Too Many Requests` every few calls, and corrections re-sent
+# later with a new `updated_at`. In this lab you load it into DuckDB with plain Python, store the load state with
+# the data, and show that running the load twice adds nothing.
 #
-# Finance needs Qafila's card and wallet payments in the warehouse every day, refunds included. The payment provider
-# only offers an HTTP API. You'll write the loader yourself, so that nothing in the next lab is magic. What you'll do:
-# - follow an API's pages and survive its rate limit (a 429, then a backoff);
-# - compare a full load with an incremental load that remembers a cursor;
-# - prove that running the load twice gives the same table as running it once.
+# **Reference state.** `Q.SupplierAPI(release=1)` serves the API in this notebook (on 127.0.0.1) as it stood on
+# 15 October; `release=2` as it stood on 31 October. Nothing from another lab is needed.
 #
 # **Tasks**
-# - [ ] 1 · Make one request and read the response (3')
-# - [ ] 2 · Follow every page (5')
-# - [ ] 3 · Survive a 429 with backoff (6')
-# - [ ] 4 · Compare a full load with an incremental load (4')
-# - [ ] 5 · Prove a re-run doesn't double-load (7')
+# - [ ] 1 · One request: read the page and the cursor (4')
+# - [ ] 2 · Follow every page, back off on 429 (7')
+# - [ ] 3 · Load with a key and a stored cursor (8')
+# - [ ] 4 · Run it twice, then after new data (6')
 # - [ ] ✱ Stretch · Keep the rows and the cursor in one transaction
 
 # %%
@@ -29,339 +28,204 @@ if IN_COLAB:
     os.chdir("/content/data-engineering/labs")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements-colab.txt"], check=True)
 else:
-    while not Path("de_utils.py").exists() and Path.cwd() != Path.cwd().parent:
+    while not Path("qafila.py").exists() and Path.cwd() != Path.cwd().parent:
         os.chdir("..")  # solutions/ notebooks run from labs/
 sys.path.insert(0, os.getcwd())
 
-import de_utils as U
-U.ensure_data()
-print("data:", U.RAW, "| quick mode:", U.QUICK)
+import qafila as Q
+
+api = Q.SupplierAPI(release=1)
+print("supplier API at", api.url)
+
+# %% [markdown]
+# ## 1 · One request: read the page and the cursor (4')
 
 # %%
+import json
 import time
 
-import duckdb
-import pandas as pd
 import requests
 
-# A local stand-in for the payment provider. Its clock lets us pretend time passes: "today" is 15 September.
-api = U.PaymentsAPI(page_size=500, rate_limit_every=0, clock="2026-09-15T00:00:00.000Z")
-BASE = api.start()
-print("payments API running at", BASE)
-
-# %% [markdown]
-# ## 1 · Make one request and read the response (3')
-#
-# An **API** answers HTTP requests with data, here as JSON. This one takes two parameters: `updated_since` (only records
-# changed at or after this time) and `page`.
-
-# %%
-r = requests.get(f"{BASE}/payments", params={"updated_since": "2026-09-14T00:00:00.000Z", "page": 1}, timeout=10)
+r = requests.get(f"{api.url}/prices", params={"updated_since": ""}, timeout=10)
+print(r.status_code, r.headers.get("Content-Type"))
 body = r.json()
-print("status:", r.status_code)
-print({k: v for k, v in body.items() if k != "data"})
-print("records on this page:", len(body["data"]))
-pd.DataFrame(body["data"][:3])
+print(len(body["data"]), "records | next_cursor:", body["next_cursor"])
+print(json.dumps(body["data"][0], ensure_ascii=False, indent=1))
 
 # %% [markdown]
-# 🔍 Which field tells you there is more to fetch? What would it hold on the last page? Look at `updated_at`: is it the
-# time the payment was made, or the last time it changed?
-#
-# ## 2 · Follow every page (5')
-#
-# The API never sends everything at once: each answer holds at most 500 records (a **page**) and `next_page` says what
-# to ask for next. `next_page` is `null` on the last page, which Python reads as `None`.
-#
-# ✏️ **Exercise** · Complete the loop in `fetch_all`: fetch a page with `get`, add its `data` to `rows`, and move `page`
-# on to `next_page`.
-#
-# Hint: three lines. `get(f"{BASE}/payments", {"updated_since": updated_since, "page": page})` returns the JSON body.
-
-# %%
-def get_page(url, params):
-    r = requests.get(url, params=params, timeout=10)
-    r.raise_for_status()          # raises requests.HTTPError on 4xx and 5xx
-    return r.json()
-
-
-def fetch_all(updated_since, get=get_page):
-    rows, page = [], 1
-    while page:
-        # BEGIN SOLUTION
-        body = get(f"{BASE}/payments", {"updated_since": updated_since, "page": page})
-        rows += body["data"]
-        page = body["next_page"]
-        # END SOLUTION
-    return rows
-
-# %%
-SINCE = "2026-09-12T00:00:00.000Z"
-before = api.requests
-try:
-    rows = fetch_all(SINCE)
-except NotImplementedError:
-    print("✏️ Not done yet: using the reference loop so the rest of the lab runs.")
-    def fetch_all(updated_since, get=get_page):
-        rows, page = [], 1
-        while page:
-            body = get(f"{BASE}/payments", {"updated_since": updated_since, "page": page})
-            rows += body["data"]
-            page = body["next_page"]
-        return rows
-    rows = fetch_all(SINCE)
-print(f"{len(rows):,} payments since 12 Sep, in {api.requests - before} requests (expected: 2,008 in 5)")
-U.check(len(rows) == 2008, "every page fetched")
-U.check(len(rows) == len({r["payment_id"] for r in rows}), "no payment twice")
+# 🔍 The cursor is opaque: do not parse it, send it back. `updated_at` is what makes the load incremental.
 
 # %% [markdown]
-# ## 3 · Survive a 429 with backoff (6')
+# ## 2 · Follow every page, back off on 429 (7')
 #
-# Providers protect themselves with a **rate limit**: call too often and you get **429 Too Many Requests** instead of
-# data. Real ones do this every day, so a loader that dies on a 429 is a loader that dies every night. Turn the limit
-# on (every 5th request) and run the same code over a longer period.
+# ✏️ **Exercise** · Write `fetch_since(base_url, since)`: request `/prices?updated_since=<since>`, then keep
+# requesting with `cursor=<next_cursor>` until it is `null`. On a `429`, wait `Retry-After` seconds and repeat the
+# same request; on any other error, raise. Return all records and the number of 429s you met.
 
 # %%
-api.rate_limit_every = 5
-try:
-    fetch_all("2026-09-01T00:00:00.000Z")
-except requests.HTTPError as e:
-    print("💥", e)
-r = None
-while r is None or r.status_code != 429:      # ask until we get one, to see what it says
-    r = requests.get(f"{BASE}/payments", params={"page": 1}, timeout=10)
-print("status:", r.status_code, "| Retry-After:", r.headers["Retry-After"], "| body:", r.json())
-
-# %% [markdown]
-# The polite answer is to wait, then try again. **Backoff** means waiting longer after each failure: 1, 2, 4, 8 seconds.
-# If the server says how long to wait (the `Retry-After` header), believe it.
-#
-# ✏️ **Exercise** · Fill in the `429` branch of `get_with_retry`: work out `wait`, sleep, and go round the loop again.
-#
-# Hint: three lines. `float(r.headers.get("Retry-After", 2 ** attempt))`, then `time.sleep(wait)`, then `continue`.
-
-# %%
-def get_with_retry(url, params, tries=6):
-    for attempt in range(tries):
-        r = requests.get(url, params=params, timeout=10)
-        if r.status_code == 429:
-            # BEGIN SOLUTION
-            wait = float(r.headers.get("Retry-After", 2 ** attempt))
-            time.sleep(wait)
+def fetch_since(base_url: str, since: str = "") -> tuple[list[dict], int]:
+    # BEGIN SOLUTION
+    records, throttled, params = [], 0, {"updated_since": since}
+    while True:
+        resp = requests.get(f"{base_url}/prices", params=params, timeout=10)
+        if resp.status_code == 429:
+            throttled += 1
+            time.sleep(float(resp.headers.get("Retry-After", "1")))
             continue
-            # END SOLUTION
-        r.raise_for_status()
-        return r.json()
-    raise RuntimeError(f"gave up after {tries} tries")
-
-# %%
-before, throttled = api.requests, api.throttled
-try:
-    rows = fetch_all("2026-09-01T00:00:00.000Z", get=get_with_retry)
-except NotImplementedError:
-    print("✏️ Not done yet: using the reference retry so the rest of the lab runs.")
-    def get_with_retry(url, params, tries=6):
-        for attempt in range(tries):
-            r = requests.get(url, params=params, timeout=10)
-            if r.status_code == 429:
-                time.sleep(float(r.headers.get("Retry-After", 2 ** attempt)))
-                continue
-            r.raise_for_status()
-            return r.json()
-        raise RuntimeError(f"gave up after {tries} tries")
-    rows = fetch_all("2026-09-01T00:00:00.000Z", get=get_with_retry)
-print(f"{len(rows):,} payments | {api.requests - before} requests | {api.throttled - throttled} of them answered 429")
-U.check(len(rows) == 9720, "all 9,720 payments since 1 Sep arrived")
-U.check(api.throttled > throttled, "we hit the rate limit and survived it")
-
-# %% [markdown]
-# 🔍 Why not retry straight away, in a tight loop? (You'd keep hitting the limit, and many clients doing that at the same
-# moment is how a provider goes down. Real clients also add a little randomness, **jitter**, so they don't all come back
-# together.) Which other status codes deserve a retry? (5xx, the server's fault. A 400 or 404 won't get better.)
-#
-# ## 4 · Compare a full load with an incremental load (4')
-#
-# A **full load** fetches everything, every time. An **incremental load** fetches only what changed since last time.
-# It needs a **cursor**: a value that says how far we got. Here, the highest `updated_at` we've seen.
-#
-# A day passes. Compare the two. Nothing to write: run it and read the numbers.
-
-# %%
-api.rate_limit_every = 25            # be kinder from now on: waiting is boring
-
-def timed_fetch(since):
-    before, t0 = api.requests, time.perf_counter()
-    rows = fetch_all(since, get=get_with_retry)
-    return rows, api.requests - before, time.perf_counter() - t0
-
-held, _, _ = timed_fetch("2026-08-01T00:00:00.000Z")     # what we hold on 15 September
-cursor = max(r["updated_at"] for r in held)
-print(f"Loaded {len(held):,} payments. Cursor: {cursor}")
-
-api.set_clock("2026-09-16T00:00:00.000Z")                  # one day later
-full, full_requests, full_s = timed_fetch("2026-08-01T00:00:00.000Z")
-incr, incr_requests, incr_s = timed_fetch(cursor)
-pd.DataFrame({"payments fetched": [len(full), len(incr)], "requests": [full_requests, incr_requests],
-              "seconds": [round(full_s, 2), round(incr_s, 2)]}, index=["full load", "incremental load"])
-
-# %% [markdown]
-# 🔍 The incremental load is far cheaper, and it gets cheaper still as the history grows. So why would anyone run a full
-# load? (Small tables, where it's simplest. And a cursor on `updated_at` can never see a row that was **deleted** at the
-# source: it's gone, so nothing changed "since". Session 3 solves that.)
-#
-# ## 5 · Prove a re-run doesn't double-load (7')
-#
-# Schedulers retry failed jobs, and people press "run" twice. A load is **idempotent** when running it twice gives the
-# same result as running it once. First, the version most people write first: just insert what you fetched.
-
-# %%
-COLS = ["payment_id", "order_id", "amount", "currency", "method", "status", "card_last4", "created_at", "updated_at"]
-api.set_clock("2026-09-15T00:00:00.000Z")
-con = duckdb.connect()
-con.sql("SET enable_progress_bar = false")
-con.sql("""CREATE TABLE naive (payment_id VARCHAR, order_id BIGINT, amount DOUBLE, currency VARCHAR, method VARCHAR,
-                               status VARCHAR, card_last4 VARCHAR, created_at VARCHAR, updated_at VARCHAR)""")
-batch = pd.DataFrame(fetch_all("2026-08-01T00:00:00.000Z", get=get_with_retry))[COLS]
-for run in ["first run", "the scheduler retries"]:
-    con.sql("INSERT INTO naive SELECT * FROM batch")
-    n, money = con.sql("SELECT count(*), round(sum(amount)) FROM naive").fetchall()[0]
-    print(f"{run:24} {n:>7,} rows | {money:>12,.0f} SAR")
-
-# %% [markdown]
-# Twice the rows, twice the revenue, and no error anywhere. An **upsert** fixes it: for every key in the batch, the new
-# row replaces the old one. A key that isn't in the table yet is simply added.
-#
-# ✏️ **Exercise** · Complete `load_upsert`, in two statements: delete from `payments` the rows whose `payment_id` is in
-# `batch`, then insert everything from `batch`.
-#
-# Hint: `DELETE FROM payments WHERE payment_id IN (SELECT payment_id FROM batch)`.
-
-# %%
-con.sql("CREATE TABLE payments AS SELECT * FROM naive WHERE false")
-con.sql("CREATE TABLE ingest_state (cursor VARCHAR)")
-con.sql("INSERT INTO ingest_state VALUES ('2026-08-01T00:00:00.000Z')")
-
-
-def load_upsert(rows):
-    batch = pd.DataFrame(rows)[COLS]
-    # BEGIN SOLUTION
-    con.sql("DELETE FROM payments WHERE payment_id IN (SELECT payment_id FROM batch)")
-    con.sql("INSERT INTO payments SELECT * FROM batch")
+        resp.raise_for_status()
+        page = resp.json()
+        records += page["data"]
+        if not page["next_cursor"]:
+            return records, throttled
+        params = {"cursor": page["next_cursor"]}
     # END SOLUTION
 
 
-def run_once(label):
-    """One scheduled run: read the cursor, fetch what changed, upsert it, move the cursor."""
-    since = con.sql("SELECT cursor FROM ingest_state").fetchall()[0][0]
-    rows = fetch_all(since, get=get_with_retry)
-    load_upsert(rows)
-    con.sql("UPDATE ingest_state SET cursor = ?", params=[max(r["updated_at"] for r in rows)])
-    n, ids, refunds, money = con.sql("""SELECT count(*), count(DISTINCT payment_id),
-                                               count(*) FILTER (WHERE status = 'refunded'), round(sum(amount))
-                                        FROM payments""").fetchall()[0]
-    print(f"{label:22} fetched {len(rows):>6,} | table {n:>6,} rows, {ids:>6,} ids, {refunds:>5,} refunded, {money:>11,.0f} SAR")
-    return n, ids, refunds, money
-
 # %%
+def reference_fetch(base_url, since=""):  # safety net: the same logic, supplied
+    out, n, params = [], 0, {"updated_since": since}
+    while True:
+        resp = requests.get(f"{base_url}/prices", params=params, timeout=10)
+        if resp.status_code == 429:
+            n += 1; time.sleep(float(resp.headers["Retry-After"])); continue
+        resp.raise_for_status(); page = resp.json(); out += page["data"]
+        if not page["next_cursor"]:
+            return out, n
+        params = {"cursor": page["next_cursor"]}
+
+
 try:
-    first = run_once("run on 15 Sep")
+    records, throttled = fetch_since(api.url)
 except NotImplementedError:
-    print("✏️ Not done yet: using the reference upsert so the rest of the lab runs.")
-    def load_upsert(rows):
-        batch = pd.DataFrame(rows)[COLS]
-        con.sql("DELETE FROM payments WHERE payment_id IN (SELECT payment_id FROM batch)")
-        con.sql("INSERT INTO payments SELECT * FROM batch")
-    first = run_once("run on 15 Sep")
-again = run_once("re-run, same day")
-U.check(first == again, "the re-run changed nothing")
-
-api.set_clock("2026-09-29T00:00:00.000Z")           # two weeks later: new payments, and refunds of old ones
-later = run_once("run on 29 Sep")
-U.check(later[0] == later[1], "still one row per payment")
-U.check(later[2] > first[2], "refunds replaced their old 'captured' rows")
+    fetch_since = reference_fetch
+    records, throttled = fetch_since(api.url)
+print(len(records), "records,", throttled, "times throttled,", api.requests, "requests so far")
+Q.check(len(records) == 99 and len({r["price_id"] for r in records}) == 99, "every page of release 1: 99 records")
 
 # %% [markdown]
-# 🔍 The re-run fetched a row anyway. Why? (`updated_since` is **inclusive**, so the newest row comes back every time. We
-# keep it inclusive on purpose: two payments can share a timestamp, and `>` could skip the second. The upsert makes the
-# overlap harmless.) That is a pattern worth remembering: **overlap a little, and make the load idempotent.**
+# ## 3 · Load with a key and a stored cursor (8')
 #
-# Khalid's payment for order 5043883 arrived in the last run. And look at what our script quietly ignored.
+# Two decisions make a load safe to repeat:
+# - **a key**: one record version is `(price_id, updated_at)`; a version already loaded is not loaded again;
+# - **the cursor stored with the data**: the highest `updated_at` loaded, in a table of the same database, so the
+#   next run asks only for what is newer.
+#
+# ✏️ **Exercise** · Write `load(con, base_url)`: read the stored cursor from `raw._load_state` (empty string when
+# there is none), fetch since it, insert the new versions into `raw.supplier_prices` without duplicates
+# (`INSERT OR IGNORE` with a primary key, or an anti-join), store the new cursor, and return how many rows were
+# inserted.
 
 # %%
-display(con.sql("SELECT payment_id, order_id, amount, method, status, updated_at FROM payments WHERE order_id = 5043883").df())
-last = fetch_all("2026-09-28T00:00:00.000Z", get=get_with_retry)
-print("fields the provider sends that we don't keep:", sorted(set().union(*last) - set(COLS)))
-
-# %% [markdown]
-# 🔍 `COLS` was written in August. `wallet_provider` appeared on 15 September, and our loader dropped it without a word.
-#
-# Count what this script doesn't do yet: no column types (every timestamp is text), no reaction to new fields, no record
-# of which run wrote which row, and a cursor kept apart from the data. The next lab has a library do all of it.
-#
-# ## ✱ Stretch · Keep the rows and the cursor in one transaction
-#
-# `run_once` writes the rows, then the cursor. If the job dies in between, the next run re-fetches a little (harmless).
-# Swap the order and a crash **loses** data: the cursor says "done", the rows never landed. A **transaction** makes both
-# writes happen together or not at all. Complete `run_safely`: `BEGIN`, upsert, stop if `crash`, move the cursor,
-# `COMMIT`; on any exception, `ROLLBACK` and re-raise.
-
-# %%
-class Crash(Exception):
-    pass
+DB = Q.lab_dir("D2_1") / "qafila.duckdb"
+con = Q.connect(DB)
+con.execute("CREATE SCHEMA IF NOT EXISTS raw")
+con.execute("""CREATE TABLE IF NOT EXISTS raw.supplier_prices (
+    price_id VARCHAR, product_id VARCHAR, supplier_name VARCHAR, cost VARCHAR, currency VARCHAR, unit VARCHAR,
+    valid_from DATE, updated_at TIMESTAMPTZ, incoterm VARCHAR, loaded_at TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (price_id, updated_at))""")
+con.execute("CREATE TABLE IF NOT EXISTS raw._load_state (source VARCHAR PRIMARY KEY, cursor VARCHAR, updated TIMESTAMPTZ)")
+COLS = ["price_id", "product_id", "supplier_name", "cost", "currency", "unit", "valid_from", "updated_at", "incoterm"]
 
 
-def run_safely(rows, new_cursor, crash=False):
+def load(con, base_url: str) -> int:
     # BEGIN SOLUTION
-    con.sql("BEGIN")
-    try:
-        load_upsert(rows)
-        if crash:
-            raise Crash("the job died here")
-        con.sql("UPDATE ingest_state SET cursor = ?", params=[new_cursor])
-        con.sql("COMMIT")
-    except Exception:
-        con.sql("ROLLBACK")
-        raise
+    row = con.execute("SELECT cursor FROM raw._load_state WHERE source = 'supplier_prices'").fetchall()
+    since = row[0][0] if row else ""
+    new, _ = fetch_since(base_url, since)
+    before = con.execute("SELECT count(*) FROM raw.supplier_prices").fetchall()[0][0]
+    if new:
+        con.executemany(f"INSERT OR IGNORE INTO raw.supplier_prices ({', '.join(COLS)}) VALUES ({', '.join('?' * len(COLS))})",
+                        [[r.get(c) for c in COLS] for r in new])
+        cursor = max(r["updated_at"] for r in new)
+        con.execute("INSERT OR REPLACE INTO raw._load_state VALUES ('supplier_prices', ?, now())", [cursor])
+    return con.execute("SELECT count(*) FROM raw.supplier_prices").fetchall()[0][0] - before
     # END SOLUTION
 
-# %%
-api.set_clock(None)
-state = lambda: con.sql("SELECT (SELECT count(*) FROM payments), (SELECT cursor FROM ingest_state)").fetchall()[0]
-before_crash = state()
-rows = fetch_all(before_crash[1], get=get_with_retry)
-try:
-    try:
-        run_safely(rows, max(r["updated_at"] for r in rows), crash=True)
-    except Crash as e:
-        print("💥", e)
-    U.check(state() == before_crash, f"after the crash: rows and cursor both unchanged {before_crash}")
-    run_safely(rows, max(r["updated_at"] for r in rows))
-    print("after the clean run:", state())
-except NotImplementedError:
-    print("✱ Stretch not attempted: that's fine.")
 
 # %%
+def reference_load(con, base_url):  # safety net
+    row = con.execute("SELECT cursor FROM raw._load_state WHERE source = 'supplier_prices'").fetchall()
+    new, _ = fetch_since(base_url, row[0][0] if row else "")
+    before = con.execute("SELECT count(*) FROM raw.supplier_prices").fetchall()[0][0]
+    if new:
+        con.executemany(f"INSERT OR IGNORE INTO raw.supplier_prices ({', '.join(COLS)}) VALUES ({', '.join('?' * len(COLS))})",
+                        [[r.get(c) for c in COLS] for r in new])
+        con.execute("INSERT OR REPLACE INTO raw._load_state VALUES ('supplier_prices', ?, now())", [max(r["updated_at"] for r in new)])
+    return con.execute("SELECT count(*) FROM raw.supplier_prices").fetchall()[0][0] - before
+
+
+try:
+    first = load(con, api.url)
+except NotImplementedError:
+    load = reference_load
+    first = load(con, api.url)
+print("first run inserted", first)
+print(con.sql("SELECT * FROM raw._load_state"))
+Q.check(first == 99, "the first run loads release 1: 99 versions")
+
+# %% [markdown]
+# ## 4 · Run it twice, then after new data (6')
+
+# %%
+requests_before = api.requests
+second = load(con, api.url)
+print("second run inserted", second, "using", api.requests - requests_before, "request(s)")
+Q.check(second == 0, "a re-run adds nothing")
+
 api.stop()
+api = Q.SupplierAPI(release=2)          # two weeks later: new prices and corrections
+third = load(con, api.url)
+print("after new data inserted", third)
+latest = con.sql("""SELECT price_id, cost, updated_at FROM raw.supplier_prices
+                    QUALIFY row_number() OVER (PARTITION BY price_id ORDER BY updated_at DESC) = 1""")
+corrected = con.execute("SELECT count(*) FROM (SELECT price_id FROM raw.supplier_prices GROUP BY 1 HAVING count(*) > 1)").fetchall()[0][0]
+n_latest = con.execute("SELECT count(*) FROM (SELECT DISTINCT price_id FROM raw.supplier_prices)").fetchall()[0][0]
+print(f"{n_latest} prices, {corrected} of them corrected (two versions kept)")
+Q.check(third == 28 and n_latest == 102 and corrected == 25, "28 new versions: 3 new prices and 25 corrections, history kept")
+api.stop()
+
+# %% [markdown]
+# 🔍 Raw keeps **every version**: the correction does not overwrite the first price. Staging (Lab 2.2 and Day 3)
+# picks the latest version per `price_id`. Why keep both in raw?
+
+# %% [markdown]
+# ## ✱ Stretch · Rows and cursor in one transaction
+#
+# If the process dies between inserting rows and storing the cursor, the next run fetches those rows again (safe,
+# thanks to the key). If it stored the cursor first and died before the rows, data would be lost. Wrap both in one
+# transaction and prove that a failure leaves neither.
+
+# %%
+# BEGIN SOLUTION
+api = Q.SupplierAPI(release=2)
+con.execute("DELETE FROM raw._load_state")
+con.execute("DELETE FROM raw.supplier_prices WHERE updated_at >= TIMESTAMPTZ '2026-10-16 00:00:00+03'")
+try:
+    con.execute("BEGIN TRANSACTION")
+    new, _ = fetch_since(api.url, "2026-10-15T23:59:59+03:00")
+    con.executemany(f"INSERT OR IGNORE INTO raw.supplier_prices ({', '.join(COLS)}) VALUES ({', '.join('?' * len(COLS))})",
+                    [[r.get(c) for c in COLS] for r in new])
+    raise RuntimeError("the process died before storing the cursor")
+except RuntimeError as e:
+    con.execute("ROLLBACK")
+    print("rolled back:", e)
+rows_after = con.execute("SELECT count(*) FROM raw.supplier_prices").fetchall()[0][0]
+Q.check(rows_after == 99, "a failed transaction leaves neither the rows nor the cursor")
+api.stop()
+# END SOLUTION
 
 # %% [markdown]
 # ## Checkpoint
 #
-# **1.** Your job fetched page 40 of 80 when the laptop lost power. You run it again. With what you built today, what
-# happens to the 40 pages already loaded?
+# 1. A re-run doubles the rows. Which decision was missing?
+#    <details><summary>Answer</summary>A key for one record version, enforced on insert (or a merge on it). The
+#    stored cursor alone is not enough: a crash before storing it re-fetches the same pages.</details>
+# 2. Why is the cursor stored in the database, not in a local file?
+#    <details><summary>Answer</summary>So that it changes together with the data: a restore of the database restores
+#    the matching cursor, and two machines running the load read the same state.</details>
+# 3. The API filter is `updated_at > cursor`. Which records can that miss, and how do you guard against it?
+#    <details><summary>Answer</summary>Records written later with the same <code>updated_at</code> as the cursor, or
+#    a clock that runs behind. Re-read a small overlap (cursor minus a few minutes) and let the key drop what was
+#    already loaded.</details>
 #
-# <details><summary>Answer</summary>They're fetched and upserted again, replacing themselves. Nothing doubles. Only the
-# time is wasted.</details>
-#
-# **2.** Why wait for `Retry-After` on a 429, but not retry a 404?
-#
-# <details><summary>Answer</summary>A 429 means "not now": the same request will work later. A 404 means "no such thing":
-# it will fail the same way every time, and retrying only hides the bug.</details>
-#
-# **3.** A customer's payment row is deleted at the provider. Does the incremental load notice?
-#
-# <details><summary>Answer</summary>No. It only asks what changed since the cursor, and a deleted row can't answer. You
-# need a periodic full load, or a change feed that says "deleted" (Lab 2.3).</details>
-#
-# ## Carry forward
-#
-# You've written pages, retries, a cursor and an upsert by hand. Lab 2.2 does the same job with dlt in a few lines, and
-# you'll recognise each piece. Want more? `tools/dlt.ipynb`.
+# **Carry forward.** Lab 2.2 does the same load with an ingestion library and compares what it stores.
