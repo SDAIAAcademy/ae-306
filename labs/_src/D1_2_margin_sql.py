@@ -7,7 +7,7 @@
 # line with the price valid on the order date, reproduce her reference and write down the two defects that explain
 # the gap.
 #
-# **AI-off.** This lab is done without an AI assistant: the entry's evidence for the outcome is *your* queries and
+# **AI-off.** This lab is done without an AI assistant: the evidence for this outcome is *your* queries and
 # *your* note.
 #
 # **Reference state.** `data/raw/extracts/*.csv` and `data/reference/monthly_margin.csv` (finance's reference),

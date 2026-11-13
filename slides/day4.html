@@ -93,6 +93,20 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>This is LO5's evidence: identical results from two engines and a query against an earlier snapshot. Both read the same files; nothing was exported. The snapshot id differs on every run; read it from table.inspect.snapshots().</p></aside>
 </section>
 
+<section class="slide" data-label="Maintenance" id="deletes-compaction-expiry" data-lo="LO5 LO6">
+  <div class="kicker">Deletes and maintenance</div>
+  <h2>A deleted row stays in its file until maintenance removes it</h2>
+  <table class="t small">
+    <tr><th>Operation</th><th>What it writes</th><th>What it leaves behind</th></tr>
+    <tr><td>Delete or update a row</td><td>a rewritten data file, or a <b>deletion vector</b> marking the row's position</td><td>the old file, still read by earlier snapshots</td></tr>
+    <tr><td>Many small appends</td><td>many small data files</td><td>slow scans: Day 1's small-files problem</td></tr>
+    <tr><td><b>Compaction</b></td><td>fewer, larger files with the deletes applied</td><td>the replaced files, until they expire</td></tr>
+    <tr><td>Expire snapshots</td><td>shorter history</td><td>nothing: files no snapshot needs are deleted</td></tr>
+  </table>
+  <p class="small mt">Maintenance is scheduled like any other asset. Until it runs, "deleted" means "hidden from the current snapshot".</p>
+  <aside class="notes"><p>Two ways to delete a row. Copy-on-write rewrites the whole data file without the row. Merge-on-read leaves the file and records which rows are gone: position delete files in version 2 of the Iceberg specification, deletion vectors (one bitmap per data file) in version 3; Delta Lake has deletion vectors too. Compaction rewrites small files into larger ones and applies the pending deletes. The stretch of Lab 4.1 expires a snapshot. Keep this slide in mind for Session 4: an erasure request is only finished after the delete, the compaction and the expiry. Source: iceberg.apache.org/spec.</p></aside>
+</section>
+
 <section class="slide" id="checkpoint-1" data-lo="LO5">
   <div class="kicker">Checkpoint</div>
   <h2>The rename</h2>
@@ -270,10 +284,10 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
     <tr><th>Level</th><th>Impact</th><th>Examples the policy gives</th></tr>
     <tr><td>Top Secret</td><td>high</td><td>national security, critical infrastructure keys</td></tr>
     <tr><td>Secret</td><td>medium</td><td>vital installations, major financial loss</td></tr>
-    <tr><td>Restricted</td><td>low</td><td>personally identifiable information, bank accounts, supplier contracts and quotations</td></tr>
+    <tr><td>Restricted (older texts: Confidential)</td><td>low</td><td>personally identifiable information, bank accounts, supplier contracts and quotations</td></tr>
     <tr><td>Public</td><td>none</td><td>public announcements, contact persons at organisations</td></tr>
   </table>
-  <aside class="notes"><p>Issued by the National Data Management Office (part of SDAIA). Restricted has three sub-levels (A, B, C) by how widely the impact spreads. Principles worth quoting: highest level of protection for a mixed dataset, need to know, least privilege. Sources: sdaia.gov.sa Data Classification Policy; Personal Data Protection Law.</p></aside>
+  <aside class="notes"><p>Issued by the National Data Management Office (part of SDAIA). Restricted is the level that older texts and many internal templates still call Confidential: say so, because participants will meet both words for the same level. It has three sub-levels (A, B, C) by how widely the impact spreads. Principles worth quoting: highest level of protection for a mixed dataset, need to know, least privilege. Sources: sdaia.gov.sa Data Classification Policy; Personal Data Protection Law.</p></aside>
 </section>
 
 <section class="slide" data-label="Register" id="classification-register" data-lo="LO6">
@@ -324,6 +338,20 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
     <li>Table formats keep old snapshots: expire them, and delete the files they leave.</li>
   </ul>
   <aside class="notes"><p>From the stretch of Lab 4.4. The orders stay because they are Qafila's own business records; nothing in them identifies the person once the customer row is gone. Ask the room to list every place their own pipeline copies a customer row: raw files, staging, snapshots, backups, exports.</p></aside>
+</section>
+
+<section class="slide" data-label="NDMO controls" id="ndmo-quality-architecture" data-lo="LO6 LO4">
+  <div class="kicker">NDMO Data Management and Personal Data Protection Standards</div>
+  <h2>The pipeline already writes the evidence a quality and architecture audit asks for</h2>
+  <table class="t small">
+    <tr><th>Area of control</th><th>What an auditor asks</th><th>Evidence from this week</th></tr>
+    <tr><td rowspan="2">Data quality</td><td>Which rules, and who owns them?</td><td>the contract and its owner (Lab 3.3)</td></tr>
+    <tr><td>What happened when a rule failed?</td><td>the run log of the blocked batch (Lab 3.4)</td></tr>
+    <tr><td rowspan="2">Architecture and modelling</td><td>Where is the model, and who changed it?</td><td>the star and the models in git (Labs 3.1, 3.2)</td></tr>
+    <tr><td>Where did this number come from?</td><td>lineage events per run (Lab 3.4)</td></tr>
+    <tr><td>Personal data</td><td>Who may read each field?</td><td>the register and access tests (Lab 4.4)</td></tr>
+  </table>
+  <aside class="notes"><p>The questions in the middle column are this course's wording, not quotations. Before the cohort, open the Standards (National Data Management Office, on SDAIA's regulations and policies page) and write the numbers of the quality and architecture controls your participants' entities report against beside each row; ask the room which of them their entity was last assessed on. The point for an engineer: compliance evidence is cheapest when the pipeline writes it on every run, and most expensive when someone collects it by hand before an audit.</p></aside>
 </section>
 
 <section class="slide" id="checkpoint-4" data-lo="LO6">

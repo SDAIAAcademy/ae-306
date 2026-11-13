@@ -27,23 +27,26 @@
       <li><b>Govern</b> the fields: register, masking, access tests.</li>
     </ul>
   </div>
-  <div class="callout note small mt"><b>Starter:</b> <code>labs/capstone/pipeline.py</code> has the eight steps, each naming the lab it reuses. The first is done.</div>
-  <aside class="notes"><p>Each bullet is one lab they have already done: 2.1 and 2.3 for ingestion, 3.1 and 3.2 for the model, 3.3 for the gate, 3.4 for orchestration, 4.1 for Iceberg, 4.4 for governance. The capstone is the first time the pieces run in one pipeline, in order, on one database. The trainer's reference solution is labs/solutions/capstone_pipeline.py: it runs end to end in about 25 seconds on a laptop and passes 13 tests; do not share it before the defences.</p></aside>
+  <div class="callout note small mt"><b>Starter:</b> <code>labs/capstone/pipeline.py</code> has the nine steps, each naming the lab it reuses. The first is done.</div>
+  <aside class="notes"><p>Each bullet is one lab they have already done: 2.1 and 2.3 for ingestion, 3.1 and 3.2 for the model, 3.3 for the gate, 3.4 for orchestration, 4.1 for Iceberg, 4.4 for governance. The capstone is the first time the pieces run in one pipeline, in order, on one database. The trainer's reference solution is labs/solutions/capstone_pipeline.py: it runs end to end in about 25 seconds on a laptop and passes 13 tests, 14 with the backfill; do not share it before the defences.</p></aside>
 </section>
 
 <section class="slide" data-label="What the assessor re-runs" id="rerun" data-lo="LO3 LO4">
   <div class="kicker">Reproducibility</div>
-  <h2>The assessor clones your repository and runs it twice</h2>
+  <h2>The assessor clones your repository and runs it from nothing</h2>
   <div class="cols cols-2">
-    <div class="code"><pre><code>git clone &lt;your repository&gt; &amp;&amp; cd &lt;it&gt;
-uv sync
-uv run python pipeline.py
-uv run python pipeline.py --batch broken</code></pre></div>
+    <div class="code"><pre><code>git clone &lt;your repository&gt;
+# then the commands of your README; with the starter:
+cd &lt;it&gt;/labs &amp;&amp; uv sync
+uv run python capstone/pipeline.py
+uv run python capstone/pipeline.py --batch broken
+uv run python capstone/pipeline.py --backfill 2026-10</code></pre></div>
     <table class="t small">
       <tr><th>Run</th><th>Must show</th></tr>
       <tr><td>Fixed batch</td><td>row counts and test results equal to your README</td></tr>
       <tr><td>Broken batch</td><td>the contract's failed checks, and the mart not refreshed</td></tr>
       <tr><td>Second run</td><td>no new rows from the API</td></tr>
+      <tr><td>Backfill</td><td>one month rebuilt, the others untouched</td></tr>
     </table>
   </div>
   <div class="callout warn small mt"><b>Clone it yourself first,</b> into a new folder. A file only on your laptop fails the run.</div>
@@ -61,8 +64,8 @@ uv run python pipeline.py --batch broken</code></pre></div>
     <div class="row"><span>Table format and governance</span><div class="bar c-amber" style="--w:40%"></div><span class="val">10%</span></div>
     <div class="row"><span>Reproducibility</span><div class="bar c-teal" style="--w:40%"></div><span class="val">10%</span></div>
   </div>
-  <div class="callout tip mt"><b>Every number in the README comes from a committed run report.</b> A claim without one is a plan, not a result.</div>
-  <aside class="notes"><p>Full marks on correctness means the five finance answers reconcile within one riyal and the fact has exactly one row per order line. On ingestion, a second run adds nothing and no supplier has overlapping validity ranges. On orchestration, the run log of the broken batch shows the failed checks and that the mart was not rebuilt, and a backfill of the month after the fix. The repository is 60% of the course result and needs at least 60% on this rubric; the defence is 20% and the supervised checks the other 20%; the pass mark is 70%.</p></aside>
+  <div class="callout tip mt"><b>The repository is 60% of your result</b> and needs at least 60% on this rubric. The defence is 20%, the supervised checks 20%. The pass mark is 70% overall.</div>
+  <aside class="notes"><p>Every number in a README must come from a committed run report: a claim without one is a plan, not a result. Full marks on correctness means the five finance answers reconcile within one riyal and the fact has exactly one row per order line. On ingestion, a second run adds nothing and no supplier has overlapping validity ranges. On orchestration, the run log of the broken batch shows the failed checks and that the mart was not rebuilt, and a backfill of the month after the fix. The repository is 60% of the course result and needs at least 60% on this rubric; the defence is 20% and the supervised checks the other 20%; the pass mark is 70%.</p></aside>
 </section>
 
 <section class="slide" data-label="Defence" id="defence-format">

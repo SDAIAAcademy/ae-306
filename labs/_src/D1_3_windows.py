@@ -5,6 +5,8 @@
 # wants every supplier price change and its size, and sales wants each customer's first and last order. All three
 # keep the rows and add a value computed over neighbouring rows: window functions.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.warehouse()` loads the extracts and `Q.build_models(con)` builds the cleaned tables
 # (`stg.*`) and the order-line fact (`mart.fct_order_line`, confirmed orders, one copy per line, cost at the price
 # valid on the order date): the result of Lab 1.2, supplied.

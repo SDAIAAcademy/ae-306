@@ -6,6 +6,8 @@
 # aggregate on a row store (SQLite) and a column store (DuckDB), then place ten Qafila workloads in the
 # transactional, warehouse or lakehouse layer and justify each one in a sentence.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `data/raw/qafila_orders.sqlite` (the order database) and `data/raw/extracts/` (its nightly
 # extracts), both written by `qafila_data.py` with seed 306. Nothing from another lab is needed.
 #

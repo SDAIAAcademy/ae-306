@@ -20,6 +20,7 @@ HEADER = '''"""Qafila margin mart, end to end: your capstone pipeline.
     cd labs
     uv run python capstone/pipeline.py                  # the whole pipeline, November batch fixed
     uv run python capstone/pipeline.py --batch broken   # the contract must block: the mart is not refreshed
+    uv run python capstone/pipeline.py --backfill 2026-10   # after the fix: rebuild one month only
 
 Each step below names the lab whose code it reuses. Replace each NotImplementedError with your own code; the
 steps you have not built yet are reported, not fatal, so you can run the file at any point. The run writes

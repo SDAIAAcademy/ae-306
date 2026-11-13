@@ -47,6 +47,9 @@ Every answer the labs check stays the same.
 | 4 | Shipment events with a watermark | [`D4_3_streaming.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_3_streaming.ipynb) |
 | 4 | Classification, masking and access tests | [`D4_4_governance.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_4_governance.ipynb) |
 
+**AI policy.** Lab 1.2 is done without an AI assistant. In the other labs an assistant may give hints; it does not
+write your queries, models or tests. The capstone allows coding agents: what they write must pass your own tests.
+
 Exercises are marked **✏️ Exercise** and raise `NotImplementedError` until you fill them in. Complete reference
 versions are in `solutions/`. Cells marked **✱ Stretch** are optional. Self-checks print ✅ or ❌.
 

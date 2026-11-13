@@ -3,6 +3,7 @@
     cd labs
     uv run python solutions/capstone_pipeline.py                  # the whole pipeline, November batch fixed
     uv run python solutions/capstone_pipeline.py --batch broken   # the contract blocks: the mart is not refreshed
+    uv run python solutions/capstone_pipeline.py --backfill 2026-10   # after the fix: rebuild October only
 
 Writes into labs/artifacts/capstone/ (git ignores it): qafila.duckdb, the Iceberg warehouse, analyst.duckdb and
 run_report.json (row counts, test results and run time per step). labs/capstone/pipeline.py is the participants'
@@ -154,6 +155,26 @@ def build_models() -> dict:
 
 
 @step
+def backfill(month: str) -> int:
+    """After a fix, rebuild one month of the monthly mart and leave the other months as they were (Lab 3.4)."""
+    # BEGIN SOLUTION
+    with Q.connect(DB) as con:
+        before = dict(con.execute("SELECT month, margin FROM mart.margin_monthly").fetchall())
+        con.execute("BEGIN")                      # delete and insert together: a backfill can run twice
+        con.execute("DELETE FROM mart.margin_monthly WHERE month = ?", [month])
+        con.execute("""INSERT INTO mart.margin_monthly
+            SELECT strftime(order_date, '%Y-%m') AS month, round(sum(revenue), 2), round(sum(cost), 2),
+                   round(sum(revenue) - sum(cost), 2), round(100 * (sum(revenue) - sum(cost)) / sum(revenue), 2)
+            FROM mart.fct_order_line WHERE strftime(order_date, '%Y-%m') = ? GROUP BY 1""", [month])
+        con.execute("COMMIT")
+        after = dict(con.execute("SELECT month, margin FROM mart.margin_monthly").fetchall())
+    REPORT["backfill"] = {"month": month, "months_rebuilt": 1, "months_left_alone": len(after) - 1}
+    REPORT["tests"]["backfill_rebuilds_one_month"] = month in after and all(after.get(m) == v for m, v in before.items() if m != month)
+    return 1
+    # END SOLUTION
+
+
+@step
 def run_tests() -> dict:
     """Grain, keys, relationships and the reconciliation with finance's five answers (Lab 3.1)."""
     # BEGIN SOLUTION
@@ -245,7 +266,7 @@ def report():
     return REPORT
 
 
-def main(batch: str = "fixed") -> dict:
+def main(batch: str = "fixed", backfill_month: str | None = None) -> dict:
     t = time.perf_counter()
     land_raw()
     ingest_supplier_api()
@@ -256,6 +277,8 @@ def main(batch: str = "fixed") -> dict:
         REPORT["mart_refreshed"] = False
     else:
         build_models()
+        if backfill_month:
+            backfill(backfill_month)
         run_tests()
         write_iceberg()
         govern()
@@ -267,4 +290,6 @@ def main(batch: str = "fixed") -> dict:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--batch", choices=["fixed", "broken"], default="fixed")
-    main(p.parse_args().batch)
+    p.add_argument("--backfill", metavar="YYYY-MM", help="after a fix: rebuild this month of the monthly mart only")
+    args = p.parse_args()
+    main(args.batch, args.backfill)

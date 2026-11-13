@@ -7,6 +7,8 @@
 # local single-broker log by offset, survive a crash without double counting, count deliveries in daily event-time
 # windows with a watermark, and reconcile with the batch result.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `data/raw/events/shipment_events.jsonl` (2,312 events for the last two weeks of October, in
 # arrival order) and `extracts/shipments.jsonl` (the batch truth). `Q.Log` is a file-backed log with offsets and
 # committed consumer positions, like one partition of a broker. Kafka is the production example on the slides.

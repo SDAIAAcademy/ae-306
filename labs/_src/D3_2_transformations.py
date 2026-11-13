@@ -5,6 +5,8 @@
 # Here they become a project: one SQL file per model, in git, built by SQLMesh into a development environment,
 # promoted to production, and rebuilt after a change only where the change reaches.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `labs/models/*.sql`: Qafila's staging and mart models (Lab 3.1's tables) with a SQLMesh
 # `MODEL (...)` header each, and `Q.warehouse(path)`, which writes the raw tables into the project's DuckDB file.
 # Nothing from another lab is needed.
@@ -65,6 +67,7 @@ def git(*args):
 
 
 git("init", "-q", "-b", "main")
+assert (PROJ / ".git").is_dir(), "git init did not create a repository here: stop, or the commits below would go into the enclosing repository"
 (PROJ / ".gitignore").write_text("*.duckdb\n*.wal\n.cache/\nlogs/\n", encoding="utf-8")
 git("add", ".")
 print(git("-c", "user.name=Qafila data team", "-c", "user.email=data@qafila.example", "commit", "-q", "-m", "Staging and dimension models"))

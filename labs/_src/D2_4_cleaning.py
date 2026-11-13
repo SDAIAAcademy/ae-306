@@ -7,6 +7,8 @@
 # one supplier id. In this lab you write the cleaning rules as Polars expressions, log what each rule changed, and
 # reconcile the result with the ERP's price list.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `data/raw/supplier_api/price_records.jsonl` (every version the API served),
 # `extracts/products.csv` (units per carton, supplier per product), `suppliers/*.csv` (the supplier names) and
 # `extracts/prices.csv` (the ERP's cost per piece, for the reconciliation). Nothing from another lab is needed.

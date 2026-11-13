@@ -85,6 +85,20 @@ The margin mart from raw sources to an Apache Iceberg table, built on the Qafila
 | Table format and governance | 10 |
 | Reproducibility | 10 |
 
+## Assessment
+
+| Part | Share |
+|---|---|
+| Supervised entry and exit checks of SQL and modelling, without AI assistance | 20% |
+| Capstone repository, on the six-criterion rubric above | 60% |
+| Live defence of one modelling decision | 20% |
+
+Passing needs 70% overall and at least 60% on the capstone rubric. The assessor re-runs the pipeline from a clean checkout, compares its row counts with the README, and inspects the commit history and the run logs; in the defence the participant explains one transformation the assessor selects. The certificate is a completion certificate with assessed work. The supervised checks are not in this repository.
+
+**AI policy.** AI-off in the supervised checks and in Lab 1.2. AI-tutor in the other labs: an assistant may hint, but it does not write models or tests. AI-full in the capstone, where any transformation an agent wrote must pass the participant's own tests and be explained in the defence.
+
+**Responsible use.** Customer contact fields and supplier contract prices are classified under the national classification levels before loading. Participants drop the fields the margin report does not need, mask the rest for the analyst role and record each decision in a register. They also trace where a deleted customer survives in history tables and table snapshots, and how expiry removes it. A failed quality check blocks publication instead of reaching the finance team.
+
 ## Prerequisites
 
 - FN-102 Command Line, Git and Reproducible Projects

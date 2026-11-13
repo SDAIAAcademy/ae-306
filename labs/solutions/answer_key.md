@@ -47,7 +47,8 @@ ratios, not the seconds.
 
 `solutions/capstone_pipeline.py` runs the whole mart in about 25 seconds on a laptop and passes 13 tests with the
 fixed batch. With `--batch broken` it stops at the contract (`cost_present`, `cost_positive_number`) and does not
-refresh the mart. `_tools/make_capstone_starter.py` writes `capstone/pipeline.py` from it.
+refresh the mart. With `--backfill 2026-10` after the fix it rebuilds October of the monthly mart only and adds a
+fourteenth test, that the other months did not change. `_tools/make_capstone_starter.py` writes `capstone/pipeline.py` from it.
 
 ## Choices that a trainer may be asked about
 

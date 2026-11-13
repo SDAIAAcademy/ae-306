@@ -6,6 +6,8 @@
 # line to the price valid on its date, on DuckDB and on Dask with a local cluster, read Dask's task graph, and compare
 # run time and peak memory at two data sizes. The decision comes from the numbers.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.warehouse()` and `Q.build_models(con, names=...)`: the staged lines (confirmed, one copy
 # each) and the price list. The lines are repeated to make two sizes. Spark is the production example on the
 # slides; it needs a Java runtime, so the lab uses Dask, which is pure Python and runs on a laptop or in Colab.

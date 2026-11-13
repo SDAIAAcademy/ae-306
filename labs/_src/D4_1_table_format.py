@@ -6,6 +6,8 @@
 # partitioned by month, walk its metadata on disk, add a column, append October, and read the current snapshot and
 # an earlier one from a second engine, DuckDB, with identical results.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.mart_table()`: the margin mart of Day 3 as an Arrow table, built from the reference models
 # (17,665 lines with month, city, customer type, category, supplier country, revenue, cost, margin, freight).
 # Nothing from another lab is needed. DuckDB downloads its `iceberg` extension on first use.

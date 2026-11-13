@@ -6,6 +6,8 @@
 # statistics Parquet keeps per row group, partition the files by month, and measure time and bytes for a query on
 # one month. Then you make too many small files on purpose and measure what they cost.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.warehouse()` and `Q.lines_wide(con)`: one row per extract line with its order date, status
 # and revenue. To make the measurements visible, the lines are repeated `SCALE` times.
 #

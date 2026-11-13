@@ -5,6 +5,8 @@
 # this lab you state the grain, draw the star that answers them, build the dimensions (with an unknown member) and
 # the fact table, test the grain, and check all five answers against finance's reference.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.warehouse()` and `Q.build_models(con, names=STAGING)`: the staging tables of Day 2
 # (`stg.*`, typed and deduplicated) and the supplier history (`raw.supplier_history`, Lab 2.3's type 2 table).
 #

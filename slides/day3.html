@@ -228,7 +228,7 @@ schema:
             type: sql
             query: SELECT count(*) FROM {object} WHERE num({property}) &lt;= 0
             mustBe: 0</code></pre>
-  <aside class="notes"><p>The Open Data Contract Standard (ODCS), maintained by Bitol under the Linux Foundation; version 3.1.0 at the time of writing. Its quality rules use metrics (nullValues, duplicateValues, invalidValues, rowCount) or SQL, with operators such as mustBe and mustBeLessThan. Sources: bitol-io.github.io/open-data-contract-standard. The owner is named in the contract: Ammar Basri.</p></aside>
+  <aside class="notes"><p>The Open Data Contract Standard (ODCS), maintained by Bitol under the Linux Foundation; version 3.1.0 at the time of writing. Its quality rules use metrics (nullValues, duplicateValues, invalidValues, rowCount) or SQL, with operators such as mustBe and mustBeLessThan. Sources: bitol-io.github.io/open-data-contract-standard. The owner is named in the contract: Ammar Basri. The contract also carries the classification of a field: cost, a supplier's quoted price, is marked restricted before it is loaded, and Day 4 explains the levels.</p></aside>
 </section>
 
 <section class="slide" data-label="Compiled" id="contract-to-sql" data-lo="LO4">
@@ -364,7 +364,7 @@ schema:
     <div class="card c-cyan"><h4>Models with state</h4><p class="small mb0">Files in git, environments, rebuilds that reach only what changed.</p></div>
     <div class="card c-coral"><h4>Fail safely</h4><p class="small mb0">A contract with an owner, a blocking check, retries for the transport, backfills by partition.</p></div>
   </div>
-  <aside class="notes"><p>The capstone starts here: the starter in labs/capstone/ has these models, the contract and the asset graph. Tomorrow adds the open table, scale, streaming and governance.</p></aside>
+  <aside class="notes"><p>The capstone starts here: the starter in labs/capstone/ names the lab each step reuses, and labs/models/ and labs/contracts/ hold today's models and contract. Orchestrating the steps as assets (Lab 3.4) is the participant's own work. Tomorrow adds the open table, scale, streaming and governance.</p></aside>
 </section>
 
 <section class="slide dark" data-label="Tomorrow" id="tomorrow-scale">

@@ -3,6 +3,7 @@
     cd labs
     uv run python capstone/pipeline.py                  # the whole pipeline, November batch fixed
     uv run python capstone/pipeline.py --batch broken   # the contract must block: the mart is not refreshed
+    uv run python capstone/pipeline.py --backfill 2026-10   # after the fix: rebuild one month only
 
 Each step below names the lab whose code it reuses. Replace each NotImplementedError with your own code; the
 steps you have not built yet are reported, not fatal, so you can run the file at any point. The run writes
@@ -78,6 +79,12 @@ def build_models() -> dict:
 
 
 @step
+def backfill(month: str) -> int:
+    """After a fix, rebuild one month of the monthly mart and leave the other months as they were (Lab 3.4)."""
+    raise NotImplementedError("your code here")
+
+
+@step
 def run_tests() -> dict:
     """Grain, keys, relationships and the reconciliation with finance's five answers (Lab 3.1)."""
     raise NotImplementedError("your code here")
@@ -108,7 +115,7 @@ def report():
     return REPORT
 
 
-def main(batch: str = "fixed") -> dict:
+def main(batch: str = "fixed", backfill_month: str | None = None) -> dict:
     t = time.perf_counter()
     land_raw()
     ingest_supplier_api()
@@ -119,6 +126,8 @@ def main(batch: str = "fixed") -> dict:
         REPORT["mart_refreshed"] = False
     else:
         build_models()
+        if backfill_month:
+            backfill(backfill_month)
         run_tests()
         write_iceberg()
         govern()
@@ -130,4 +139,6 @@ def main(batch: str = "fixed") -> dict:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--batch", choices=["fixed", "broken"], default="fixed")
-    main(p.parse_args().batch)
+    p.add_argument("--backfill", metavar="YYYY-MM", help="after a fix: rebuild this month of the monthly mart only")
+    args = p.parse_args()
+    main(args.batch, args.backfill)

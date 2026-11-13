@@ -48,6 +48,7 @@ schema:
       - name: cost
         logicalType: string
         required: true
+        classification: restricted   # a supplier's quoted price: classified before it is loaded (Lab 4.4)
         description: A positive decimal; Arabic-Indic digits and a decimal comma are accepted.
         quality:
           - id: cost_positive_number

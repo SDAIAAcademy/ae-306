@@ -63,7 +63,7 @@
     {
       "id": "de-lo1-prune",
       "type": "single",
-      "prompt": "A Parquet file of order lines has 15 row groups. A query for one date reads 2 of them after the file is sorted by date, but all 7 of 7 when it is not. Why?",
+      "prompt": "The same order lines are written to two Parquet files. A query for one date reads 2 of 15 row groups in the file sorted by date, and 7 of 7 in the unsorted file. Why?",
       "options": [
         "DuckDB caches the sorted file in memory after the first read",
         "Sorting compresses the file so that fewer row groups exist",

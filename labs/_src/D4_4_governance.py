@@ -6,6 +6,8 @@
 # under the four national classification levels, drop what the margin report does not need, give the analyst role
 # (Dalia Sabri) a masked view, and **test** that the role cannot read customer contact data.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `extracts/customers.csv` and `suppliers/suppliers_2026-10-31.csv` (the current tables),
 # `customers_2026-09-30.csv` (last quarter's snapshot, before an erasure), and the star of Day 3
 # (`Q.build_models`). All personal data in this course is synthetic. Nothing from another lab is needed.
@@ -56,8 +58,8 @@ print(con.sql("SELECT * FROM raw.customers LIMIT 2"))
 # ## 1 · The classification register (7')
 #
 # The national Data Classification Policy (issued by the National Data Management Office, part of SDAIA) has four
-# levels by the impact of unauthorised disclosure: **Top Secret** (exceptionally serious), **Secret** (serious),
-# **Restricted** (limited), **Public** (none). Its examples of Restricted data include personally identifiable
+# levels by the impact of unauthorised disclosure: **Top Secret** (high impact), **Secret** (medium),
+# **Restricted** (low; older texts call this level Confidential), **Public** (none). Its examples of Restricted data include personally identifiable
 # information such as names, phone numbers and bank account numbers, and supplier contracts and quotations; its
 # examples of Public data include contact persons at organisations. Under the Personal Data Protection Law, a
 # personal field also needs a purpose for each use.

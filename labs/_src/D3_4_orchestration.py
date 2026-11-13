@@ -6,6 +6,8 @@
 # watch a retry policy absorb a flaky API, let the contract check **block** the refresh when the November batch
 # breaks, fix the feed and backfill one month of the margin.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.warehouse(path)` and the models in `labs/models/` (the star of Lab 3.1),
 # `contracts/supplier_prices.odcs.yaml` and `contract_gate.py` (Lab 3.3), `Q.SupplierAPI` (Lab 2.1). Runs execute in
 # this notebook with a temporary Dagster instance: no server, no daemon.

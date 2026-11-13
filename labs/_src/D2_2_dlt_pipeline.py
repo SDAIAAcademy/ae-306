@@ -6,6 +6,8 @@
 # resource with an incremental cursor and a primary key, merged into DuckDB. Then the supplier adds a column
 # (`incoterm`) and you watch the pipeline absorb it and record it.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.SupplierAPI(until="2026-10-01")` serves the API as it stood at the end of September
 # (before `incoterm` existed); `release=2` everything to 31 October. Nothing from another lab is needed.
 #

@@ -6,6 +6,8 @@
 # later with a new `updated_at`. In this lab you load it into DuckDB with plain Python, store the load state with
 # the data, and show that running the load twice adds nothing.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `Q.SupplierAPI(release=1)` serves the API in this notebook (on 127.0.0.1) as it stood on
 # 15 October; `release=2` as it stood on 31 October. Nothing from another lab is needed.
 #

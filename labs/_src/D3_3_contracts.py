@@ -6,6 +6,8 @@
 # prices, read the data contract for the feed (Open Data Contract Standard), compile its rules to SQL checks, and
 # break the feed on purpose: the gate must keep the price table that the margin reads unchanged.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `data/raw/supplier_api/price_records.jsonl` (the feed to 31 October),
 # `batch_2026-11-01.jsonl` (the broken November batch), `batch_2026-11-01_fixed.jsonl` (the producer's fix) and
 # `contracts/supplier_prices.odcs.yaml`. Nothing from another lab is needed.

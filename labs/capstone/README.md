@@ -41,8 +41,21 @@ Use the course's synthetic data, or data you generate yourself. No personal data
 
 The repository is assessed on this rubric. The defence then confirms that the work is yours.
 
-**AI policy.** AI-full: coding agents are allowed. Keep their transcripts and your run logs with timestamps. They are
+**AI policy.** AI-full: coding agents are allowed. Any transformation an agent wrote must pass your own tests, and
+you explain it in the defence. Keep their transcripts and your run logs with timestamps. They are
 part of the evidence of authorship, together with the commit history and the defence.
+
+## Your repository
+
+The assessor clones your repository and runs it with nothing else on the machine, so it must hold everything the
+pipeline reads. Two ways to get there:
+
+- **Fork the course repository** and build in `labs/capstone/`. Everything the starter imports is already there.
+- **Start an empty repository** and copy what the starter needs from `labs/`: `capstone/`, `qafila.py`,
+  `qafila_data.py`, `contract_gate.py`, `contracts/`, `models/`, `data/`, `pyproject.toml` and `uv.lock`, keeping the
+  same layout.
+
+Either way, state the exact commands of a run in your README, and try them yourself in a fresh clone before you submit.
 
 ## Getting started
 
@@ -50,9 +63,10 @@ part of the evidence of authorship, together with the commit history and the def
 cd labs
 uv run python capstone/pipeline.py                  # runs the steps you have built; the others are reported
 uv run python capstone/pipeline.py --batch broken   # the November batch that breaks the contract
+uv run python capstone/pipeline.py --backfill 2026-10   # after the fix: rebuild one month of the mart only
 ```
 
-`pipeline.py` has the eight steps of the mart, each with a docstring and a `NotImplementedError` to replace. The first
+`pipeline.py` has the nine steps of the mart, each with a docstring and a `NotImplementedError` to replace. The first
 step, landing the raw extracts, is done for you. Each run writes `artifacts/capstone/run_report.json` with row counts,
 test results and the run time of each step. Commit a copy of the last report of each kind (fixed and broken batch) as
 evidence.
@@ -67,7 +81,7 @@ The labs closest to each step:
 | `contract_gate` | Lab 3.3, `contract_gate.py` |
 | `build_models` | Lab 3.1 (grain, freight, cost as of the order date), Lab 3.2 (`models/`, SQLMesh) |
 | `run_tests` | Lab 1.2 and Lab 3.1 (reconciliation) |
-| orchestration, retries and backfill | Lab 3.4 (Dagster) |
+| `backfill`, and orchestration with retries | Lab 3.4 (Dagster): partitions, a retry policy, a blocking check |
 | `write_iceberg` | Lab 4.1 |
 | `govern` | Lab 4.4, `data/reference/classification.json` is **not** yours to copy: write your own register |
 

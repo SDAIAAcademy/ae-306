@@ -6,6 +6,8 @@
 # (Debezium-style events) carries each change. In this lab you apply the feed to a copy with `MERGE`, reconcile the
 # copy with the source, and keep supplier history as a type 2 slowly changing dimension with validity ranges.
 #
+# **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
+#
 # **Reference state.** `data/raw/suppliers/suppliers_2026-08-01.csv` (the snapshot the feed starts from),
 # `supplier_changes.jsonl` (the feed), `suppliers_2026-10-31.csv` (the source table at the end, for the
 # reconciliation). Nothing from another lab is needed.
