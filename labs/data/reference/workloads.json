@@ -1,0 +1,27 @@
+{
+ "workloads": {
+  "W01": "The sales app saves a new order with its lines while the salesperson waits",
+  "W02": "A customer's credit check reads that customer's open orders before a new order is accepted",
+  "W03": "Finance's monthly margin by city, customer type and category for the last three months",
+  "W04": "Keep every nightly extract and every supplier API response exactly as received, for audit and replay",
+  "W05": "The warehouse app decrements stock for each picked line",
+  "W06": "A conformed customer dimension shared by the finance and sales dashboards",
+  "W07": "Two years of shipment events kept as files that data scientists read with their own tools",
+  "W08": "A daily list of supplier price changes larger than 5 percent for procurement",
+  "W09": "A driver updates the status of one shipment from the road",
+  "W10": "The margin mart as an open table read by the BI tool and by a notebook engine"
+ },
+ "layers": ["transactional", "warehouse", "lakehouse"],
+ "key": {
+  "W01": ["transactional", "a single-row write that must commit while a person waits"],
+  "W02": ["transactional", "a point read by key on current data, inside the order flow"],
+  "W03": ["warehouse", "a scan and aggregate over months of lines: a column store's job"],
+  "W04": ["lakehouse", "raw files kept unchanged and cheaply: the raw layer of the lake"],
+  "W05": ["transactional", "many small concurrent updates that must not be lost"],
+  "W06": ["warehouse", "a modelled, tested table that several reports agree on"],
+  "W07": ["lakehouse", "large history in open files read by more than one engine"],
+  "W08": ["warehouse", "a window over price history, refreshed in a batch"],
+  "W09": ["transactional", "one row updated by key from an application"],
+  "W10": ["lakehouse", "an open table format read by two engines"]
+ }
+}

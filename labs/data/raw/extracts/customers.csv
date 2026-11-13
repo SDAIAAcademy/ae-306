@@ -1,0 +1,240 @@
+customer_id,name,customer_type,city,contact_name,mobile,email,cr_number,credit_limit_sar,created_at
+C-1001,Lulu Grocery 1,shop,Riyadh,Mishal Al-Qarni,+966597144986,mishal.qarni0@riyadh-shop.example,1010842292,250000,2025-11-19
+C-1002,Al Rawdah Kitchen 2,restaurant,Riyadh,Nawaf Al-Balawi,+966509925388,nawaf.balawi1@riyadh-shop.example,1010883134,100000,2024-10-15
+C-1003,Sanabel Store 3,shop,Dammam,Nawaf Al-Otaibi,+966506807440,nawaf.otaibi2@dammam-shop.example,2050640947,100000,2026-06-09
+C-1004,Najmat Store 4,shop,Jeddah,Hatem Al-Shammari,+966501114728,hatem.shammari3@jeddah-shop.example,4030517580,100000,2025-06-14
+C-1005,Lulu Mini Market 5,shop,Dammam,Nawaf Al-Anazi,+966518686779,nawaf.anazi4@dammam-shop.example,2050286843,100000,2025-08-14
+C-1006,Al Hamra Catering 6,caterer,Jeddah,Wafa Al-Maliki,+966599995185,wafa.maliki5@jeddah-shop.example,4030951567,100000,2025-06-05
+C-1007,Al Bustan Mini Market 7,shop,Jeddah,Hatem Al-Dosari,+966566657426,hatem.dosari6@jeddah-shop.example,4030235384,20000,2024-05-05
+C-1008,Al Rawdah Kitchen 8,restaurant,Jeddah,Hatem Al-Balawi,+966528353301,hatem.balawi7@jeddah-shop.example,4030083106,100000,2024-12-11
+C-1009,Al Manar Restaurant 9,restaurant,Riyadh,Asma Al-Qarni,+966553985927,asma.qarni8@riyadh-shop.example,1010125815,20000,2024-10-09
+C-1010,Al Faisaliah Grill 10,restaurant,Jeddah,Abdulrahman Al-Shehri,+966593839960,abdulrahman.shehri9@jeddah-shop.example,4030893658,250000,2026-04-12
+C-1011,Al Safa Store 11,shop,Dammam,Reem Al-Anazi,+966546635015,reem.anazi10@dammam-shop.example,2050915241,250000,2025-08-04
+C-1012,Taiba Kitchen 12,restaurant,Jeddah,Lama Al-Shammari,+966512515676,lama.shammari11@jeddah-shop.example,4030477087,20000,2024-10-25
+C-1013,Durrat Grocery 13,shop,Riyadh,Majid Al-Shammari,+966562435038,majid.shammari12@riyadh-shop.example,1010074341,100000,2025-01-16
+C-1014,Rimal Events Kitchen 14,caterer,Riyadh,Saleh Al-Otaibi,+966574177978,saleh.otaibi13@riyadh-shop.example,1010690104,20000,2024-01-03
+C-1015,Al Bustan Store 15,shop,Riyadh,Reem Al-Shammari,+966534451542,reem.shammari14@riyadh-shop.example,1010572121,20000,2025-03-26
+C-1016,Taiba Restaurant 16,restaurant,Dammam,Arwa Al-Dosari,+966569513586,arwa.dosari15@dammam-shop.example,2050662865,50000,2026-05-15
+C-1017,Al Shati Kitchen 17,restaurant,Riyadh,Mishal Al-Juhani,+966599058196,mishal.juhani16@riyadh-shop.example,1010462010,250000,2025-05-30
+C-1018,Sanabel Grocery 18,shop,Riyadh,Hatem Al-Otaibi,+966505796254,hatem.otaibi17@riyadh-shop.example,1010729734,50000,2026-05-08
+C-1019,Durrat Kitchen 19,restaurant,Jeddah,Shahad Al-Anazi,+966574645341,shahad.anazi18@jeddah-shop.example,4030783360,20000,2025-05-02
+C-1020,Durrat Store 20,shop,Jeddah,Abdulrahman Al-Anazi,+966527070122,abdulrahman.anazi19@jeddah-shop.example,4030987473,20000,2025-07-11
+C-1021,Al Safa Hotel 21,hotel,Jeddah,Reem Al-Dosari,+966577824491,reem.dosari20@jeddah-shop.example,4030082567,50000,2026-05-06
+C-1022,Al Faisaliah Grill 22,restaurant,Jeddah,Waleed Al-Juhani,+966506826893,waleed.juhani21@jeddah-shop.example,4030012650,50000,2026-03-01
+C-1023,Al Waha Corner Hotel 23,hotel,Jeddah,Hatem Al-Balawi,+966537218969,hatem.balawi22@jeddah-shop.example,4030019569,100000,2024-06-12
+C-1024,Rimal Mini Market 24,shop,Jeddah,Saleh Al-Otaibi,+966569028771,saleh.otaibi23@jeddah-shop.example,4030099089,50000,2024-02-03
+C-1025,Rimal Mini Market 25,shop,Jeddah,Nouf Al-Ghamdi,+966537552119,nouf.ghamdi24@jeddah-shop.example,4030202377,20000,2024-09-18
+C-1026,Al Bustan Events Kitchen 26,caterer,Dammam,Reem Al-Shammari,+966588345437,reem.shammari25@dammam-shop.example,2050492764,50000,2026-05-02
+C-1027,Al Shati Store 27,shop,Jeddah,Mishal Al-Balawi,+966509391519,mishal.balawi26@jeddah-shop.example,4030245275,250000,2025-06-04
+C-1028,Al Andalus Catering 28,caterer,Dammam,Reem Al-Yami,+966506357378,reem.yami27@dammam-shop.example,2050454195,50000,2025-08-12
+C-1029,Durrat Kitchen 29,restaurant,Jeddah,Lama Al-Maliki,+966539190564,lama.maliki28@jeddah-shop.example,4030009162,20000,2025-08-12
+C-1030,Rimal Suites 30,hotel,Dammam,Ziyad Al-Balawi,+966528306301,ziyad.balawi29@dammam-shop.example,2050342545,100000,2026-05-01
+C-1031,Al Manar Grocery 31,shop,Jeddah,Wafa Al-Dosari,+966529715370,wafa.dosari30@jeddah-shop.example,4030037628,20000,2025-10-25
+C-1032,Rimal Grill 32,restaurant,Riyadh,Hatem Al-Anazi,+966578746276,hatem.anazi31@riyadh-shop.example,1010361800,50000,2024-07-14
+C-1033,Sanabel Catering 33,caterer,Riyadh,Hatem Al-Balawi,+966598612168,hatem.balawi32@riyadh-shop.example,1010593932,250000,2025-10-18
+C-1034,Al Noor Suites 34,hotel,Riyadh,Wafa Al-Shammari,+966522017848,wafa.shammari33@riyadh-shop.example,1010113300,100000,2025-11-15
+C-1035,Durrat Catering 35,caterer,Riyadh,Lama Al-Balawi,+966537635924,lama.balawi34@riyadh-shop.example,1010270874,20000,2024-10-03
+C-1036,Najmat Kitchen 36,restaurant,Riyadh,Nouf Al-Ghamdi,+966593192735,nouf.ghamdi35@riyadh-shop.example,1010187788,20000,2024-08-22
+C-1037,Al Noor Store 37,shop,Jeddah,Reem Al-Rashid,+966532722556,reem.rashid36@jeddah-shop.example,4030347392,250000,2024-05-26
+C-1038,Najmat Grocery 1,shop,Dammam,Arwa Al-Anazi,+966585761190,arwa.anazi37@dammam-shop.example,2050750367,250000,2025-04-12
+C-1039,Al Andalus Events Kitchen 2,caterer,Riyadh,Hind Al-Qarni,+966526911568,hind.qarni38@riyadh-shop.example,1010821917,20000,2025-06-13
+C-1040,Al Faisaliah Events Kitchen 3,caterer,Jeddah,Nouf Al-Dosari,+966595809398,nouf.dosari39@jeddah-shop.example,4030963048,50000,2025-09-29
+C-1041,Al Manar Grill 4,restaurant,Riyadh,Hatem Al-Ghamdi,+966556567347,hatem.ghamdi40@riyadh-shop.example,1010977763,100000,2025-01-23
+C-1042,Al Shati Store 5,shop,Jeddah,Mishal Al-Ghamdi,+966508684557,mishal.ghamdi41@jeddah-shop.example,4030291437,100000,2025-03-21
+C-1043,Sanabel Grocery 6,shop,Jeddah,Reem Al-Otaibi,+966514484090,reem.otaibi42@jeddah-shop.example,4030894783,20000,2025-08-17
+C-1044,Al Manar Mini Market 7,shop,Dammam,Arwa Al-Otaibi,+966581990578,arwa.otaibi43@dammam-shop.example,2050081320,50000,2025-06-27
+C-1045,Al Bustan Store 8,shop,Dammam,Shahad Al-Yami,+966524266438,shahad.yami44@dammam-shop.example,2050359951,20000,2024-10-01
+C-1046,Sanabel Suites 9,hotel,Jeddah,Arwa Al-Maliki,+966566604429,arwa.maliki45@jeddah-shop.example,4030376155,50000,2024-06-04
+C-1047,Al Rawdah Catering 10,caterer,Dammam,Reem Al-Maliki,+966534480417,reem.maliki46@dammam-shop.example,2050360094,100000,2024-12-08
+C-1048,Al Hamra Hotel 11,hotel,Jeddah,Saleh Al-Juhani,+966589738135,saleh.juhani47@jeddah-shop.example,4030956746,100000,2024-09-13
+C-1049,Al Shati Hotel 12,hotel,Riyadh,Reem Al-Shehri,+966573882044,reem.shehri48@riyadh-shop.example,1010145939,20000,2025-03-11
+C-1050,Rimal Grill 13,restaurant,Jeddah,Reem Al-Balawi,+966547824828,reem.balawi49@jeddah-shop.example,4030971609,20000,2024-05-01
+C-1051,Al Hamra Store 14,shop,Jeddah,Nawaf Al-Rashid,+966526825807,nawaf.rashid50@jeddah-shop.example,4030602852,50000,2025-09-03
+C-1052,Al Shati Grocery 15,shop,Jeddah,Saleh Al-Shammari,+966514863689,saleh.shammari51@jeddah-shop.example,4030744941,50000,2025-10-21
+C-1053,Al Rawdah Events Kitchen 16,caterer,Jeddah,Wafa Al-Juhani,+966540473965,wafa.juhani52@jeddah-shop.example,4030396582,250000,2026-01-09
+C-1054,Al Waha Corner Grill 17,restaurant,Jeddah,Saleh Al-Rashid,+966598285273,saleh.rashid53@jeddah-shop.example,4030604081,50000,2026-04-11
+C-1055,Al Bustan Grocery 18,shop,Dammam,Lama Al-Balawi,+966550023031,lama.balawi54@dammam-shop.example,2050760382,100000,2024-02-21
+C-1056,Al Hamra Catering 19,caterer,Riyadh,Waleed Al-Anazi,+966588774635,waleed.anazi55@riyadh-shop.example,1010236078,100000,2026-01-23
+C-1057,Al Safa Store 20,shop,Riyadh,Ziyad Al-Otaibi,+966550574723,ziyad.otaibi56@riyadh-shop.example,1010243609,100000,2024-12-12
+C-1058,Al Rawdah Store 21,shop,Riyadh,Arwa Al-Juhani,+966531735629,arwa.juhani57@riyadh-shop.example,1010636375,100000,2025-04-06
+C-1059,Al Manar Store 22,shop,Jeddah,Hind Al-Juhani,+966508135935,hind.juhani58@jeddah-shop.example,4030273320,100000,2024-08-29
+C-1060,Najmat Grill 23,restaurant,Jeddah,Shahad Al-Shehri,+966519652396,shahad.shehri59@jeddah-shop.example,4030089997,20000,2025-12-03
+C-1061,Al Faisaliah Store 24,shop,Jeddah,Mishal Al-Ghamdi,+966534142922,mishal.ghamdi60@jeddah-shop.example,4030539940,50000,2025-07-16
+C-1062,Lulu Kitchen 25,restaurant,Dammam,Wafa Al-Yami,+966543082278,wafa.yami61@dammam-shop.example,2050065380,50000,2024-06-22
+C-1063,Al Hamra Store 26,shop,Jeddah,Mishal Al-Shammari,+966563509743,mishal.shammari62@jeddah-shop.example,4030521948,250000,2026-03-05
+C-1064,Taiba Store 27,shop,Dammam,Arwa Al-Juhani,+966563463135,arwa.juhani63@dammam-shop.example,2050806902,100000,2024-10-28
+C-1065,Al Noor Restaurant 28,restaurant,Dammam,Waleed Al-Juhani,+966500952538,waleed.juhani64@dammam-shop.example,2050493034,20000,2024-07-05
+C-1066,Al Shati Store 29,shop,Riyadh,Abdulrahman Al-Yami,+966593770224,abdulrahman.yami65@riyadh-shop.example,1010368060,100000,2024-12-05
+C-1067,Al Shati Grocery 30,shop,Riyadh,Mishal Al-Otaibi,+966576840130,mishal.otaibi66@riyadh-shop.example,1010064879,250000,2024-07-17
+C-1068,Taiba Grocery 31,shop,Dammam,Saleh Al-Anazi,+966546875829,saleh.anazi67@dammam-shop.example,2050919056,50000,2024-06-24
+C-1069,Al Rawdah Mini Market 32,shop,Jeddah,Mishal Al-Balawi,+966521609866,mishal.balawi68@jeddah-shop.example,4030768171,250000,2025-04-27
+C-1070,Al Faisaliah Catering 33,caterer,Jeddah,Mishal Al-Rashid,+966513070794,mishal.rashid69@jeddah-shop.example,4030620460,50000,2024-08-13
+C-1071,Durrat Store 34,shop,Riyadh,Arwa Al-Balawi,+966534237042,arwa.balawi70@riyadh-shop.example,1010055103,50000,2024-05-20
+C-1072,Al Waha Corner Kitchen 35,restaurant,Riyadh,Majid Al-Ghamdi,+966534470168,majid.ghamdi71@riyadh-shop.example,1010477770,50000,2024-03-18
+C-1073,Taiba Grill 36,restaurant,Jeddah,Nawaf Al-Maliki,+966523028808,nawaf.maliki72@jeddah-shop.example,4030702271,100000,2025-04-26
+C-1074,Al Shati Grocery 37,shop,Jeddah,Nouf Al-Rashid,+966500408773,nouf.rashid73@jeddah-shop.example,4030944961,20000,2025-03-11
+C-1075,Al Faisaliah Kitchen 1,restaurant,Jeddah,Majid Al-Shehri,+966582982355,majid.shehri74@jeddah-shop.example,4030492955,50000,2025-03-15
+C-1076,Al Andalus Store 2,shop,Dammam,Lama Al-Ghamdi,+966553993935,lama.ghamdi75@dammam-shop.example,2050740811,100000,2026-01-03
+C-1077,Lulu Store 3,shop,Riyadh,Asma Al-Shammari,+966549338483,asma.shammari76@riyadh-shop.example,1010222250,250000,2025-07-08
+C-1078,Al Hamra Hotel 4,hotel,Riyadh,Saleh Al-Anazi,+966535616416,saleh.anazi77@riyadh-shop.example,1010320923,250000,2025-05-29
+C-1079,Sanabel Grill 5,restaurant,Dammam,Lama Al-Yami,+966592227634,lama.yami78@dammam-shop.example,2050502529,20000,2025-06-24
+C-1080,Al Manar Grill 6,restaurant,Riyadh,Hatem Al-Maliki,+966551485315,hatem.maliki79@riyadh-shop.example,1010790915,50000,2025-06-03
+C-1081,Al Rawdah Catering 7,caterer,Dammam,Nouf Al-Juhani,+966536946667,nouf.juhani80@dammam-shop.example,2050647577,20000,2026-03-20
+C-1082,Al Faisaliah Hotel 8,hotel,Dammam,Saleh Al-Otaibi,+966587471417,saleh.otaibi81@dammam-shop.example,2050786172,250000,2025-01-26
+C-1083,Al Waha Corner Grocery 9,shop,Riyadh,Abdulrahman Al-Anazi,+966555991377,abdulrahman.anazi82@riyadh-shop.example,1010693863,50000,2024-09-05
+C-1084,Al Hamra Grocery 10,shop,Dammam,Nawaf Al-Juhani,+966507333884,nawaf.juhani83@dammam-shop.example,2050250268,100000,2024-03-12
+C-1085,Al Rawdah Hotel 11,hotel,Riyadh,Wafa Al-Maliki,+966580711500,wafa.maliki84@riyadh-shop.example,1010370432,250000,2024-09-02
+C-1086,Al Shati Store 12,shop,Jeddah,Mishal Al-Shehri,+966556606841,mishal.shehri85@jeddah-shop.example,4030849467,100000,2024-04-13
+C-1087,Durrat Mini Market 13,shop,Jeddah,Lama Al-Rashid,+966535339256,lama.rashid86@jeddah-shop.example,4030694538,20000,2024-03-04
+C-1088,Al Faisaliah Restaurant 14,restaurant,Jeddah,Ziyad Al-Rashid,+966568141526,ziyad.rashid87@jeddah-shop.example,4030707560,20000,2026-05-19
+C-1089,Durrat Store 15,shop,Riyadh,Waleed Al-Balawi,+966508622826,waleed.balawi88@riyadh-shop.example,1010582244,20000,2026-05-28
+C-1090,Durrat Mini Market 16,shop,Dammam,Shahad Al-Yami,+966555948227,shahad.yami89@dammam-shop.example,2050837129,20000,2026-03-08
+C-1091,Al Andalus Mini Market 17,shop,Jeddah,Mishal Al-Ghamdi,+966561160153,mishal.ghamdi90@jeddah-shop.example,4030596542,100000,2025-10-08
+C-1092,Najmat Grill 18,restaurant,Jeddah,Wafa Al-Yami,+966561261556,wafa.yami91@jeddah-shop.example,4030930275,20000,2024-12-22
+C-1093,Al Safa Suites 19,hotel,Jeddah,Shahad Al-Yami,+966592681477,shahad.yami92@jeddah-shop.example,4030644556,100000,2024-06-16
+C-1094,Al Waha Corner Hotel 20,hotel,Dammam,Mishal Al-Maliki,+966532893669,mishal.maliki93@dammam-shop.example,2050899088,50000,2025-09-19
+C-1095,Al Hamra Mini Market 21,shop,Riyadh,Hatem Al-Rashid,+966546764410,hatem.rashid94@riyadh-shop.example,1010701367,50000,2025-08-12
+C-1096,Al Safa Grocery 22,shop,Dammam,Nawaf Al-Balawi,+966519490825,nawaf.balawi95@dammam-shop.example,2050925975,20000,2024-02-27
+C-1097,Lulu Grocery 23,shop,Jeddah,Reem Al-Ghamdi,+966538636480,reem.ghamdi96@jeddah-shop.example,4030023172,50000,2026-02-15
+C-1098,Al Rawdah Suites 24,hotel,Dammam,Arwa Al-Balawi,+966529756649,arwa.balawi97@dammam-shop.example,2050948082,250000,2024-07-04
+C-1099,Taiba Store 25,shop,Dammam,Saleh Al-Rashid,+966540424699,saleh.rashid98@dammam-shop.example,2050586885,250000,2025-09-11
+C-1100,Lulu Grill 26,restaurant,Jeddah,Abdulrahman Al-Shammari,+966506776968,abdulrahman.shammari99@jeddah-shop.example,4030586045,20000,2025-08-08
+C-1101,Al Faisaliah Mini Market 27,shop,Jeddah,Hatem Al-Shammari,+966546412840,hatem.shammari100@jeddah-shop.example,4030068965,20000,2026-02-10
+C-1102,Durrat Grocery 28,shop,Riyadh,Waleed Al-Shammari,+966596141842,waleed.shammari101@riyadh-shop.example,1010610634,20000,2025-04-14
+C-1103,Al Rawdah Events Kitchen 29,caterer,Jeddah,Ziyad Al-Rashid,+966504899865,ziyad.rashid102@jeddah-shop.example,4030232265,250000,2024-01-11
+C-1104,Al Waha Corner Store 30,shop,Jeddah,Majid Al-Qarni,+966550204789,majid.qarni103@jeddah-shop.example,4030897135,50000,2025-02-26
+C-1105,Durrat Restaurant 31,restaurant,Dammam,Hatem Al-Dosari,+966510235993,hatem.dosari104@dammam-shop.example,2050920379,50000,2025-01-12
+C-1106,Al Faisaliah Grocery 32,shop,Jeddah,Reem Al-Rashid,+966540312399,reem.rashid105@jeddah-shop.example,4030420738,50000,2024-01-19
+C-1107,Al Safa Restaurant 33,restaurant,Riyadh,Saleh Al-Shehri,+966541336872,saleh.shehri106@riyadh-shop.example,1010682211,50000,2024-01-15
+C-1108,Al Noor Grocery 34,shop,Jeddah,Shahad Al-Ghamdi,+966500001723,shahad.ghamdi107@jeddah-shop.example,4030496672,250000,2024-07-02
+C-1109,Al Rawdah Grocery 35,shop,Jeddah,Shahad Al-Otaibi,+966540198326,shahad.otaibi108@jeddah-shop.example,4030615200,250000,2024-09-13
+C-1110,Al Rawdah Mini Market 36,shop,Jeddah,Majid Al-Shehri,+966596134226,majid.shehri109@jeddah-shop.example,4030076364,250000,2024-02-11
+C-1111,Al Manar Store 37,shop,Jeddah,Abdulrahman Al-Anazi,+966564316396,abdulrahman.anazi110@jeddah-shop.example,4030832011,20000,2024-02-29
+C-1112,Al Hamra Catering 1,caterer,Jeddah,Ziyad Al-Juhani,+966570307630,ziyad.juhani111@jeddah-shop.example,4030930598,100000,2025-05-15
+C-1113,Al Noor Kitchen 2,restaurant,Jeddah,Ziyad Al-Otaibi,+966526901596,ziyad.otaibi112@jeddah-shop.example,4030311096,250000,2025-07-18
+C-1114,Taiba Catering 3,caterer,Riyadh,Asma Al-Juhani,+966579214094,asma.juhani113@riyadh-shop.example,1010328288,100000,2025-06-01
+C-1115,Al Noor Grocery 4,shop,Jeddah,Reem Al-Qarni,+966535191908,reem.qarni114@jeddah-shop.example,4030553925,250000,2025-08-09
+C-1116,Al Safa Grocery 5,shop,Riyadh,Ziyad Al-Shehri,+966551991800,ziyad.shehri115@riyadh-shop.example,1010342195,20000,2024-03-16
+C-1117,Durrat Kitchen 6,restaurant,Jeddah,Shahad Al-Ghamdi,+966507075308,shahad.ghamdi116@jeddah-shop.example,4030489305,50000,2025-02-17
+C-1118,Durrat Kitchen 7,restaurant,Riyadh,Majid Al-Balawi,+966554651233,majid.balawi117@riyadh-shop.example,1010115590,100000,2025-02-04
+C-1119,Al Manar Grill 8,restaurant,Jeddah,Saleh Al-Anazi,+966526992836,saleh.anazi118@jeddah-shop.example,4030331015,100000,2024-08-18
+C-1120,Lulu Store 9,shop,Jeddah,Saleh Al-Maliki,+966542414570,saleh.maliki119@jeddah-shop.example,4030355903,50000,2026-01-18
+C-1121,Al Manar Grill 10,restaurant,Jeddah,Lama Al-Otaibi,+966521900418,lama.otaibi120@jeddah-shop.example,4030401508,250000,2025-02-08
+C-1122,Lulu Mini Market 11,shop,Dammam,Hind Al-Shammari,+966572840022,hind.shammari121@dammam-shop.example,2050786989,20000,2025-07-22
+C-1123,Al Rawdah Grill 12,restaurant,Riyadh,Lama Al-Shammari,+966508022456,lama.shammari122@riyadh-shop.example,1010293639,100000,2024-06-15
+C-1124,Al Manar Grocery 13,shop,Dammam,Waleed Al-Rashid,+966565714842,waleed.rashid123@dammam-shop.example,2050199052,20000,2025-03-11
+C-1125,Rimal Store 14,shop,Dammam,Nawaf Al-Yami,+966526299304,nawaf.yami124@dammam-shop.example,2050674088,50000,2026-06-04
+C-1126,Al Hamra Suites 15,hotel,Riyadh,Shahad Al-Anazi,+966507474389,shahad.anazi125@riyadh-shop.example,1010176288,250000,2024-05-15
+C-1127,Taiba Grill 16,restaurant,Jeddah,Hind Al-Balawi,+966535799137,hind.balawi126@jeddah-shop.example,4030592298,250000,2025-05-12
+C-1128,Al Faisaliah Hotel 17,hotel,Riyadh,Hind Al-Yami,+966521710224,hind.yami127@riyadh-shop.example,1010185453,20000,2025-06-19
+C-1129,Al Hamra Mini Market 18,shop,Jeddah,Hatem Al-Balawi,+966577117263,hatem.balawi128@jeddah-shop.example,4030153555,100000,2024-02-18
+C-1130,Najmat Grocery 19,shop,Jeddah,Arwa Al-Maliki,+966587057639,arwa.maliki129@jeddah-shop.example,4030899733,250000,2025-06-12
+C-1131,Al Safa Store 20,shop,Riyadh,Arwa Al-Balawi,+966505300924,arwa.balawi130@riyadh-shop.example,1010571927,250000,2024-01-25
+C-1132,Sanabel Mini Market 21,shop,Riyadh,Shahad Al-Rashid,+966556212809,shahad.rashid131@riyadh-shop.example,1010306512,20000,2026-05-27
+C-1133,Al Noor Mini Market 22,shop,Riyadh,Hatem Al-Yami,+966507217636,hatem.yami132@riyadh-shop.example,1010517043,20000,2024-08-29
+C-1134,Durrat Kitchen 23,restaurant,Riyadh,Abdulrahman Al-Yami,+966565902082,abdulrahman.yami133@riyadh-shop.example,1010199031,250000,2024-12-09
+C-1135,Al Andalus Catering 24,caterer,Dammam,Lama Al-Maliki,+966591784095,lama.maliki134@dammam-shop.example,2050611517,50000,2026-04-29
+C-1136,Sanabel Store 25,shop,Riyadh,Hind Al-Shehri,+966596012133,hind.shehri135@riyadh-shop.example,1010106257,250000,2024-10-28
+C-1137,Al Noor Mini Market 26,shop,Dammam,Arwa Al-Otaibi,+966567886469,arwa.otaibi136@dammam-shop.example,2050909647,100000,2026-06-18
+C-1138,Lulu Grocery 27,shop,Dammam,Arwa Al-Dosari,+966596501141,arwa.dosari137@dammam-shop.example,2050951761,250000,2026-06-07
+C-1139,Al Manar Events Kitchen 28,caterer,Jeddah,Hind Al-Yami,+966578212305,hind.yami138@jeddah-shop.example,4030484773,250000,2024-04-17
+C-1140,Al Bustan Catering 29,caterer,Riyadh,Hatem Al-Juhani,+966522563586,hatem.juhani139@riyadh-shop.example,1010471224,50000,2024-08-10
+C-1141,Najmat Mini Market 30,shop,Jeddah,Wafa Al-Ghamdi,+966548784459,wafa.ghamdi140@jeddah-shop.example,4030224828,20000,2025-09-26
+C-1142,Taiba Store 31,shop,Riyadh,Waleed Al-Yami,+966529204750,waleed.yami141@riyadh-shop.example,1010257450,50000,2025-08-09
+C-1143,Najmat Restaurant 32,restaurant,Riyadh,Nouf Al-Ghamdi,+966559717350,nouf.ghamdi142@riyadh-shop.example,1010499333,250000,2024-12-23
+C-1144,Al Rawdah Grill 33,restaurant,Jeddah,Majid Al-Balawi,+966539862203,majid.balawi143@jeddah-shop.example,4030432770,50000,2024-09-06
+C-1145,Taiba Kitchen 34,restaurant,Jeddah,Lama Al-Otaibi,+966521391778,lama.otaibi144@jeddah-shop.example,4030645559,100000,2024-09-23
+C-1146,Sanabel Mini Market 35,shop,Dammam,Arwa Al-Maliki,+966562887800,arwa.maliki145@dammam-shop.example,2050291271,100000,2024-01-14
+C-1147,Al Andalus Store 36,shop,Riyadh,Abdulrahman Al-Rashid,+966598593828,abdulrahman.rashid146@riyadh-shop.example,1010639495,20000,2025-05-07
+C-1148,Rimal Restaurant 37,restaurant,Riyadh,Mishal Al-Rashid,+966503700534,mishal.rashid147@riyadh-shop.example,1010252376,50000,2026-04-29
+C-1149,Al Faisaliah Restaurant 1,restaurant,Jeddah,Asma Al-Otaibi,+966561344498,asma.otaibi148@jeddah-shop.example,4030382804,250000,2024-09-07
+C-1150,Lulu Grocery 2,shop,Dammam,Abdulrahman Al-Ghamdi,+966582934633,abdulrahman.ghamdi149@dammam-shop.example,2050301490,20000,2026-06-11
+C-1151,Al Bustan Mini Market 3,shop,Riyadh,Asma Al-Juhani,+966565477732,asma.juhani150@riyadh-shop.example,1010856444,20000,2024-08-29
+C-1152,Al Shati Store 4,shop,Jeddah,Hind Al-Maliki,+966563379701,hind.maliki151@jeddah-shop.example,4030487690,250000,2026-04-17
+C-1153,Al Noor Store 5,shop,Jeddah,Mishal Al-Yami,+966599885200,mishal.yami152@jeddah-shop.example,4030917323,100000,2025-10-01
+C-1154,Durrat Events Kitchen 6,caterer,Riyadh,Asma Al-Qarni,+966563182771,asma.qarni153@riyadh-shop.example,1010615858,250000,2025-10-28
+C-1155,Al Noor Events Kitchen 7,caterer,Riyadh,Abdulrahman Al-Maliki,+966583972540,abdulrahman.maliki154@riyadh-shop.example,1010900344,250000,2025-10-03
+C-1156,Durrat Mini Market 8,shop,Dammam,Lama Al-Dosari,+966582858292,lama.dosari155@dammam-shop.example,2050262615,50000,2025-05-12
+C-1157,Al Hamra Events Kitchen 9,caterer,Jeddah,Hatem Al-Juhani,+966598762716,hatem.juhani156@jeddah-shop.example,4030392344,50000,2025-02-02
+C-1158,Al Andalus Grocery 10,shop,Jeddah,Mishal Al-Dosari,+966593504774,mishal.dosari157@jeddah-shop.example,4030668632,100000,2024-05-21
+C-1159,Taiba Mini Market 11,shop,Jeddah,Lama Al-Ghamdi,+966588571433,lama.ghamdi158@jeddah-shop.example,4030784869,50000,2025-09-29
+C-1160,Najmat Mini Market 12,shop,Riyadh,Saleh Al-Dosari,+966556169498,saleh.dosari159@riyadh-shop.example,1010457082,100000,2024-11-05
+C-1161,Al Waha Corner Restaurant 13,restaurant,Riyadh,Majid Al-Balawi,+966564513416,majid.balawi160@riyadh-shop.example,1010425427,20000,2025-04-13
+C-1162,Taiba Grill 14,restaurant,Dammam,Hind Al-Rashid,+966595308890,hind.rashid161@dammam-shop.example,2050111637,20000,2025-09-30
+C-1163,Durrat Hotel 15,hotel,Jeddah,Lama Al-Shammari,+966503599825,lama.shammari162@jeddah-shop.example,4030473016,250000,2024-07-07
+C-1164,Al Bustan Grocery 16,shop,Riyadh,Nouf Al-Shehri,+966595264901,nouf.shehri163@riyadh-shop.example,1010775224,250000,2026-03-16
+C-1165,Lulu Kitchen 17,restaurant,Jeddah,Nawaf Al-Otaibi,+966562464511,nawaf.otaibi164@jeddah-shop.example,4030994940,100000,2024-05-18
+C-1166,Al Shati Restaurant 18,restaurant,Dammam,Reem Al-Shehri,+966560992229,reem.shehri165@dammam-shop.example,2050508515,20000,2024-03-21
+C-1167,Al Waha Corner Catering 19,caterer,Dammam,Shahad Al-Otaibi,+966504054860,shahad.otaibi166@dammam-shop.example,2050607469,100000,2025-02-26
+C-1168,Al Noor Events Kitchen 20,caterer,Jeddah,Majid Al-Anazi,+966561316643,majid.anazi167@jeddah-shop.example,4030961998,250000,2025-08-04
+C-1169,Al Bustan Store 21,shop,Riyadh,Lama Al-Balawi,+966508239126,lama.balawi168@riyadh-shop.example,1010319422,250000,2025-06-17
+C-1170,Durrat Store 22,shop,Riyadh,Lama Al-Dosari,+966502419174,lama.dosari169@riyadh-shop.example,1010456170,100000,2026-03-10
+C-1171,Taiba Mini Market 23,shop,Dammam,Nouf Al-Balawi,+966558542772,nouf.balawi170@dammam-shop.example,2050044027,50000,2024-09-14
+C-1172,Durrat Hotel 24,hotel,Dammam,Arwa Al-Balawi,+966514814832,arwa.balawi171@dammam-shop.example,2050409177,20000,2024-08-14
+C-1173,Al Shati Restaurant 25,restaurant,Jeddah,Nawaf Al-Ghamdi,+966580368073,nawaf.ghamdi172@jeddah-shop.example,4030248744,50000,2024-10-17
+C-1174,Al Andalus Store 26,shop,Dammam,Asma Al-Rashid,+966520282408,asma.rashid173@dammam-shop.example,2050422350,20000,2024-02-10
+C-1175,Sanabel Grocery 27,shop,Jeddah,Saleh Al-Anazi,+966524295657,saleh.anazi174@jeddah-shop.example,4030868391,100000,2026-04-18
+C-1176,Al Faisaliah Store 28,shop,Riyadh,Waleed Al-Dosari,+966557106835,waleed.dosari175@riyadh-shop.example,1010758111,100000,2026-04-15
+C-1177,Rimal Events Kitchen 29,caterer,Dammam,Shahad Al-Ghamdi,+966524704578,shahad.ghamdi176@dammam-shop.example,2050430749,100000,2024-04-19
+C-1178,Durrat Mini Market 30,shop,Dammam,Ziyad Al-Rashid,+966588415975,ziyad.rashid177@dammam-shop.example,2050582422,20000,2025-04-21
+C-1179,Al Safa Kitchen 31,restaurant,Jeddah,Mishal Al-Shehri,+966560605577,mishal.shehri178@jeddah-shop.example,4030054577,250000,2026-05-13
+C-1180,Al Waha Corner Grocery 32,shop,Dammam,Hatem Al-Maliki,+966530480487,hatem.maliki179@dammam-shop.example,2050149011,250000,2024-10-14
+C-1181,Al Waha Corner Grocery 33,shop,Jeddah,Asma Al-Shammari,+966523528125,asma.shammari180@jeddah-shop.example,4030695432,20000,2025-09-11
+C-1182,Al Rawdah Grocery 34,shop,Riyadh,Shahad Al-Otaibi,+966584556917,shahad.otaibi181@riyadh-shop.example,1010502860,100000,2025-11-16
+C-1183,Rimal Store 35,shop,Riyadh,Hind Al-Yami,+966527979516,hind.yami182@riyadh-shop.example,1010996820,50000,2024-03-23
+C-1184,Al Shati Events Kitchen 36,caterer,Jeddah,Majid Al-Shammari,+966579082662,majid.shammari183@jeddah-shop.example,4030488360,50000,2024-10-29
+C-1185,Sanabel Mini Market 37,shop,Jeddah,Abdulrahman Al-Balawi,+966538911045,abdulrahman.balawi184@jeddah-shop.example,4030328451,100000,2025-02-02
+C-1186,Al Waha Corner Store 1,shop,Riyadh,Abdulrahman Al-Yami,+966541152255,abdulrahman.yami185@riyadh-shop.example,1010871906,50000,2026-02-24
+C-1188,Al Bustan Grill 3,restaurant,Jeddah,Arwa Al-Dosari,+966515683670,arwa.dosari187@jeddah-shop.example,4030956043,50000,2024-06-23
+C-1189,Rimal Store 4,shop,Dammam,Nawaf Al-Rashid,+966506058375,nawaf.rashid188@dammam-shop.example,2050532325,50000,2025-07-14
+C-1190,Durrat Mini Market 5,shop,Jeddah,Saleh Al-Otaibi,+966554678280,saleh.otaibi189@jeddah-shop.example,4030818930,250000,2024-11-05
+C-1191,Al Shati Mini Market 6,shop,Jeddah,Mishal Al-Balawi,+966550460703,mishal.balawi190@jeddah-shop.example,4030607507,250000,2024-07-17
+C-1192,Al Safa Events Kitchen 7,caterer,Riyadh,Shahad Al-Juhani,+966524593506,shahad.juhani191@riyadh-shop.example,1010850471,100000,2025-05-24
+C-1193,Sanabel Mini Market 8,shop,Dammam,Asma Al-Anazi,+966590405557,asma.anazi192@dammam-shop.example,2050674968,250000,2024-01-06
+C-1194,Al Bustan Grocery 9,shop,Riyadh,Abdulrahman Al-Balawi,+966566747533,abdulrahman.balawi193@riyadh-shop.example,1010192511,250000,2024-02-06
+C-1195,Al Rawdah Store 10,shop,Jeddah,Wafa Al-Ghamdi,+966548276943,wafa.ghamdi194@jeddah-shop.example,4030374421,100000,2025-08-26
+C-1196,Rimal Mini Market 11,shop,Riyadh,Arwa Al-Anazi,+966599360126,arwa.anazi195@riyadh-shop.example,1010468416,100000,2024-08-01
+C-1197,Al Shati Store 12,shop,Jeddah,Ziyad Al-Yami,+966557228075,ziyad.yami196@jeddah-shop.example,4030030684,50000,2026-02-11
+C-1198,Al Faisaliah Events Kitchen 13,caterer,Dammam,Saleh Al-Anazi,+966503546658,saleh.anazi197@dammam-shop.example,2050675620,20000,2024-05-28
+C-1199,Al Andalus Suites 14,hotel,Riyadh,Nawaf Al-Juhani,+966579595349,nawaf.juhani198@riyadh-shop.example,1010559633,250000,2025-04-18
+C-1200,Al Andalus Restaurant 15,restaurant,Jeddah,Hind Al-Shehri,+966501466771,hind.shehri199@jeddah-shop.example,4030028897,50000,2026-06-18
+C-1201,Al Faisaliah Grocery 16,shop,Dammam,Asma Al-Yami,+966556451642,asma.yami200@dammam-shop.example,2050538842,50000,2024-02-15
+C-1202,Al Manar Store 17,shop,Dammam,Majid Al-Yami,+966590543441,majid.yami201@dammam-shop.example,2050683981,250000,2025-05-21
+C-1203,Al Safa Catering 18,caterer,Dammam,Asma Al-Juhani,+966589349133,asma.juhani202@dammam-shop.example,2050921755,100000,2024-05-03
+C-1204,Al Bustan Store 19,shop,Riyadh,Reem Al-Yami,+966599819447,reem.yami203@riyadh-shop.example,1010237119,50000,2025-02-25
+C-1205,Najmat Restaurant 20,restaurant,Dammam,Lama Al-Anazi,+966583887150,lama.anazi204@dammam-shop.example,2050098348,250000,2024-02-04
+C-1206,Al Andalus Catering 21,caterer,Jeddah,Nouf Al-Maliki,+966504844979,nouf.maliki205@jeddah-shop.example,4030265747,100000,2024-09-28
+C-1207,Al Bustan Grill 22,restaurant,Jeddah,Reem Al-Balawi,+966527428317,reem.balawi206@jeddah-shop.example,4030883168,250000,2025-02-11
+C-1208,Sanabel Events Kitchen 23,caterer,Dammam,Hatem Al-Anazi,+966596199678,hatem.anazi207@dammam-shop.example,2050589326,50000,2026-02-11
+C-1209,Al Bustan Mini Market 24,shop,Jeddah,Reem Al-Dosari,+966542246568,reem.dosari208@jeddah-shop.example,4030949497,50000,2026-03-05
+C-1210,Al Bustan Store 25,shop,Jeddah,Hatem Al-Balawi,+966554584607,hatem.balawi209@jeddah-shop.example,4030945724,100000,2024-02-21
+C-1211,Al Safa Mini Market 26,shop,Jeddah,Wafa Al-Juhani,+966541617419,wafa.juhani210@jeddah-shop.example,4030594741,50000,2025-11-16
+C-1212,Al Noor Grocery 27,shop,Jeddah,Saleh Al-Yami,+966528100441,saleh.yami211@jeddah-shop.example,4030743145,100000,2025-06-09
+C-1213,Al Waha Corner Events Kitchen 28,caterer,Jeddah,Waleed Al-Juhani,+966536425259,waleed.juhani212@jeddah-shop.example,4030746191,250000,2026-02-10
+C-1214,Al Safa Restaurant 29,restaurant,Riyadh,Asma Al-Anazi,+966539201946,asma.anazi213@riyadh-shop.example,1010586380,250000,2026-05-18
+C-1215,Lulu Mini Market 30,shop,Dammam,Waleed Al-Shehri,+966532958990,waleed.shehri214@dammam-shop.example,2050438253,100000,2024-10-08
+C-1216,Al Faisaliah Store 31,shop,Jeddah,Hatem Al-Qarni,+966541335852,hatem.qarni215@jeddah-shop.example,4030403156,20000,2026-01-10
+C-1217,Al Safa Catering 32,caterer,Jeddah,Wafa Al-Shammari,+966580789424,wafa.shammari216@jeddah-shop.example,4030475619,250000,2026-04-25
+C-1218,Durrat Grocery 33,shop,Jeddah,Nawaf Al-Balawi,+966596700610,nawaf.balawi217@jeddah-shop.example,4030587839,20000,2024-01-21
+C-1219,Rimal Store 34,shop,Jeddah,Shahad Al-Otaibi,+966576212465,shahad.otaibi218@jeddah-shop.example,4030280283,50000,2025-05-04
+C-1220,Al Andalus Store 35,shop,Dammam,Asma Al-Balawi,+966501004810,asma.balawi219@dammam-shop.example,2050045830,100000,2025-04-05
+C-1221,Al Waha Corner Mini Market 36,shop,Riyadh,Mishal Al-Yami,+966517054484,mishal.yami220@riyadh-shop.example,1010666435,20000,2024-02-16
+C-1222,Al Hamra Store 37,shop,Riyadh,Lama Al-Qarni,+966505291471,lama.qarni221@riyadh-shop.example,1010508120,20000,2024-05-15
+C-1223,Al Shati Restaurant 1,restaurant,Jeddah,Nouf Al-Yami,+966527163451,nouf.yami222@jeddah-shop.example,4030699015,100000,2025-10-11
+C-1224,Lulu Events Kitchen 2,caterer,Jeddah,Saleh Al-Dosari,+966509773096,saleh.dosari223@jeddah-shop.example,4030912343,20000,2025-03-01
+C-1225,Al Faisaliah Store 3,shop,Riyadh,Waleed Al-Anazi,+966524107641,waleed.anazi224@riyadh-shop.example,1010437772,250000,2025-05-07
+C-1226,Sanabel Grocery 4,shop,Dammam,Abdulrahman Al-Rashid,+966593720740,abdulrahman.rashid225@dammam-shop.example,2050534637,100000,2024-03-08
+C-1227,Al Shati Events Kitchen 5,caterer,Jeddah,Reem Al-Dosari,+966530521933,reem.dosari226@jeddah-shop.example,4030356368,50000,2024-11-24
+C-1228,Rimal Grill 6,restaurant,Jeddah,Nouf Al-Rashid,+966521651925,nouf.rashid227@jeddah-shop.example,4030076057,250000,2025-06-18
+C-1229,Al Manar Events Kitchen 7,caterer,Jeddah,Shahad Al-Qarni,+966527991062,shahad.qarni228@jeddah-shop.example,4030102561,250000,2026-04-19
+C-1230,Al Bustan Restaurant 8,restaurant,Jeddah,Ziyad Al-Yami,+966513771948,ziyad.yami229@jeddah-shop.example,4030382615,20000,2025-05-08
+C-1231,Rimal Store 9,shop,Jeddah,Waleed Al-Maliki,+966546484645,waleed.maliki230@jeddah-shop.example,4030721206,50000,2025-08-07
+C-1232,Durrat Grocery 10,shop,Jeddah,Nawaf Al-Qarni,+966558459460,nawaf.qarni231@jeddah-shop.example,4030464669,250000,2024-09-13
+C-1233,Al Safa Hotel 11,hotel,Riyadh,Majid Al-Shehri,+966535880557,majid.shehri232@riyadh-shop.example,1010224925,100000,2025-08-16
+C-1234,Al Waha Corner Grocery 12,shop,Jeddah,Wafa Al-Qarni,+966597942333,wafa.qarni233@jeddah-shop.example,4030907290,50000,2024-11-06
+C-1235,Al Faisaliah Suites 13,hotel,Jeddah,Mishal Al-Rashid,+966575253544,mishal.rashid234@jeddah-shop.example,4030492719,100000,2025-04-03
+C-1236,Al Bustan Store 14,shop,Jeddah,Saleh Al-Rashid,+966501613869,saleh.rashid235@jeddah-shop.example,4030306064,20000,2025-03-25
+C-1237,Al Hamra Store 15,shop,Riyadh,Arwa Al-Balawi,+966595978802,arwa.balawi236@riyadh-shop.example,1010386402,20000,2024-08-27
+C-1238,Al Rawdah Events Kitchen 16,caterer,Riyadh,Majid Al-Maliki,+966565171168,majid.maliki237@riyadh-shop.example,1010600167,50000,2025-03-10
+C-1239,Al Waha Corner Kitchen 17,restaurant,Jeddah,Mishal Al-Shehri,+966582439761,mishal.shehri238@jeddah-shop.example,4030610265,50000,2024-09-21
+C-1240,Durrat Kitchen 18,restaurant,Riyadh,Saleh Al-Rashid,+966576749328,saleh.rashid239@riyadh-shop.example,1010961549,50000,2026-04-06

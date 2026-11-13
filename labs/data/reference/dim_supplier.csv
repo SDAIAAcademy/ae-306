@@ -1,0 +1,53 @@
+supplier_id,name_en,name_ar,country,currency,payment_terms_days,contact_name,contact_email,iban,contract_ref,valid_from,valid_to
+S-01,Al Amana Foods,الأمانة للأغذية,SA,SAR,60,Reem Al-Balawi,sales@al-amana-foods.example,SA98383525531533404662,QT-CON-2025-001,2026-08-01T00:00:00+03:00,2026-08-04T09:35:00+03:00
+S-01,Al Amana Foods,الأمانة للأغذية,SA,SAR,60,Nouf Al-Anazi,sales@al-amana-foods.example,SA98383525531533404662,QT-CON-2025-001,2026-08-04T09:35:00+03:00,
+S-02,Hijaz Grains,حبوب الحجاز,SA,SAR,45,Waleed Al-Maliki,sales@hijaz-grains.example,SA29364138860000170473,QT-CON-2025-002,2026-08-01T00:00:00+03:00,2026-09-13T17:38:00+03:00
+S-02,Hijaz Grains,حبوب الحجاز,SA,SAR,45,Waleed Al-Maliki,accounts3@hijaz-grains.example,SA29364138860000170473,QT-CON-2025-002,2026-09-13T17:38:00+03:00,2026-09-27T12:04:00+03:00
+S-02,Hijaz Grains,حبوب الحجاز,SA,SAR,45,Nouf Al-Ghamdi,accounts3@hijaz-grains.example,SA29364138860000170473,QT-CON-2025-002,2026-09-27T12:04:00+03:00,
+S-03,Sahil Oils,زيوت الساحل,SA,SAR,45,Reem Al-Ghamdi,sales@sahil-oils.example,SA41271550754366266260,QT-CON-2025-003,2026-08-01T00:00:00+03:00,2026-08-10T14:17:00+03:00
+S-03,Sahil Oils,زيوت الساحل,SA,SAR,45,Reem Al-Ghamdi,accounts5@sahil-oils.example,SA41271550754366266260,QT-CON-2025-003,2026-08-10T14:17:00+03:00,2026-09-18T13:22:00+03:00
+S-03,Sahil Oils,زيوت الساحل,SA,SAR,30,Reem Al-Ghamdi,accounts5@sahil-oils.example,SA41271550754366266260,QT-CON-2025-003,2026-09-18T13:22:00+03:00,
+S-04,Najd Dairy,ألبان نجد,SA,SAR,45,Nouf Al-Dosari,sales@najd-dairy.example,SA84434824449152710322,QT-CON-2025-004,2026-08-01T00:00:00+03:00,
+S-05,Bayader Paper,بيادر للورق,SA,SAR,90,Saleh Al-Balawi,sales@bayader-paper.example,SA49914294797335354292,QT-CON-2025-005,2026-08-01T00:00:00+03:00,2026-08-20T10:32:00+03:00
+S-05,Bayader Paper and Packaging,بيادر للورق,SA,SAR,90,Saleh Al-Balawi,sales@bayader-paper.example,SA49914294797335354292,QT-CON-2025-005,2026-08-20T10:32:00+03:00,2026-09-12T15:14:00+03:00
+S-05,Bayader Paper and Packaging,بيادر للورق,SA,SAR,45,Saleh Al-Balawi,sales@bayader-paper.example,SA49914294797335354292,QT-CON-2025-005,2026-09-12T15:14:00+03:00,
+S-06,Khaleej Trading,الخليج التجارية,AE,AED,45,Shahad Al-Anazi,sales@khaleej-trading.example,AE67433502814102778570,QT-CON-2026-006,2026-08-01T00:00:00+03:00,2026-09-11T10:09:00+03:00
+S-06,Khaleej Trading,الخليج التجارية,AE,AED,60,Shahad Al-Anazi,sales@khaleej-trading.example,AE67433502814102778570,QT-CON-2026-006,2026-09-11T10:09:00+03:00,2026-10-28T17:18:00+03:00
+S-06,Khaleej Trading,الخليج التجارية,AE,AED,45,Shahad Al-Anazi,sales@khaleej-trading.example,AE67433502814102778570,QT-CON-2026-006,2026-10-28T17:18:00+03:00,
+S-07,Jumeirah Canning,جميرا للمعلبات,AE,AED,45,Majid Al-Rashid,sales@jumeirah-canning.example,AE13501117873841772704,QT-CON-2026-007,2026-08-01T00:00:00+03:00,2026-09-01T09:08:00+03:00
+S-07,Jumeirah Canning,جميرا للمعلبات,SA,SAR,45,Majid Al-Rashid,sales@jumeirah-canning.example,AE13501117873841772704,QT-CON-2026-007,2026-09-01T09:08:00+03:00,
+S-08,Emirates Clean,الإمارات للمنظفات,AE,AED,90,Mishal Al-Juhani,sales@emirates-clean.example,AE43339381732063161384,QT-CON-2025-008,2026-08-01T00:00:00+03:00,2026-10-08T08:24:00+03:00
+S-08,Emirates Clean,الإمارات للمنظفات,AE,AED,90,Asma Al-Juhani,sales@emirates-clean.example,AE43339381732063161384,QT-CON-2025-008,2026-10-08T08:24:00+03:00,
+S-09,Nile Valley Foods,وادي النيل للأغذية,EG,USD,30,Ziyad Al-Ghamdi,sales@nile-valley-foods.example,EG72565366418312253295,QT-CON-2025-009,2026-08-01T00:00:00+03:00,
+S-10,Delta Beans,فول الدلتا,EG,USD,90,Nawaf Al-Rashid,sales@delta-beans.example,EG90668963548638361485,QT-CON-2026-010,2026-08-01T00:00:00+03:00,2026-08-14T16:40:00+03:00
+S-10,Delta Beans,فول الدلتا,EG,USD,90,Nawaf Al-Rashid,accounts2@delta-beans.example,EG90668963548638361485,QT-CON-2026-010,2026-08-14T16:40:00+03:00,2026-10-14T15:49:00+03:00
+S-10,Delta Beans,فول الدلتا,EG,USD,90,Reem Al-Rashid,accounts2@delta-beans.example,EG90668963548638361485,QT-CON-2026-010,2026-10-14T15:49:00+03:00,2026-10-16T08:02:00+03:00
+S-10,Delta Beans,فول الدلتا,EG,USD,30,Reem Al-Rashid,accounts2@delta-beans.example,EG90668963548638361485,QT-CON-2026-010,2026-10-16T08:02:00+03:00,
+S-11,Anatolia Pantry,مؤونة الأناضول,TR,USD,60,Asma Al-Ghamdi,sales@anatolia-pantry.example,TR27685957137309815405,QT-CON-2025-011,2026-08-01T00:00:00+03:00,2026-08-06T14:44:00+03:00
+S-11,Anatolia Pantry,مؤونة الأناضول,TR,USD,60,Lama Al-Otaibi,sales@anatolia-pantry.example,TR27685957137309815405,QT-CON-2025-011,2026-08-06T14:44:00+03:00,
+S-12,Bosphorus Oils,زيوت البوسفور,TR,USD,60,Majid Al-Juhani,sales@bosphorus-oils.example,TR76624247660966530749,QT-CON-2026-012,2026-08-01T00:00:00+03:00,2026-10-10T11:29:00+03:00
+S-13,Izmir Packaging,إزمير للتغليف,TR,USD,90,Abdulrahman Al-Juhani,sales@izmir-packaging.example,TR37149516243212882453,QT-CON-2025-013,2026-08-01T00:00:00+03:00,2026-08-19T14:36:00+03:00
+S-13,Izmir Packaging,إزمير للتغليف,TR,USD,90,Hatem Al-Otaibi,sales@izmir-packaging.example,TR37149516243212882453,QT-CON-2025-013,2026-08-19T14:36:00+03:00,2026-08-25T16:56:00+03:00
+S-13,Izmir Packaging,إزمير للتغليف,TR,USD,90,Nouf Al-Juhani,sales@izmir-packaging.example,TR37149516243212882453,QT-CON-2025-013,2026-08-25T16:56:00+03:00,2026-09-01T12:26:00+03:00
+S-13,Izmir Packaging,إزمير للتغليف,TR,USD,60,Nouf Al-Juhani,sales@izmir-packaging.example,TR37149516243212882453,QT-CON-2025-013,2026-09-01T12:26:00+03:00,
+S-14,Kerala Spice Rice,أرز كيرلا,IN,USD,30,Reem Al-Anazi,sales@kerala-spice-rice.example,IN72339977740129134177,QT-CON-2025-014,2026-08-01T00:00:00+03:00,2026-09-17T08:48:00+03:00
+S-14,Kerala Spice Rice,أرز كيرلا,IN,USD,60,Reem Al-Anazi,sales@kerala-spice-rice.example,IN72339977740129134177,QT-CON-2025-014,2026-09-17T08:48:00+03:00,2026-10-01T08:38:00+03:00
+S-14,Kerala Spice Rice,أرز كيرلا,IN,USD,90,Reem Al-Anazi,sales@kerala-spice-rice.example,IN72339977740129134177,QT-CON-2025-014,2026-10-01T08:38:00+03:00,
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,60,Asma Al-Juhani,sales@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015,2026-08-01T00:00:00+03:00,2026-08-18T10:52:00+03:00
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,90,Asma Al-Juhani,sales@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015,2026-08-18T10:52:00+03:00,2026-08-25T17:12:00+03:00
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,30,Asma Al-Juhani,sales@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015,2026-08-25T17:12:00+03:00,2026-08-27T09:56:00+03:00
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,30,Asma Al-Juhani,accounts6@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015,2026-08-27T09:56:00+03:00,2026-08-27T14:37:00+03:00
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,30,Asma Al-Juhani,accounts7@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015,2026-08-27T14:37:00+03:00,
+S-16,Deccan Tea,شاي الدكن,IN,USD,60,Saleh Al-Balawi,sales@deccan-tea.example,IN18214405757307619180,QT-CON-2026-016,2026-08-01T00:00:00+03:00,2026-09-03T10:47:00+03:00
+S-16,Deccan Tea,شاي الدكن,IN,USD,90,Saleh Al-Balawi,sales@deccan-tea.example,IN18214405757307619180,QT-CON-2026-016,2026-09-03T10:47:00+03:00,2026-10-03T09:55:00+03:00
+S-16,Deccan Tea,شاي الدكن,IN,USD,30,Saleh Al-Balawi,sales@deccan-tea.example,IN18214405757307619180,QT-CON-2026-016,2026-10-03T09:55:00+03:00,2026-10-22T13:25:00+03:00
+S-16,Deccan Tea,شاي الدكن,IN,USD,30,Saleh Al-Balawi,accounts7@deccan-tea.example,IN18214405757307619180,QT-CON-2026-016,2026-10-22T13:25:00+03:00,
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Nouf Al-Balawi,sales@tihama-water.example,SA33331783794509048926,QT-CON-2026-017,2026-08-01T00:00:00+03:00,2026-08-24T10:41:00+03:00
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Waleed Al-Shammari,sales@tihama-water.example,SA33331783794509048926,QT-CON-2026-017,2026-08-24T10:41:00+03:00,2026-09-11T13:47:00+03:00
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Majid Al-Shehri,sales@tihama-water.example,SA33331783794509048926,QT-CON-2026-017,2026-09-11T13:47:00+03:00,2026-10-02T13:13:00+03:00
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Majid Al-Shehri,accounts7@tihama-water.example,SA33331783794509048926,QT-CON-2026-017,2026-10-02T13:13:00+03:00,2026-10-21T08:08:00+03:00
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Ziyad Al-Rashid,accounts7@tihama-water.example,SA33331783794509048926,QT-CON-2026-017,2026-10-21T08:08:00+03:00,
+S-18,Asir Coffee,قهوة عسير,SA,SAR,30,Ziyad Al-Rashid,sales@asir-coffee.example,SA62055208866998094827,QT-CON-2026-018,2026-08-01T00:00:00+03:00,2026-10-14T10:09:00+03:00
+S-18,Asir Coffee,قهوة عسير,SA,SAR,30,Ziyad Al-Rashid,accounts2@asir-coffee.example,SA62055208866998094827,QT-CON-2026-018,2026-10-14T10:09:00+03:00,
+S-19,Qassim Dates,تمور القصيم,SA,SAR,60,Waleed Al-Yami,sales@qassim-dates.example,SA38736476446838386298,QT-CON-2026-019,2026-09-10T10:56:00+03:00,
+S-20,Muscat Foods,مسقط للأغذية,OM,USD,60,Wafa Al-Qarni,sales@muscat-foods.example,SA22472338931916764941,QT-CON-2026-020,2026-10-05T10:39:00+03:00,

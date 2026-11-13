@@ -1,0 +1,19 @@
+supplier_id,name_en,name_ar,country,currency,payment_terms_days,contact_name,contact_email,iban,contract_ref
+S-01,Al Amana Foods,الأمانة للأغذية,SA,SAR,60,Reem Al-Balawi,sales@al-amana-foods.example,SA98383525531533404662,QT-CON-2025-001
+S-02,Hijaz Grains,حبوب الحجاز,SA,SAR,45,Waleed Al-Maliki,sales@hijaz-grains.example,SA29364138860000170473,QT-CON-2025-002
+S-03,Sahil Oils,زيوت الساحل,SA,SAR,45,Reem Al-Ghamdi,sales@sahil-oils.example,SA41271550754366266260,QT-CON-2025-003
+S-04,Najd Dairy,ألبان نجد,SA,SAR,45,Nouf Al-Dosari,sales@najd-dairy.example,SA84434824449152710322,QT-CON-2025-004
+S-05,Bayader Paper,بيادر للورق,SA,SAR,90,Saleh Al-Balawi,sales@bayader-paper.example,SA49914294797335354292,QT-CON-2025-005
+S-06,Khaleej Trading,الخليج التجارية,AE,AED,45,Shahad Al-Anazi,sales@khaleej-trading.example,AE67433502814102778570,QT-CON-2026-006
+S-07,Jumeirah Canning,جميرا للمعلبات,AE,AED,45,Majid Al-Rashid,sales@jumeirah-canning.example,AE13501117873841772704,QT-CON-2026-007
+S-08,Emirates Clean,الإمارات للمنظفات,AE,AED,90,Mishal Al-Juhani,sales@emirates-clean.example,AE43339381732063161384,QT-CON-2025-008
+S-09,Nile Valley Foods,وادي النيل للأغذية,EG,USD,30,Ziyad Al-Ghamdi,sales@nile-valley-foods.example,EG72565366418312253295,QT-CON-2025-009
+S-10,Delta Beans,فول الدلتا,EG,USD,90,Nawaf Al-Rashid,sales@delta-beans.example,EG90668963548638361485,QT-CON-2026-010
+S-11,Anatolia Pantry,مؤونة الأناضول,TR,USD,60,Asma Al-Ghamdi,sales@anatolia-pantry.example,TR27685957137309815405,QT-CON-2025-011
+S-12,Bosphorus Oils,زيوت البوسفور,TR,USD,60,Majid Al-Juhani,sales@bosphorus-oils.example,TR76624247660966530749,QT-CON-2026-012
+S-13,Izmir Packaging,إزمير للتغليف,TR,USD,90,Abdulrahman Al-Juhani,sales@izmir-packaging.example,TR37149516243212882453,QT-CON-2025-013
+S-14,Kerala Spice Rice,أرز كيرلا,IN,USD,30,Reem Al-Anazi,sales@kerala-spice-rice.example,IN72339977740129134177,QT-CON-2025-014
+S-15,Punjab Basmati,بسمتي البنجاب,IN,USD,60,Asma Al-Juhani,sales@punjab-basmati.example,IN81368163025523167835,QT-CON-2025-015
+S-16,Deccan Tea,شاي الدكن,IN,USD,60,Saleh Al-Balawi,sales@deccan-tea.example,IN18214405757307619180,QT-CON-2026-016
+S-17,Tihama Water,مياه تهامة,SA,SAR,45,Nouf Al-Balawi,sales@tihama-water.example,SA33331783794509048926,QT-CON-2026-017
+S-18,Asir Coffee,قهوة عسير,SA,SAR,30,Ziyad Al-Rashid,sales@asir-coffee.example,SA62055208866998094827,QT-CON-2026-018
