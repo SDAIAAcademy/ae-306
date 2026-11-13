@@ -1,208 +1,133 @@
-"""Capstone starter: the Qafila Lakehouse as one Dagster code location.
+"""Qafila margin mart, end to end: your capstone pipeline.
 
-Sources -> raw (DuckDB) -> dbt (staging, marts) -> gold tables published to Iceberg, with
-asset checks from a data contract, a volume monitor and a nightly schedule.
+    cd labs
+    uv run python capstone/pipeline.py                  # the whole pipeline, November batch fixed
+    uv run python capstone/pipeline.py --batch broken   # the contract must block: the mart is not refreshed
 
-    uv run python capstone/pipeline.py              # materialize everything once, in-process
-    uv run dagster dev -f capstone/pipeline.py      # the UI: lineage, runs, checks, schedules
-
-Run from labs/. Re-running is safe: every asset replaces what it owns.
+Each step below names the lab whose code it reuses. Replace each NotImplementedError with your own code; the
+steps you have not built yet are reported, not fatal, so you can run the file at any point. The run writes
+labs/artifacts/capstone/run_report.json (row counts, test results and run time per step): commit a copy of it as
+evidence. The brief and the rubric are in capstone/README.md.
 """
+from __future__ import annotations
 
-import os
+import argparse
+import json
+import re
 import sys
-import warnings
+import time
 from pathlib import Path
 
-warnings.filterwarnings("ignore")
 LABS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(LABS))
 
-import dagster as dg  # noqa: E402
-import yaml  # noqa: E402
-from dagster_dbt import DbtCliResource, dbt_assets  # noqa: E402
+import qafila as Q  # noqa: E402
+import contract_gate as G  # noqa: E402
 
-import de_utils as U  # noqa: E402
-
-HOME = U.ARTIFACTS / "capstone"
-DB = HOME / "qafila.duckdb"
-LAKE = HOME / "lakehouse"
-CONTRACT = Path(__file__).with_name("contracts") / "payments.odcs.yaml"
-HOME.mkdir(parents=True, exist_ok=True)
-os.environ["QAFILA_DUCKDB"] = DB.as_posix()          # dbt's profiles.yml reads this
+OUT = Q.ARTIFACTS / "capstone"
+DB = OUT / "qafila.duckdb"
+REPORT: dict = {"steps": [], "row_counts": {}, "tests": {}}
 
 
-def sql(query: str, params: list | None = None):
-    con = U.connect(DB)
-    con.execute("SET python_enable_replacements = false")
-    try:
-        return con.execute(query, params or []).fetchall()
-    finally:
-        con.close()
+def step(fn):
+    """Run a step, time it, and record it in the report; a step not built yet is reported, not fatal."""
+    def run(*args, **kwargs):
+        t = time.perf_counter()
+        try:
+            result = fn(*args, **kwargs)
+            status = "done"
+        except NotImplementedError as e:
+            result, status = None, f"not built yet ({e})"
+        REPORT["steps"].append({"step": fn.__name__, "status": status, "seconds": round(time.perf_counter() - t, 2)})
+        print(f"{fn.__name__:22s} {status} in {REPORT['steps'][-1]['seconds']} s")
+        return result
+    return run
 
 
-# ---------------------------------------------------------------------------
-# 1. Ingestion: one asset per source table (keys match dbt sources: raw.<table>)
-# ---------------------------------------------------------------------------
-RAW = U.RAW.as_posix()
-APP_TABLES = ["customers", "stores", "products", "orders", "order_items"]
+@step
+def land_raw():
+    """Raw layer: the nightly extracts as they arrived (supplied)."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    con = Q.warehouse(DB, history=False)
+    con.execute("CREATE OR REPLACE VIEW products AS SELECT * FROM raw.products")
+    con.close()
 
 
-def _load_app_table(table: str):
-    sql("INSTALL sqlite; LOAD sqlite;")
-    sql("CREATE SCHEMA IF NOT EXISTS raw")
-    con = U.connect(DB)
-    try:
-        con.sql(f"ATTACH '{RAW}/qafila_oltp.sqlite' AS app (TYPE sqlite, READ_ONLY)")
-        con.sql(f"CREATE OR REPLACE TABLE raw.{table} AS SELECT *, now()::TIMESTAMP AS _loaded_at FROM app.{table}")
-        return con.sql(f"SELECT count(*) FROM raw.{table}").fetchall()[0][0]
-    finally:
-        con.close()
+@step
+def ingest_supplier_api() -> int:
+    """Incremental, idempotent load of the supplier price API: a key per version and a stored cursor (Lab 2.1)."""
+    raise NotImplementedError("your code here")
 
 
-def _make_app_asset(table: str):
-    @dg.asset(key=["raw", table], group_name="ingest", kinds={"sqlite", "duckdb"}, description=f"App database: {table}")
-    def _asset():
-        return dg.MaterializeResult(metadata={"rows": _load_app_table(table)})
-    return _asset
+@step
+def ingest_supplier_changes() -> int:
+    """Apply the change feed by log position and keep supplier history as a type 2 table (Lab 2.3)."""
+    raise NotImplementedError("your code here")
 
 
-app_assets = [_make_app_asset(t) for t in APP_TABLES]
-
-FILE_SOURCES = {
-    "payments": f"""read_json('{RAW}/api/payments.jsonl', format='newline_delimited', columns={{
-        payment_id: 'VARCHAR', order_id: 'BIGINT', amount: 'DOUBLE', currency: 'VARCHAR', method: 'VARCHAR',
-        status: 'VARCHAR', card_last4: 'VARCHAR', created_at: 'VARCHAR', updated_at: 'VARCHAR', wallet_provider: 'VARCHAR'}})""",
-    "delivery_events": f"""read_json('{RAW}/events/delivery_events.jsonl', format='newline_delimited', columns={{
-        event_id: 'VARCHAR', order_id: 'BIGINT', store_id: 'VARCHAR', city: 'VARCHAR', courier_id: 'VARCHAR',
-        event_type: 'VARCHAR', event_time: 'VARCHAR', lat: 'DOUBLE', lon: 'DOUBLE', ingest_time: 'VARCHAR'}})""",
-    "supplier_prices": f"read_csv('{RAW}/suppliers/*.csv', union_by_name=true, all_varchar=true, filename=true)",
-    "reviews": f"read_csv('{RAW}/reviews.csv')",
-}
+@step
+def contract_gate(batch_file: str) -> bool:
+    """Land the November batch and run the ODCS contract; True when the refresh may go on (Lab 3.3)."""
+    raise NotImplementedError("your code here")
 
 
-def _make_file_asset(table: str, reader: str):
-    @dg.asset(key=["raw", table], group_name="ingest", kinds={"duckdb"}, description=f"File/API source: {table}")
-    def _asset():
-        sql("CREATE SCHEMA IF NOT EXISTS raw")
-        sql(f"CREATE OR REPLACE TABLE raw.{table} AS SELECT * FROM {reader}")
-        return dg.MaterializeResult(metadata={"rows": sql(f"SELECT count(*) FROM raw.{table}")[0][0]})
-    return _asset
+@step
+def build_models() -> dict:
+    """Staging, dimensions, the fact at order-line grain and the monthly mart (Labs 3.1 and 3.2)."""
+    raise NotImplementedError("your code here")
 
 
-file_assets = [_make_file_asset(t, r) for t, r in FILE_SOURCES.items()]
+@step
+def run_tests() -> dict:
+    """Grain, keys, relationships and the reconciliation with finance's five answers (Lab 3.1)."""
+    raise NotImplementedError("your code here")
 
 
-# ---------------------------------------------------------------------------
-# 2. Contract checks on the payments feed (subset of ODCS: rowCount, duplicateValues, invalidValues, sql)
-# ---------------------------------------------------------------------------
-@dg.asset_check(asset=dg.AssetKey(["raw", "payments"]), description="ODCS contract: capstone/contracts/payments.odcs.yaml")
-def payments_contract():
-    contract = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
-    obj = contract["schema"][0]
-    failures, checked = [], 0
-    rules = [(None, r) for r in obj.get("quality", [])] + [(p["name"], r) for p in obj["properties"] for r in p.get("quality", [])]
-    for col, rule in rules:
-        if rule.get("type") == "sql":
-            value = sql(rule["query"].replace("{object}", "raw.payments"))[0][0]
-        elif rule["metric"] == "rowCount":
-            value = sql("SELECT count(*) FROM raw.payments")[0][0]
-        elif rule["metric"] == "duplicateValues":
-            cols = ", ".join(rule["arguments"]["properties"])
-            value = sql(f"SELECT count(*) - count(DISTINCT ({cols})) FROM raw.payments")[0][0]
-        elif rule["metric"] == "invalidValues" and "validValues" in rule["arguments"]:
-            allowed = ", ".join(f"'{v}'" for v in rule["arguments"]["validValues"])
-            value = sql(f"SELECT count(*) FROM raw.payments WHERE {col} IS NOT NULL AND {col} NOT IN ({allowed})")[0][0]
-        elif rule["metric"] == "invalidValues":
-            value = sql(f"SELECT count(*) FROM raw.payments WHERE {col} IS NOT NULL AND NOT regexp_full_match({col}, ?)",
-                        [rule["arguments"]["pattern"]])[0][0]
-        else:
-            continue
-        checked += 1
-        op, target = next((k, v) for k, v in rule.items() if k.startswith("must"))
-        ok = {"mustBe": value == target, "mustBeGreaterThan": value > target, "mustBeLessThan": value < target}[op]
-        if not ok:
-            failures.append(f"{rule.get('id', col)}: {value} ({op} {target})")
-    return dg.AssetCheckResult(passed=not failures, severity=dg.AssetCheckSeverity.WARN,
-                               metadata={"rules_checked": checked, "failures": "; ".join(failures) or "none"})
+@step
+def write_iceberg() -> int:
+    """The mart as an Iceberg table partitioned by month of the order date (Lab 4.1)."""
+    raise NotImplementedError("your code here")
 
 
-# ---------------------------------------------------------------------------
-# 3. dbt: staging, intermediate, marts (every dbt test becomes an asset check)
-# ---------------------------------------------------------------------------
-MANIFEST = U.DBT_PROJECT / "target" / "manifest.json"
-if not MANIFEST.exists():
-    U.run_dbt(["parse"], db_path=DB, quiet=True)
+@step
+def govern() -> dict:
+    """Minimise, mask for the analyst role in its own database, and test access (Lab 4.4)."""
+    raise NotImplementedError("your code here")
 
 
-@dbt_assets(manifest=MANIFEST)
-def qafila_dbt(context: dg.AssetExecutionContext, dbt: DbtCliResource):
-    yield from dbt.cli(["build"], context=context).stream()
+def report():
+    with Q.connect(DB) as con:
+        for (schema, table) in con.execute("SELECT table_schema, table_name FROM information_schema.tables "
+                                            "WHERE table_schema IN ('raw', 'stg', 'mart') ORDER BY 1, 2").fetchall():
+            REPORT["row_counts"][f"{schema}.{table}"] = con.execute(f"SELECT count(*) FROM {schema}.{table}").fetchall()[0][0]
+    (OUT / "run_report.json").write_text(json.dumps(REPORT, indent=1, default=str), encoding="utf-8")
+    passed = sum(1 for v in REPORT["tests"].values() if v)
+    print(f"\n{passed} of {len(REPORT['tests'])} tests passed; report: {(OUT / 'run_report.json').relative_to(LABS).as_posix()}")
+    for k, v in REPORT["tests"].items():
+        print(("PASS " if v else "FAIL ") + k)
+    return REPORT
 
 
-# ---------------------------------------------------------------------------
-# 4. Gold: publish marts to Iceberg so any engine can read them; monitor volume
-# ---------------------------------------------------------------------------
-@dg.asset(key=["gold", "daily_city_sales"], group_name="publish", kinds={"iceberg"},
-          deps=[dg.AssetKey(["marts", "mart_daily_city_sales"])])
-def gold_daily_city_sales():
-    """The dashboard mart as an Iceberg table (full refresh: overwrite)."""
-    con = U.connect(DB)
-    try:
-        data = con.sql("SELECT * FROM marts.mart_daily_city_sales ORDER BY order_date, city").to_arrow_table()
-    finally:
-        con.close()
-    catalog = U.get_catalog(LAKE)
-    catalog.create_namespace_if_not_exists("gold")
-    if catalog.table_exists("gold.daily_city_sales"):
-        table = catalog.load_table("gold.daily_city_sales")
-        table.overwrite(data)
+def main(batch: str = "fixed") -> dict:
+    t = time.perf_counter()
+    land_raw()
+    ingest_supplier_api()
+    ingest_supplier_changes()
+    ok = contract_gate("batch_2026-11-01.jsonl" if batch == "broken" else "batch_2026-11-01_fixed.jsonl")
+    if ok is False:
+        print("contract failed:", REPORT.get("contract_failed_checks"), "- the mart is not refreshed")
+        REPORT["mart_refreshed"] = False
     else:
-        table = catalog.create_table("gold.daily_city_sales", schema=data.schema)
-        table.append(data)
-    return dg.MaterializeResult(metadata={"rows": data.num_rows, "snapshots": len(table.snapshots()),
-                                          "metadata_location": table.metadata_location})
-
-
-@dg.asset_check(asset=dg.AssetKey(["marts", "fct_orders"]), description="Volume: no day below 70% of its weekday's 4-week median")
-def orders_volume():
-    rows = sql("""
-        WITH d AS (SELECT order_date, count(*)::DOUBLE AS n FROM marts.fct_orders GROUP BY 1)
-        SELECT order_date, n,
-               (SELECT median(n) FROM d d2 WHERE d2.order_date < d.order_date AND d2.order_date >= d.order_date - 28
-                  AND dayofweek(d2.order_date) = dayofweek(d.order_date)) AS expected
-        FROM d ORDER BY order_date""")
-    low = [str(day) for day, n, exp in rows if exp and n < 0.7 * exp]
-    return dg.AssetCheckResult(passed=not low, metadata={"days_checked": len(rows), "low_days": ", ".join(low) or "none"})
-
-
-# ---------------------------------------------------------------------------
-# 5. The code location
-# ---------------------------------------------------------------------------
-everything = dg.define_asset_job("refresh_all", selection=dg.AssetSelection.all())
-defs = dg.Definitions(
-    assets=[*app_assets, *file_assets, qafila_dbt, gold_daily_city_sales],
-    asset_checks=[payments_contract, orders_volume],
-    jobs=[everything],
-    schedules=[dg.ScheduleDefinition(job=everything, cron_schedule="30 1 * * *", execution_timezone="Asia/Riyadh")],
-    resources={"dbt": DbtCliResource(project_dir=str(U.DBT_PROJECT), profiles_dir=str(U.DBT_PROJECT))},
-)
+        build_models()
+        run_tests()
+        write_iceberg()
+        govern()
+        REPORT["mart_refreshed"] = True
+    REPORT["total_seconds"] = round(time.perf_counter() - t, 2)
+    return report()
 
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(errors="replace")  # Windows consoles with an Arabic code page can't print the ⚠️ below
-    U.ensure_data()
-    result = dg.materialize(
-        [*app_assets, *file_assets, qafila_dbt, gold_daily_city_sales, payments_contract, orders_volume],
-        resources={"dbt": DbtCliResource(project_dir=str(U.DBT_PROJECT), profiles_dir=str(U.DBT_PROJECT))},
-        run_config={"loggers": {"console": {"config": {"log_level": "ERROR"}}}},
-    )
-    mats = result.get_asset_materialization_events()
-    checks = result.get_asset_check_evaluations()
-    print(f"\nrun {'succeeded' if result.success else 'FAILED'}: {len(mats)} assets materialized, {len(checks)} checks")
-    for c in checks:
-        if not c.passed:
-            meta = {k: v.value for k, v in c.metadata.items()}
-            detail = meta.get("failures") or f"{meta.get('dagster_dbt/failed_row_count', '?')} failing rows"
-            print(f"  ⚠️  {c.asset_key.to_user_string()} · {c.check_name}: {detail}")
-    print(f"warehouse: {DB}\nlakehouse: {LAKE}")
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p.add_argument("--batch", choices=["fixed", "broken"], default="fixed")
+    main(p.parse_args().batch)

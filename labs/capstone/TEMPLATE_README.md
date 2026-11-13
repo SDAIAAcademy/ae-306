@@ -1,54 +1,79 @@
 # <Project name>
 
-**Team:** <names> · **Option:** <1 / 2 / 3> · **Run it:** `uv run python pipeline.py`
+> One sentence: which question the mart answers, for whom, and from which sources.
 
-## Problem
-<Who needs this data, which decisions it supports, in 2–3 sentences.>
+[Modern Data Engineering - SDAIA Academy](https://github.com/sdaiaacademy/data-engineering/)
 
-**Our platform takes** <sources> **and produces** <tables / dashboard / alerts>, **refreshed** <how often>, **trusted because** <tests, contracts, monitors>.
+**Author:** <name>
+**Engine and tools:** <for example DuckDB, dlt, SQLMesh, Dagster, PyIceberg>, chosen because <your reason>
 
-## Sources
-| Source | Type | Volume | Refresh | Load strategy | Known issues |
-|---|---|---|---|---|---|
-| | DB / API / files / events | | | full / incremental / CDC / stream | |
-| | | | | | |
+## How to run
 
-## Architecture
-<Diagram: sources → raw → staging → marts → serving. Name the tools at each step and why you chose them.>
-
-Storage: <DuckDB file / Parquet / Iceberg> because <...>. Orchestrator: <...> because <...>.
-
-## Data model
-| Table | Layer | Grain (one row per...) | Keys | Materialization |
-|---|---|---|---|---|
-| | gold | | | table / incremental / view |
-| | | | | |
-
-## Quality and observability
-| Check | Where | Severity | What it caught |
-|---|---|---|---|
-| | dbt test / contract / asset check / monitor | error / warn / quarantine | |
-| | | | |
-
-At least one real problem found: <what, how many rows, what you did about it>.
-
-## Incremental loads and re-runs
-<How each incremental load works (key, cursor, look-back), and the evidence that re-running gives the same result.>
-
-## Governance note
-| Column | Classification (NDMO level) | Protection | Who can see it raw |
-|---|---|---|---|
-| | | pseudonymized / masked / dropped / encrypted | |
-
-Erasure: <how a PDPL deletion request would be handled end to end, including snapshots and derived tables>.
-
-## Reproduce
 ```bash
 uv sync
-uv run python pipeline.py             # one command, end to end
-uv run dagster dev -f pipeline.py     # UI (optional)
+uv run python <your pipeline>.py                  # fixed batch: the mart is refreshed
+uv run python <your pipeline>.py --batch broken   # broken batch: the refresh is blocked
 ```
-Data: <where it comes from, how to download it>. Tool versions: <see uv.lock>.
 
-## Limitations and next steps
-<What would break first at 100× the volume? What would you do with two more weeks?>
+It runs from a clean clone with no keys and no downloads beyond the packages.
+
+## Results of the last run
+
+| Table | Rows |
+|---|---|
+| fact (order line) | |
+| dimensions | |
+| monthly margin | |
+
+| Test | Result |
+|---|---|
+| | |
+
+| Step | Seconds |
+|---|---|
+| | |
+
+**Finance's five questions:** your answer, the reference answer and the difference, for each.
+
+## Model
+
+- **Grain of the fact:** one row per <...>. Why this grain, and which question it could not answer at a coarser one.
+- **Dimensions:** which are type 2, and why.
+- **Freight:** how it is allocated, and the check that it is counted once.
+- **Cost:** how each line finds the supplier price valid on its order date.
+
+## Ingestion and history
+
+The cursor, the keys, what a re-run does, and how deletes and late events in the change feed are handled.
+
+## Contract and tests
+
+The contract's rules, who owns it, and what happens to a batch that fails it. The tests on the mart and why each exists.
+
+## Orchestration and recovery
+
+The run log of the broken batch: what was caught, what was not refreshed, and the backfill after the fix.
+
+## Table format
+
+The partitioning, the schema change you made, the second engine, and a query against an earlier snapshot.
+
+## Governance
+
+| Field | Level | Personal? | Why | Analyst sees |
+|---|---|---|---|---|
+| | | | | |
+
+The minimisation rule, the masking and the access tests.
+
+## Evidence
+
+Link the files that back every number above: the run reports, the run logs and the transcripts of any coding agent.
+
+## AI assistance
+
+Which coding agents or assistants you used, and for what. You are answerable for every decision and number here.
+
+## Limitations
+
+What does not work yet, and what production would need.
