@@ -153,7 +153,7 @@ def mart_table(con=None):
     con = con or warehouse()
     if not con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name = 'fct_order_line'").fetchall()[0][0]:
         build_models(con)
-    return con.execute("""
+    return con.sql("""
         SELECT f.order_id, f.line_no, f.order_date, strftime(f.order_date, '%Y-%m') AS month,
                c.city, c.customer_type, p.category, f.product_id, coalesce(s.country, 'Unknown') AS supplier_country,
                f.qty_pieces, f.revenue, f.cost, f.revenue - f.cost AS margin, f.freight

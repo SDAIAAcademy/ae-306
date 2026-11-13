@@ -1,0 +1,25 @@
+{
+ "levels": ["Top Secret", "Secret", "Restricted", "Public"],
+ "key": {
+  "customers.customer_id": ["Restricted", false, "links a business customer to its detailed transactions"],
+  "customers.name": ["Public", false, "the shop or restaurant's trading name, shown on its sign"],
+  "customers.customer_type": ["Public", false, "a category with no impact if disclosed"],
+  "customers.city": ["Public", false, "a city, with no impact if disclosed"],
+  "customers.contact_name": ["Restricted", true, "a person's name: personally identifiable"],
+  "customers.mobile": ["Restricted", true, "a person's phone number: personally identifiable"],
+  "customers.email": ["Restricted", true, "a person's e-mail address: personally identifiable"],
+  "customers.cr_number": ["Restricted", false, "a licence number tied to the customer's credit file"],
+  "customers.credit_limit_sar": ["Restricted", false, "the customer's financial standing: limited harm to its business"],
+  "customers.created_at": ["Restricted", false, "internal account history"],
+  "suppliers.supplier_id": ["Restricted", false, "links a supplier to its quotations"],
+  "suppliers.name_en": ["Public", false, "a company name, publicly known"],
+  "suppliers.name_ar": ["Public", false, "a company name, publicly known"],
+  "suppliers.country": ["Public", false, "publicly known"],
+  "suppliers.currency": ["Public", false, "publicly known"],
+  "suppliers.payment_terms_days": ["Restricted", false, "a term of the supplier contract"],
+  "suppliers.contact_name": ["Restricted", true, "a person's name: personally identifiable"],
+  "suppliers.contact_email": ["Public", false, "a company's sales address (sales@...), a contact point of the organisation"],
+  "suppliers.iban": ["Restricted", false, "a bank account number"],
+  "suppliers.contract_ref": ["Restricted", false, "identifies a supplier contract"]
+ }
+}
