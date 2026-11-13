@@ -91,7 +91,7 @@ EN_DIGITS = "0123456789."
 # BEGIN SOLUTION
 NUMBER_RULES = [
     ("digits", "cost_text", pl.col("cost").str.strip_chars()
-        .str.replace_many(list(AR_DIGITS), list(EN_DIGITS)).str.replace(",", ".", literal=True)),
+        .str.replace_many(dict(zip(AR_DIGITS, EN_DIGITS))).str.replace(",", ".", literal=True)),
     ("to_sar", "cost_sar", pl.col("cost_text").cast(pl.Float64) * pl.col("currency").replace_strict(Q.RATES, return_dtype=pl.Float64)),
 ]
 # END SOLUTION
@@ -100,7 +100,7 @@ NUMBER_RULES = [
 try:
     NUMBER_RULES
 except NameError:  # safety net
-    NUMBER_RULES = [("digits", "cost_text", pl.col("cost").str.strip_chars().str.replace_many(list(AR_DIGITS), list(EN_DIGITS))
+    NUMBER_RULES = [("digits", "cost_text", pl.col("cost").str.strip_chars().str.replace_many(dict(zip(AR_DIGITS, EN_DIGITS)))
                      .str.replace(",", ".", literal=True)),
                     ("to_sar", "cost_sar", pl.col("cost_text").cast(pl.Float64) * pl.col("currency").replace_strict(Q.RATES, return_dtype=pl.Float64))]
 df = raw.with_columns(pl.col("cost").alias("cost_text"))

@@ -116,7 +116,7 @@ with duckdb.connect(str(DB), read_only=True) as c:
     print(c.sql("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'raw_suppliers' "
                 "AND table_name = 'supplier_prices' ORDER BY ordinal_position"))
     print(c.sql("SELECT load_id, status, inserted_at FROM raw_suppliers._dlt_loads"))
-state = pipeline.state["sources"]
+state = pipeline.state.get("sources", "none yet: the incremental cursor appears once your resource in step 1 runs")
 print("stored cursor:", state)
 
 # %% [markdown]
