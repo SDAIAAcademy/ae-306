@@ -531,7 +531,7 @@ def main(force: bool = False) -> Path:
     extract_lines = lines + [ln for ln in lines if ln["order_id"] in dup_ids]
 
     # November batch of the supplier feed: the producer renamed a column and sent one negative cost
-    nov = [dict(r) for r in feed[-40:]]
+    nov = list({r["price_id"]: dict(r) for r in feed[-40:]}.values())     # one version per price in a batch
     for r in nov:
         r["updated_at"] = "2026-11-01T06:00:00+03:00"
     broken = [{("unit_cost" if k == "cost" else k): v for k, v in r.items()} for r in nov]

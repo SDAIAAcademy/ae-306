@@ -448,7 +448,7 @@
                 "minutes": 8
               }
             ],
-            "stretch": "Allocate freight by weight instead of revenue: which answers move?"
+            "stretch": "Allocate freight by pieces instead of revenue: which answers move?"
           }
         },
         {
