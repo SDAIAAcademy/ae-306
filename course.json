@@ -17,7 +17,7 @@
     "name": "AI Engineering",
     "level": "Associate"
   },
-  "audience": "Practitioners. Engineers who have completed the level 200 set or can show equivalent work: a deployed model or language model application they built and can explain.",
+  "audience": "Practitioners: engineers and analysts who already write SQL and work with Python dataframes, and who now need a batch pipeline that is incremental, tested, held by a contract and governed.",
   "prerequisites": [
     "FN-102 Command Line, Git and Reproducible Projects",
     "FN-104 SQL and Data Wrangling",
@@ -542,11 +542,11 @@
             "id": "3.4",
             "title": "Assets, a failure, a retry and a backfill",
             "minutes": 25,
-            "summary": "Declare the pipeline as Dagster assets, watch a retry absorb a flaky API, let the contract check block the mart, fix the feed and backfill one month.",
+            "summary": "Declare the pipeline as Dagster assets on a nightly schedule, watch a retry absorb a flaky API, let the contract check block the mart, fix the feed and backfill one month.",
             "href": "D3_4_orchestration.ipynb",
             "steps": [
               {
-                "text": "Assets and their graph",
+                "text": "Assets, their graph and a schedule",
                 "minutes": 6
               },
               {

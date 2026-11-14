@@ -35,9 +35,9 @@ ratios, not the seconds.
 | 2.3 | 38 change events, 3 duplicates, 1 out of order; 19 suppliers; 52 versions, 19 current. No supplier has overlapping ranges. |
 | 2.4 | 21 non-plain costs; 56 spellings map to 18 supplier ids; 102 prices reconcile within one halala. |
 | 3.1 | Freight 772,575 SAR from shipments against 3,036,762 after the naive join (3.9 times). 17,665 fact rows. All five finance questions match within 0.10. Margin after freight by city: Jeddah 5,575,091, Dammam 5,208,470, Riyadh 3,618,555. |
-| 3.2 | The dev environment builds 11 models while prod is untouched (0); a non-breaking change rebuilds 1, a breaking change 3. The agent-written SQL totals 116,950,038 against the reference 65,500,535: it joins freight at line grain. |
+| 3.2 | The dev environment builds 11 models while prod is untouched (0); a non-breaking change rebuilds 1, a breaking change 3. The agent-written SQL totals 116,950,038 against the reference 65,500,535: it joins prices without their dates, keeps cancelled orders and leaves the discount out. |
 | 3.3 | The broken batch fails `cost_present` and `cost_positive_number`; the negative cost is on PR-00043; in the stretch, after mapping `unit_cost` back to `cost`, 36 rows are loadable and 1 is quarantined. The fixed batch passes every rule. |
-| 3.4 | The API asset succeeds after 2 retries and loads 127 versions; the blocked run leaves `current_prices` and the fact not executed; the backfill rebuilds October only. |
+| 3.4 | The schedule `nightly_refresh_schedule` launches the job `nightly_refresh` (declared and inspected; no daemon runs in the notebook). The API asset succeeds after 2 retries and loads 127 versions; the blocked run leaves `current_prices` and the fact not executed; the backfill rebuilds October only. |
 | 4.1 | 11,590 lines, then 6,075 appended; 2 data files; PyIceberg and DuckDB return identical results at both snapshots. |
 | 4.2 | *Full:* 176,650 lines DuckDB 0.13 s against Dask 5.8 s; 1,059,900 lines 0.16 s and 9 MB against 26.7 s and 243 MB; 4,239,600 lines 0.51 s against 95.8 s. On one laptop the single node wins at every size. |
 | 4.3 | A naive count of 747 deliveries against 709 when counted idempotently; 55 duplicate events. Late events dropped by the watermark: 22 at one hour, 9 at one day, 0 at three days. |

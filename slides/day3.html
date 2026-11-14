@@ -297,7 +297,7 @@ schema:
     <div class="arrow">→</div>
     <div class="step c-coral"><b>margin_monthly</b>by month</div>
   </div>
-  <aside class="notes"><p>Dagster (1.13 ran here) calls these software-defined assets; Airflow 3 has assets too, and Prefect has flows. The course runs Dagster in the notebook with a temporary instance: no server. The asset view is the point: you schedule tables, not scripts.</p></aside>
+  <aside class="notes"><p>Dagster (1.13 ran here) calls these software-defined assets; Airflow 3 has assets too, and Prefect has flows. The course runs Dagster in the notebook with a temporary instance: no server. The asset view is the point: you schedule tables, not scripts. Lab 3.4 declares the schedule (a job over the four unpartitioned assets and a cron line for every night) and inspects it; no daemon runs in a notebook, so the room launches each run by hand. Say that in production the daemon or the platform fires the same job.</p></aside>
 </section>
 
 <section class="slide" data-label="Retry or block" id="retry-or-block" data-lo="LO4">

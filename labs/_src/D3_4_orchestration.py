@@ -3,17 +3,18 @@
 #
 # Day 3 · Session 4 (Orchestration) · 25 min. Qafila's pipeline now has parts: a supplier load, a contract, a price
 # table, the fact and the monthly margin. In this lab you declare them as Dagster assets with their dependencies,
-# watch a retry policy absorb a flaky API, let the contract check **block** the refresh when the November batch
+# put them on a nightly schedule, watch a retry policy absorb a flaky API, let the contract check **block** the refresh when the November batch
 # breaks, fix the feed and backfill one month of the margin.
 #
 # **AI-tutor.** An AI assistant may give hints in this lab; it does not write your queries, models or tests.
 #
 # **Reference state.** `Q.warehouse(path)` and the models in `labs/models/` (the star of Lab 3.1),
 # `contracts/supplier_prices.odcs.yaml` and `contract_gate.py` (Lab 3.3), `Q.SupplierAPI` (Lab 2.1). Runs execute in
-# this notebook with a temporary Dagster instance: no server, no daemon.
+# this notebook with a temporary Dagster instance: no server, no daemon. The schedule is declared and inspected;
+# with no daemon to fire it, you launch each run by hand, as an operator would launch a run from the schedule's job.
 #
 # **Tasks**
-# - [ ] 1 · Assets and their graph (6')
+# - [ ] 1 · Assets, their graph and a schedule (6')
 # - [ ] 2 · A flaky source and a retry policy (5')
 # - [ ] 3 · The broken feed: the check blocks the mart (7')
 # - [ ] 4 · Fix, then backfill one month (7')
@@ -60,7 +61,7 @@ QUIET = {"loggers": {"console": {"config": {"log_level": "ERROR"}}}}   # pass as
 print("dagster", dg.__version__)
 
 # %% [markdown]
-# ## 1 · Assets and their graph (6')
+# ## 1 · Assets, their graph and a schedule (6')
 #
 # An **asset** is a table the pipeline keeps up to date, declared with the assets it depends on. Dagster builds the
 # graph from the declarations and runs each asset after its dependencies.
@@ -69,6 +70,9 @@ print("dagster", dg.__version__)
 # (depends on `current_prices`) like the two assets above them. `current_prices` keeps the latest version of each
 # price from the October load and the November batch; `fct_order_line` builds the reference models
 # (`Q.build_models(con)`).
+#
+# Below the assets, the cell declares the **schedule**: a job over the four unpartitioned assets and a cron line
+# that launches it every night. Read what it prints.
 
 # %%
 def db():
@@ -179,11 +183,17 @@ def supplier_contract() -> dg.AssetCheckResult:
 
 
 ASSETS = [supplier_prices, november_batch, current_prices, fct_order_line, margin_monthly]
-defs = dg.Definitions(assets=ASSETS, asset_checks=[supplier_contract])
+# The schedule: a job that selects the four unpartitioned assets, and the cron line that launches it every night.
+NIGHTLY = dg.define_asset_job("nightly_refresh", selection=["supplier_prices", "november_batch", "current_prices", "fct_order_line"])
+SCHEDULE = dg.ScheduleDefinition(job=NIGHTLY, cron_schedule="0 2 * * *", execution_timezone="Asia/Riyadh")
+defs = dg.Definitions(assets=ASSETS, asset_checks=[supplier_contract], jobs=[NIGHTLY], schedules=[SCHEDULE])
 graph = defs.resolve_asset_graph()
 for key in graph.toposorted_asset_keys:
     print(f"{key.to_user_string():16s} <- {sorted(k.to_user_string() for k in graph.get(key).parent_keys)}")
 Q.check(len(graph.toposorted_asset_keys) == 5, "five assets in one graph")
+scheduled = defs.resolve_schedule_def("nightly_refresh_schedule")
+print(f"schedule {scheduled.name}: cron '{scheduled.cron_schedule}' ({scheduled.execution_timezone}) launches job {scheduled.job_name}")
+Q.check(scheduled.job_name == "nightly_refresh", "the nightly schedule launches the refresh job")
 
 # %% [markdown]
 # ## 2 · A flaky source and a retry policy (5')
@@ -320,7 +330,10 @@ API.stop()
 # 2. Why partition the margin by month?
 #    <details><summary>Answer</summary>A late correction to October recomputes October only; the other months, already
 #    reported, are not touched, and the run log says which partition changed when.</details>
-# 3. The check blocked the run. What does finance see in the morning?
+# 3. The schedule fires every night. What does it launch, and what does it leave out?
+#    <details><summary>Answer</summary>The job of the four unpartitioned assets with the blocking check. The monthly
+#    margin is partitioned: a month is built by a run for that partition, which is what makes a backfill possible.</details>
+# 4. The check blocked the run. What does finance see in the morning?
 #    <details><summary>Answer</summary>Yesterday's margin, unchanged and labelled with its last refresh, and the
 #    alert to the data owner. Never a margin computed from a feed that broke its contract.</details>
 #

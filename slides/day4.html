@@ -130,7 +130,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
 <!-- ======================= SESSION 2 ======================= -->
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" data-label="Concepts" id="partitions-shuffles-stages" data-lo="LO5">
+<section class="slide" data-label="Concepts" id="partitions-shuffles-stages" data-lo="LO4">
   <div class="kicker">Distributed processing</div>
   <h2>Partitions, shuffles and stages</h2>
   <div class="cols cols-3 gap-s">
@@ -141,7 +141,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Apache Spark is the production example (Spark 4 at the time of writing; it needs a Java runtime, which is why the lab uses Dask). Ray Data and Daft are others. The vocabulary transfers: partitions, shuffles, stages, broadcast joins.</p></aside>
 </section>
 
-<section class="slide" data-label="Broadcast" id="broadcast-join" data-lo="LO5">
+<section class="slide" data-label="Broadcast" id="broadcast-join" data-lo="LO4">
   <div class="kicker">Lab 4.2 · step 3</div>
   <h2>A small table is broadcast, so the join needs no shuffle</h2>
   <pre class="code s" data-file="Dask's optimised plan"><code>Sum(TreeReduce)
@@ -154,7 +154,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>BlockwiseMerge is Dask's broadcast join. Two large tables would force a hash shuffle: every row crosses to the worker that owns its key. Ask: which Qafila join would shuffle? Lines to shipments, if both were large.</p></aside>
 </section>
 
-<section class="slide" data-label="Measured" id="one-node-wins" data-lo="LO5">
+<section class="slide" data-label="Measured" id="one-node-wins" data-lo="LO4">
   <div class="kicker">Lab 4.2 · full run</div>
   <h2>At a million lines, one node is 160 times faster and uses a 27th of the memory</h2>
   <table class="t">
@@ -167,7 +167,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Numbers from the course's full run (peak memory is this process's resident memory above its start). Be fair to Dask: its local cluster here runs threads in one process, so it pays the scheduling overhead without the benefit of more machines. The point is the method: measure on your data before choosing.</p></aside>
 </section>
 
-<section class="slide" data-label="When" id="when-a-cluster" data-lo="LO5">
+<section class="slide" data-label="When" id="when-a-cluster" data-lo="LO4">
   <div class="kicker">The decision</div>
   <h2>Choose a cluster when one machine cannot hold the work, not before</h2>
   <ul class="bullets">
@@ -179,10 +179,10 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>The size estimate: 17,665 lines a quarter; even a hundred times Qafila's volume fits a laptop. Ask the room to estimate their own largest table before Lab 4.2, then compare with the measurement.</p></aside>
 </section>
 
-<section class="slide" id="checkpoint-2" data-lo="LO5">
+<section class="slide" id="checkpoint-2" data-lo="LO4">
   <div class="kicker">Checkpoint</div>
   <h2>Which engine?</h2>
-  <div class="quiz" data-type="single" data-lo="LO5">
+  <div class="quiz" data-type="single" data-lo="LO4">
     <p class="lead">Your largest table is 3 GB of order lines and your laptop has 16 GB of memory. A colleague proposes a Spark cluster for the nightly margin. What do you answer?</p>
     <div class="opts">
       <div class="opt" data-why="Chooses by habit: the data fits one machine several times over">Yes: Spark is the standard for data engineering</div>
@@ -202,7 +202,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
 <!-- ======================= SESSION 3 ======================= -->
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" data-label="The log" id="log-offsets-groups" data-lo="LO2">
+<section class="slide" data-label="The log" id="log-offsets-groups" data-lo="LO4">
   <div class="kicker">Streaming fundamentals</div>
   <h2>A log, offsets and consumer groups</h2>
   <div class="cols cols-2">
@@ -216,7 +216,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Apache Kafka is the production example; Redpanda and the cloud services speak its protocol. The lab's Q.Log is one partition of such a broker, written as a file so it runs anywhere. Partitions in a real topic give ordering per key, not across the topic.</p></aside>
 </section>
 
-<section class="slide" data-label="At least once" id="at-least-once" data-lo="LO2">
+<section class="slide" data-label="At least once" id="at-least-once" data-lo="LO4">
   <div class="kicker">Lab 4.3 · step 2</div>
   <h2>A crash before the commit replays the batch: count by key, not by event</h2>
   <div class="cols cols-2">
@@ -227,7 +227,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Exactly-once in the strict sense needs transactions between the log and the sink; most pipelines get the same result with at-least-once delivery and idempotent writes, as Day 2's loads did. Ask which Day 2 lab this repeats: 2.1 and 2.3.</p></aside>
 </section>
 
-<section class="slide" data-label="Two clocks" id="event-time-watermark" data-lo="LO2">
+<section class="slide" data-label="Two clocks" id="event-time-watermark" data-lo="LO4">
   <div class="kicker">Event time</div>
   <h2>Window by when it happened; close the window when the watermark passes</h2>
   <div class="flow">
@@ -242,7 +242,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Arrival time would put a late delivery on the wrong day. Engines that implement watermarks: Apache Flink, Spark Structured Streaming, Kafka Streams, and streaming databases. The lab writes the logic in thirty lines so the idea is visible.</p></aside>
 </section>
 
-<section class="slide" data-label="Trade-off" id="watermark-tradeoff" data-lo="LO2">
+<section class="slide" data-label="Trade-off" id="watermark-tradeoff" data-lo="LO4">
   <div class="kicker">Lab 4.3 · step 4 and stretch</div>
   <h2>A longer watermark answers later and drops less</h2>
   <div class="bars">
@@ -254,10 +254,10 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
   <aside class="notes"><p>Reconciliation is the habit: the stream gives operations a fast number, the batch gives finance the final one, and the difference is reported, never hidden. A 3-day watermark would emit each day three days late: no faster than the batch.</p></aside>
 </section>
 
-<section class="slide" id="checkpoint-3" data-lo="LO2">
+<section class="slide" id="checkpoint-3" data-lo="LO4">
   <div class="kicker">Checkpoint</div>
   <h2>One hour or one day?</h2>
-  <div class="quiz" data-type="single" data-lo="LO2">
+  <div class="quiz" data-type="single" data-lo="LO4">
     <p class="lead">Operations wants yesterday's deliveries on the screen each morning; finance closes the month from the batch. Which watermark fits operations?</p>
     <div class="opts">
       <div class="opt" data-ok>Short, with the late events logged and the batch reconciling</div>
@@ -382,7 +382,7 @@ table.append(august_and_september)          # 11,590 lines, 2 files</code></pre>
     <div class="card c-cyan"><h4>Measure before you scale</h4><p class="small mb0">One node until a measurement says otherwise; know your shuffles.</p></div>
     <div class="card c-coral"><h4>People in the data</h4><p class="small mb0">Classify every field, minimise, mask per role, test access, erase every copy.</p></div>
   </div>
-  <aside class="notes"><p>Streaming served LO2 today: idempotent consumers and event-time windows are the same discipline as Day 2's loads.</p></aside>
+  <aside class="notes"><p>Distributed processing and streaming both served LO4 today: an engine chosen by measurement, and consumers that survive a crash and a late event, are part of a pipeline that fails safely. Idempotent consumers are the same discipline as Day 2's loads.</p></aside>
 </section>
 
 <section class="slide dark" data-label="Tomorrow" id="tomorrow-capstone">

@@ -307,7 +307,7 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (…) VALUES (…)</code></pr
 <!-- ======================= SESSION 4 ======================= -->
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" data-label="Dataframes" id="polars-expressions" data-lo="LO2">
+<section class="slide" data-label="Dataframes" id="polars-expressions" data-lo="LO3">
   <div class="kicker">Cleaning with dataframes</div>
   <h2>A Polars expression is a rule you can name, run and log</h2>
   <pre class="code s" data-file="Lab 2.4 · step 2"><code class="language-python">RULES = [
@@ -320,7 +320,7 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (…) VALUES (…)</code></pr
   <aside class="notes"><p>Polars 2.0 ran for the course. pandas works too; Polars is the example because expressions are values you can store in a list, and because its lazy mode optimises the whole plan (the stretch). DuckDB SQL is the other way to write the same rules.</p></aside>
 </section>
 
-<section class="slide" data-label="What arrives" id="raw-prices-profile" data-lo="LO2">
+<section class="slide" data-label="What arrives" id="raw-prices-profile" data-lo="LO3">
   <div class="kicker">Lab 2.4 · step 1</div>
   <h2>102 prices, three currencies, two units, 56 spellings of 18 suppliers</h2>
   <div class="cols cols-2">
@@ -339,7 +339,7 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (…) VALUES (…)</code></pr
   <aside class="notes"><p>The fixed rates are a course simplification; a real pipeline takes the rate valid on the price's date from a rates table, which is the same as-of join as Day 1. The riyal's peg to the dollar at 3.75 is why USD is stable here.</p></aside>
 </section>
 
-<section class="slide" data-label="Arabic names" id="arabic-normalisation" data-lo="LO2">
+<section class="slide" data-label="Arabic names" id="arabic-normalisation" data-lo="LO3">
   <div class="kicker">Lab 2.4 · step 4</div>
   <h2>Five rules turn 56 spellings into 18 supplier ids</h2>
   <table class="t small">
@@ -354,7 +354,7 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (…) VALUES (…)</code></pr
   <aside class="notes"><p>Arabic text normalisation is a whole field; these five rules are the ones the clerks' spellings need. Never fuzzy-match an id: a wrong supplier moves margin between suppliers without failing anything. An unmatched name stops and is reported.</p></aside>
 </section>
 
-<section class="slide" data-label="Rule log" id="rule-log-reconcile" data-lo="LO2">
+<section class="slide" data-label="Rule log" id="rule-log-reconcile" data-lo="LO3">
   <div class="kicker">Lab 2.4 · step 5</div>
   <h2>The rule log says what changed; the reconciliation says it was right</h2>
   <div class="cols cols-2">
@@ -370,10 +370,10 @@ WHEN NOT MATCHED AND s.op &lt;&gt; 'd' THEN INSERT (…) VALUES (…)</code></pr
   <aside class="notes"><p>Ask the room to break a rule on purpose (round before dividing by the units) and watch the reconciliation move. That one-halala difference is the rounding question of the checkpoint.</p></aside>
 </section>
 
-<section class="slide" id="checkpoint-4" data-lo="LO2">
+<section class="slide" id="checkpoint-4" data-lo="LO3">
   <div class="kicker">Checkpoint</div>
   <h2>Where rounding goes</h2>
-  <div class="quiz" data-type="single" data-lo="LO2">
+  <div class="quiz" data-type="single" data-lo="LO3">
     <p class="lead">A price is 61.99 USD per carton of 6. Your colleague converts to riyals, rounds to two decimals, then divides by 6 and rounds again. The ERP shows a different halala. What do you change?</p>
     <div class="opts">
       <div class="opt" data-why="Treats the order of two multiplications as the cause; they commute">Divide by 6 before converting the currency</div>

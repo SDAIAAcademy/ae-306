@@ -317,7 +317,7 @@ QUALIFY row_number() OVER (
 <!-- ======================= SESSION 4 ======================= -->
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" data-label="Parquet" id="parquet-vs-csv" data-lo="LO1">
+<section class="slide" data-label="Parquet" id="parquet-vs-csv" data-lo="LO5">
   <div class="kicker">Lab 1.4 · full run, 745,200 lines</div>
   <h2>The same lines as Parquet are seven times smaller and scan 25 times faster</h2>
   <div class="bars">
@@ -329,7 +329,7 @@ QUALIFY row_number() OVER (
   <aside class="notes"><p>Parquet stores each column together, compressed, with types: no parsing of text on every read. The scan reads only the columns the query names. Numbers from the course's full run; quick mode shows the same ratios on fewer rows.</p></aside>
 </section>
 
-<section class="slide" data-label="Row groups" id="row-group-statistics" data-lo="LO1">
+<section class="slide" data-label="Row groups" id="row-group-statistics" data-lo="LO5">
   <div class="kicker">Inside a Parquet file</div>
   <h2>Each row group keeps the minimum and maximum of every column</h2>
   <div class="cols cols-2">
@@ -347,7 +347,7 @@ QUALIFY row_number() OVER (
   <aside class="notes"><p>Show parquet_metadata live: one row per row group and column with stats_min and stats_max. Sorting on write is free compared with what it saves on every read that filters on that column.</p></aside>
 </section>
 
-<section class="slide" data-label="Partitions" id="hive-partitions" data-lo="LO1">
+<section class="slide" data-label="Partitions" id="hive-partitions" data-lo="LO5">
   <div class="kicker">Partitioning</div>
   <h2>A folder per month lets the reader skip whole files</h2>
   <pre class="code s" data-file="Lab 1.4 · step 3"><code class="language-sql">COPY big TO 'by_month' (FORMAT parquet, PARTITION_BY (month));
@@ -358,7 +358,7 @@ WHERE month = '2026-09'      -- Scanning Files: 1/3</code></pre>
   <aside class="notes"><p>Be honest about the measurement: locally, 23 ms against 27 ms is noise. Pruning pays when the data is large or remote. The plan line "Scanning Files: 1/3" is the proof, from the stretch of Lab 1.4.</p></aside>
 </section>
 
-<section class="slide" data-label="Small files" id="too-many-small-files" data-lo="LO1">
+<section class="slide" data-label="Small files" id="too-many-small-files" data-lo="LO5">
   <div class="kicker">The opposite mistake</div>
   <h2>Partition by day and customer and a full scan is 180 times slower</h2>
   <div class="cols cols-2">
@@ -369,10 +369,10 @@ WHERE month = '2026-09'      -- Scanning Files: 1/3</code></pre>
   <aside class="notes"><p>Streaming and frequent small appends make small files too; table formats answer with compaction, which Day 4 shows. Ask: which Qafila column would you partition the order lines by? Month, and nothing else at this size.</p></aside>
 </section>
 
-<section class="slide" id="checkpoint-4" data-lo="LO1">
+<section class="slide" id="checkpoint-4" data-lo="LO5">
   <div class="kicker">Checkpoint</div>
   <h2>The query that reads everything</h2>
-  <div class="quiz" data-type="single" data-lo="LO1">
+  <div class="quiz" data-type="single" data-lo="LO5">
     <p class="lead">The lines are partitioned by month, yet a query for September still scans all three folders. The filter is <code>WHERE strftime(order_date, '%Y-%m') = '2026-09'</code>. Why?</p>
     <div class="opts">
       <div class="opt" data-why="Blames the file format; Parquet partitions prune when the filter names them">Parquet cannot prune folders</div>
