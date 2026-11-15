@@ -1,0 +1,10 @@
+# Colab already ships pandas, numpy, pyyaml and requests; the labs need newer DuckDB, Polars and PyArrow.
+duckdb>=1.4
+polars>=1.30
+pyarrow>=18
+dlt[duckdb]>=1.30
+sqlmesh>=0.200
+pyiceberg[sql-sqlite,pyarrow,pyiceberg-core]>=0.10
+dagster>=1.10
+dask[distributed,dataframe]>=2025.1
+psutil>=6.0

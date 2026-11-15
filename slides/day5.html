@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="deck" data-track="ai-engineering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capstone · Capstone: the margin mart and its defence · Modern Data Engineering</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<link rel="icon" href="../_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="day5.md">
+<link rel="describedby" href="../llms.txt">
+<link rel="stylesheet" href="../_engine/academy.css">
+</head>
+<body>
+<div class="deck" data-course="Modern Data Engineering" data-track="ai-engineering" data-day="Capstone">
+<section class="slide title" id="title" data-auto="title" data-label="Welcome" data-n="1">
+  <div class="kicker">SDAIA Academy · Modern Data Engineering</div>
+  <h1>Capstone: the margin mart and its defence</h1>
+  <p class="lead mt">Capstone</p>
+  <div class="meta"><span class="track">AI Engineering Track</span><span>4 teaching days + capstone day</span><span>8 min talk and demo</span><span>AE-306</span></div>
+  <aside class="notes"><p>Today is theirs: keep your own talking to the opening and the closing. Confirm the running order and the screen sharing first, and check that every participant has pushed a repository you can clone.</p></aside>
+</section>
+
+<section class="slide" data-label="Agenda" id="agenda" data-n="2">
+  <div class="kicker">Capstone</div>
+  <h2>How the day runs</h2>
+  <div class="agenda">
+    <div class="item now"><div><b>The brief, the rubric and the last build</b><small>what the assessor re-runs, then the morning to finish</small></div></div>
+    <div class="item"><div><b>Defences</b><small>eight minutes each, with questions after</small></div></div>
+    <div class="item"><div><b>Review and closing</b><small>the trainer's review, the follow-up task</small></div></div>
+  </div>
+</section>
+
+<section class="slide" data-label="The brief" id="the-brief" data-lo="LO1 LO2 LO3" data-n="3">
+  <div class="kicker">What you build</div>
+  <h2>Qafila's margin mart, from the raw extracts to an Iceberg table</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li><b>Ingest</b> the API and the change feed; supplier history as type 2.</li>
+      <li><b>Model</b> a star at order-line grain, cost as of the order date.</li>
+      <li><b>Test</b> and reconcile with finance's five answers.</li>
+    </ul>
+    <ul class="bullets small">
+      <li><b>Gate</b> each batch with the contract: a broken one changes nothing.</li>
+      <li><b>Store</b> the mart as Iceberg, read by a second engine.</li>
+      <li><b>Govern</b> the fields: register, masking, access tests.</li>
+    </ul>
+  </div>
+  <div class="callout note small mt"><b>Starter:</b> <code>labs/capstone/pipeline.py</code> has the nine steps, each naming the lab it reuses. The first is done.</div>
+  <aside class="notes"><p>Each bullet is one lab they have already done: 2.1 and 2.3 for ingestion, 3.1 and 3.2 for the model, 3.3 for the gate, 3.4 for orchestration, 4.1 for Iceberg, 4.4 for governance. The capstone is the first time the pieces run in one pipeline, in order, on one database. The trainer's reference solution is labs/solutions/capstone_pipeline.py: it runs end to end in about 25 seconds on a laptop and passes 13 tests, 14 with the backfill; do not share it before the defences.</p></aside>
+</section>
+
+<section class="slide" data-label="What the assessor re-runs" id="rerun" data-lo="LO3 LO4" data-n="4">
+  <div class="kicker">Reproducibility</div>
+  <h2>The assessor clones your repository and runs it from nothing</h2>
+  <div class="cols cols-2">
+    <div class="code"><pre><code>git clone &lt;your repository&gt;
+# then the commands of your README; with the starter:
+cd &lt;it&gt;/labs &amp;&amp; uv sync
+uv run python capstone/pipeline.py
+uv run python capstone/pipeline.py --batch broken
+uv run python capstone/pipeline.py --backfill 2026-10</code></pre></div>
+    <table class="t small">
+      <tr><th>Run</th><th>Must show</th></tr>
+      <tr><td>Fixed batch</td><td>row counts and test results equal to your README</td></tr>
+      <tr><td>Broken batch</td><td>the contract's failed checks, and the mart not refreshed</td></tr>
+      <tr><td>Second run</td><td>no new rows from the API</td></tr>
+      <tr><td>Backfill</td><td>one month rebuilt, the others untouched</td></tr>
+    </table>
+  </div>
+  <div class="callout warn small mt"><b>Clone it yourself first,</b> into a new folder. A file only on your laptop fails the run.</div>
+  <aside class="notes"><p>The two most common failures in a clean clone are a path that only exists on the author's laptop and a generated file that was never committed or that should have been generated. Ask them to test the clone before lunch, not after. Compare the row counts the run prints with the table in their README: a mismatch costs reproducibility points even if the mart is right.</p></aside>
+</section>
+
+<section class="slide" data-label="Rubric" id="rubric" data-lo="LO1 LO2 LO3 LO4 LO5 LO6" data-n="5">
+  <div class="kicker">How the repository is scored</div>
+  <h2>The rubric</h2>
+  <div class="bars">
+    <div class="row"><span>Correctness of the mart</span><div class="bar c-teal" style="--w:100%"></div><span class="val">25%</span></div>
+    <div class="row"><span>Ingestion and history</span><div class="bar c-cyan" style="--w:80%"></div><span class="val">20%</span></div>
+    <div class="row"><span>Tests and contract</span><div class="bar c-coral" style="--w:80%"></div><span class="val">20%</span></div>
+    <div class="row"><span>Orchestration and recovery</span><div class="bar c-purple" style="--w:60%"></div><span class="val">15%</span></div>
+    <div class="row"><span>Table format and governance</span><div class="bar c-amber" style="--w:40%"></div><span class="val">10%</span></div>
+    <div class="row"><span>Reproducibility</span><div class="bar c-teal" style="--w:40%"></div><span class="val">10%</span></div>
+  </div>
+  <div class="callout tip mt"><b>The repository is 60% of your result</b> and needs at least 60% on this rubric. The defence is 20%, the supervised checks 20%. The pass mark is 70% overall.</div>
+  <aside class="notes"><p>Every number in a README must come from a committed run report: a claim without one is a plan, not a result. Full marks on correctness means the five finance answers reconcile within one riyal and the fact has exactly one row per order line. On ingestion, a second run adds nothing and no supplier has overlapping validity ranges. On orchestration, the run log of the broken batch shows the failed checks and that the mart was not rebuilt, and a backfill of the month after the fix. The repository is 60% of the course result and needs at least 60% on this rubric; the defence is 20% and the supervised checks the other 20%; the pass mark is 70%.</p></aside>
+</section>
+
+<section class="slide" data-label="Defence" id="defence-format" data-n="6">
+  <div class="kicker">Format</div>
+  <h2>Eight minutes for each defence</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>3 · One modelling decision</h4><p class="small mb0">What you chose, the alternative, and the number that shows you were right.</p></div>
+    <div class="card c-cyan"><h4>3 · A transformation we pick</h4><p class="small mb0">What it reads, what it writes, and what would break it.</p></div>
+    <div class="card c-coral"><h4>2 · The broken batch</h4><p class="small mb0">The run log: what was caught, what stayed in place.</p></div>
+  </div>
+  <div class="callout note mt"><b>AI-full.</b> Coding agents were allowed. Explaining what they wrote is part of the defence.</div>
+  <aside class="notes"><p>Pick the transformation from their repository before the talk starts, ideally one with a join or a window: the freight allocation and the as-of cost lookup are good choices. If an agent wrote it and the participant cannot say what it reads and writes, note it: authorship is the point of this part. Keep strictly to time; questions come after the eight minutes.</p></aside>
+</section>
+
+<section class="slide order" data-label="Running order" id="running-order" data-n="7">
+  <div class="kicker">Running order</div>
+  <h2>Who defends when</h2>
+  <table class="t small">
+    <tr><th>#</th><th>Participant</th><th>Transformation selected</th></tr>
+    <tr><td>1</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>2</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>3</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>4</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>5</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>6</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>7</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+    <tr><td>8</td><td><input placeholder="name"></td><td><input placeholder="model or step"></td></tr>
+  </table>
+  <aside class="notes"><p>Type the names in at the start; the fields can be edited live and are not saved, so keep the list in your notes too.</p></aside>
+</section>
+
+<section class="slide dark" data-label="Final prep" id="final-prep" data-n="8">
+  <div class="kicker">Before the first defence</div>
+  <h1>Final prep · 20 minutes</h1>
+  <div class="timer" data-minutes="20"></div>
+  <p class="lead">Clone your repository into a new folder and run it twice.</p>
+  <aside class="notes"><p>Press T to start the timer. Breaks are not slides: press B when the room needs one.</p></aside>
+</section>
+
+<section class="slide dark presenting" data-label="Now defending" id="now-presenting" data-n="9">
+  <div class="kicker center">Now defending</div>
+  <div class="center"><input placeholder="Participant · transformation"></div>
+  <div class="timers mt">
+    <div><h3>Defence</h3><div class="timer" data-minutes="8"></div></div>
+  </div>
+  <aside class="notes"><p>Type the participant's name and press T to start the timer. Reuse this slide for every participant.</p></aside>
+</section>
+
+<section class="slide" data-label="Review" id="review" data-n="10">
+  <div class="kicker">Trainer review</div>
+  <h2>What the defences showed</h2>
+  <div class="cols cols-3">
+    <div class="card c-teal"><h4>Strongest patterns</h4><p class="small mb0">What several marts got right.</p></div>
+    <div class="card c-coral"><h4>Common gaps</h4><p class="small mb0">What most would fix next.</p></div>
+    <div class="card c-purple"><h4>One surprise</h4><p class="small mb0">Something nobody expected.</p></div>
+  </div>
+  <aside class="notes"><p>Fill these in from your scoring notes during the last break. Name repositories for strengths; keep gaps anonymous. Gaps worth checking for: freight joined at line grain again, costs from the current price instead of the price on the order date, and a governance step that masks the mart but leaves the raw customer table readable.</p></aside>
+</section>
+
+<section class="slide" data-label="What next" id="what-next" data-n="11">
+  <div class="kicker">What next</div>
+  <h2>The follow-up task, and the AE Associate badge</h2>
+  <ul class="bullets">
+    <li><b>Follow-up task.</b> Within four weeks, put one contract gate in front of a feed at work and report what it caught.</li>
+    <li><b>Keep the repository.</b> It is the evidence the AE Associate badge looks at.</li>
+  </ul>
+  <aside class="notes"><p>The catalog names a tracked follow-up task for this format; confirm its exact wording and deadline with the programme office before the cohort, then replace the first bullet if it differs.</p></aside>
+</section>
+
+<section class="slide dark" data-label="Thank you" id="thanks" data-n="12">
+  <div class="kicker">SDAIA Academy</div>
+  <h1>Thank you</h1>
+  <p class="lead">Modern Data Engineering</p>
+</section>
+</div>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T03:18:58Z","version":"2027.1.0","commit":"11f877b"},"course":{"id":"ae-306","code":"AE-306","title":"Modern Data Engineering","track":"ai-engineering","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ae-306/","repo":"SDAIAAcademy/ae-306","home":"../index.html"},"deck":{"id":"day5","kind":"capstone","day":5,"label":"Capstone","title":"Capstone: the margin mart and its defence","prev":"day4.html","next":null,"md":"day5.md","alt":{}},"sessions":[],"slides":[{"id":"title","n":1,"title":"Capstone: the margin mart and its defence","kind":"title","session":0,"hash":"27ab33a4","md":"#### [day5#title] Capstone: the margin mart and its defence\n\n*SDAIA Academy · Modern Data Engineering*\n\nCapstone\n\nAI Engineering Track · 4 teaching days + capstone day · 8 min talk and demo · AE-306","notes":"Today is theirs: keep your own talking to the opening and the closing. Confirm the running order and the screen sharing first, and check that every participant has pushed a repository you can clone.","minutes":null,"lo":[]},{"id":"agenda","n":2,"title":"How the day runs","kind":"content","session":0,"hash":"bd603512","md":"#### [day5#agenda] How the day runs\n\n*Capstone*\n\n- **The brief, the rubric and the last build**: what the assessor re-runs, then the morning to finish\n- **Defences**: eight minutes each, with questions after\n- **Review and closing**: the trainer's review, the follow-up task","notes":"","minutes":null,"lo":[]},{"id":"the-brief","n":3,"title":"Qafila's margin mart, from the raw extracts to an Iceberg table","kind":"content","session":0,"hash":"8613fa5c","md":"#### [day5#the-brief] Qafila's margin mart, from the raw extracts to an Iceberg table\n\n*What you build*\n\n- **Ingest** the API and the change feed; supplier history as type 2.\n- **Model** a star at order-line grain, cost as of the order date.\n- **Test** and reconcile with finance's five answers.\n\n- **Gate** each batch with the contract: a broken one changes nothing.\n- **Store** the mart as Iceberg, read by a second engine.\n- **Govern** the fields: register, masking, access tests.\n\n> **Starter:** `labs/capstone/pipeline.py` has the nine steps, each naming the lab it reuses. The first is done.","notes":"Each bullet is one lab they have already done: 2.1 and 2.3 for ingestion, 3.1 and 3.2 for the model, 3.3 for the gate, 3.4 for orchestration, 4.1 for Iceberg, 4.4 for governance. The capstone is the first time the pieces run in one pipeline, in order, on one database. The trainer's reference solution is labs/solutions/capstone_pipeline.py: it runs end to end in about 25 seconds on a laptop and passes 13 tests, 14 with the backfill; do not share it before the defences.","minutes":null,"lo":["LO1","LO2","LO3"]},{"id":"rerun","n":4,"title":"The assessor clones your repository and runs it from nothing","kind":"content","session":0,"hash":"dc37a65b","md":"#### [day5#rerun] The assessor clones your repository and runs it from nothing\n\n*Reproducibility*\n\n```\ngit clone \u003cyour repository>\n# then the commands of your README; with the starter:\ncd \u003cit>/labs && uv sync\nuv run python capstone/pipeline.py\nuv run python capstone/pipeline.py --batch broken\nuv run python capstone/pipeline.py --backfill 2026-10\n```\n\n| Run | Must show |\n| --- | --- |\n| Fixed batch | row counts and test results equal to your README |\n| Broken batch | the contract's failed checks, and the mart not refreshed |\n| Second run | no new rows from the API |\n| Backfill | one month rebuilt, the others untouched |\n\n> **Clone it yourself first,** into a new folder. A file only on your laptop fails the run.","notes":"The two most common failures in a clean clone are a path that only exists on the author's laptop and a generated file that was never committed or that should have been generated. Ask them to test the clone before lunch, not after. Compare the row counts the run prints with the table in their README: a mismatch costs reproducibility points even if the mart is right.","minutes":null,"lo":["LO3","LO4"]},{"id":"rubric","n":5,"title":"The rubric","kind":"content","session":0,"hash":"547a3693","md":"#### [day5#rubric] The rubric\n\n*How the repository is scored*\n\n| Item | Value |\n| --- | --- |\n| Correctness of the mart | 25% |\n| Ingestion and history | 20% |\n| Tests and contract | 20% |\n| Orchestration and recovery | 15% |\n| Table format and governance | 10% |\n| Reproducibility | 10% |\n\n> **The repository is 60% of your result** and needs at least 60% on this rubric. The defence is 20%, the supervised checks 20%. The pass mark is 70% overall.","notes":"Every number in a README must come from a committed run report: a claim without one is a plan, not a result. Full marks on correctness means the five finance answers reconcile within one riyal and the fact has exactly one row per order line. On ingestion, a second run adds nothing and no supplier has overlapping validity ranges. On orchestration, the run log of the broken batch shows the failed checks and that the mart was not rebuilt, and a backfill of the month after the fix. The repository is 60% of the course result and needs at least 60% on this rubric; the defence is 20% and the supervised checks the other 20%; the pass mark is 70%.","minutes":null,"lo":["LO1","LO2","LO3","LO4","LO5","LO6"]},{"id":"defence-format","n":6,"title":"Eight minutes for each defence","kind":"content","session":0,"hash":"909bbdf8","md":"#### [day5#defence-format] Eight minutes for each defence\n\n*Format*\n\n- **3 · One modelling decision.** What you chose, the alternative, and the number that shows you were right.\n- **3 · A transformation we pick.** What it reads, what it writes, and what would break it.\n- **2 · The broken batch.** The run log: what was caught, what stayed in place.\n\n> **AI-full.** Coding agents were allowed. Explaining what they wrote is part of the defence.","notes":"Pick the transformation from their repository before the talk starts, ideally one with a join or a window: the freight allocation and the as-of cost lookup are good choices. If an agent wrote it and the participant cannot say what it reads and writes, note it: authorship is the point of this part. Keep strictly to time; questions come after the eight minutes.","minutes":null,"lo":[]},{"id":"running-order","n":7,"title":"Who defends when","kind":"order","session":0,"hash":"edf12165","md":"#### [day5#running-order] Who defends when\n\n*Running order*\n\n| # | Participant | Transformation selected |\n| --- | --- | --- |\n| 1 |  |  |\n| 2 |  |  |\n| 3 |  |  |\n| 4 |  |  |\n| 5 |  |  |\n| 6 |  |  |\n| 7 |  |  |\n| 8 |  |  |","notes":"Type the names in at the start; the fields can be edited live and are not saved, so keep the list in your notes too.","minutes":null,"lo":[]},{"id":"final-prep","n":8,"title":"Final prep · 20 minutes","kind":"content","session":0,"hash":"6ddd983a","md":"#### [day5#final-prep] Final prep · 20 minutes\n\n*Before the first defence*\n\nClone your repository into a new folder and run it twice.","notes":"Press T to start the timer. Breaks are not slides: press B when the room needs one.","minutes":null,"lo":[]},{"id":"now-presenting","n":9,"title":"Defence","kind":"presenting","session":0,"hash":"dbaed61b","md":"#### [day5#now-presenting] Defence\n\n*Now defending*","notes":"Type the participant's name and press T to start the timer. Reuse this slide for every participant.","minutes":null,"lo":[]},{"id":"review","n":10,"title":"What the defences showed","kind":"content","session":0,"hash":"6b20e32f","md":"#### [day5#review] What the defences showed\n\n*Trainer review*\n\n- **Strongest patterns.** What several marts got right.\n- **Common gaps.** What most would fix next.\n- **One surprise.** Something nobody expected.","notes":"Fill these in from your scoring notes during the last break. Name repositories for strengths; keep gaps anonymous. Gaps worth checking for: freight joined at line grain again, costs from the current price instead of the price on the order date, and a governance step that masks the mart but leaves the raw customer table readable.","minutes":null,"lo":[]},{"id":"what-next","n":11,"title":"The follow-up task, and the AE Associate badge","kind":"content","session":0,"hash":"f714fe46","md":"#### [day5#what-next] The follow-up task, and the AE Associate badge\n\n*What next*\n\n- **Follow-up task.** Within four weeks, put one contract gate in front of a feed at work and report what it caught.\n- **Keep the repository.** It is the evidence the AE Associate badge looks at.","notes":"The catalog names a tracked follow-up task for this format; confirm its exact wording and deadline with the programme office before the cohort, then replace the first bullet if it differs.","minutes":null,"lo":[]},{"id":"thanks","n":12,"title":"Thank you","kind":"content","session":0,"hash":"fe839cb0","md":"#### [day5#thanks] Thank you\n\n*SDAIA Academy*\n\nModern Data Engineering","notes":"","minutes":null,"lo":[]}],"activities":[],"ai":{"context":{"course":"../context/course.md","courseJs":"../context/course.js","day":"day5.md","llms":"../llms.txt"},"tasks":[],"tools":[]},"bridge":{"allowedOrigins":[]},"features":{},"strings":{}}</script>
+<script src="../_engine/academy.js"></script>
+</body>
+</html>

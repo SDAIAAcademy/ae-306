@@ -1,0 +1,59 @@
+product_id,name,category,supplier_id,units_per_carton,list_price_piece_sar
+P-1001,Basmati rice 5 kg,Rice and grains,S-02,24,22.61
+P-1002,Basmati rice 5 kg,Rice and grains,S-14,24,38.32
+P-1003,Basmati rice 5 kg,Rice and grains,S-15,6,48.9
+P-1004,Sella rice 10 kg,Rice and grains,S-02,12,3.83
+P-1005,Sella rice 10 kg,Rice and grains,S-10,12,34.7
+P-1006,Bulgur 1 kg,Rice and grains,S-02,6,19.63
+P-1007,Bulgur 1 kg,Rice and grains,S-14,12,9.09
+P-1008,Red lentils 1 kg,Rice and grains,S-02,24,38.78
+P-1009,Red lentils 1 kg,Rice and grains,S-15,6,38.29
+P-1010,Red lentils 1 kg,Rice and grains,S-10,6,58.96
+P-1011,Chickpeas 1 kg,Rice and grains,S-15,6,58.36
+P-1012,Chickpeas 1 kg,Rice and grains,S-10,6,15.2
+P-1013,Sunflower oil 1.8 l,Oils and ghee,S-03,12,34.0
+P-1014,Sunflower oil 1.8 l,Oils and ghee,S-12,24,59.36
+P-1015,Corn oil 1.5 l,Oils and ghee,S-11,12,13.8
+P-1016,Olive oil 1 l,Oils and ghee,S-03,24,34.91
+P-1017,Olive oil 1 l,Oils and ghee,S-12,12,36.02
+P-1018,Ghee 800 g,Oils and ghee,S-03,24,43.09
+P-1019,Ghee 800 g,Oils and ghee,S-12,24,19.71
+P-1020,Ghee 800 g,Oils and ghee,S-11,12,31.92
+P-1021,Tuna 160 g,Canned food,S-01,6,12.71
+P-1022,Tuna 160 g,Canned food,S-07,6,45.82
+P-1023,Tuna 160 g,Canned food,S-09,6,52.26
+P-1024,Tuna 160 g,Canned food,S-10,12,55.88
+P-1025,Fava beans 400 g,Canned food,S-07,24,25.22
+P-1026,Fava beans 400 g,Canned food,S-09,12,46.68
+P-1027,Fava beans 400 g,Canned food,S-10,12,8.09
+P-1028,Tomato paste 400 g,Canned food,S-07,6,44.09
+P-1029,Tomato paste 400 g,Canned food,S-10,24,43.92
+P-1030,Sweet corn 340 g,Canned food,S-01,12,41.05
+P-1031,Sweet corn 340 g,Canned food,S-09,24,22.65
+P-1032,Sweet corn 340 g,Canned food,S-10,24,19.17
+P-1033,Chickpea hummus 380 g,Canned food,S-10,12,58.17
+P-1034,Mineral water 330 ml,Beverages,S-04,12,14.09
+P-1035,Mineral water 330 ml,Beverages,S-16,12,12.1
+P-1036,Mineral water 330 ml,Beverages,S-18,6,27.68
+P-1037,Mineral water 330 ml,Beverages,S-06,24,38.21
+P-1038,Mango juice 1 l,Beverages,S-18,24,15.94
+P-1039,Arabic coffee 500 g,Beverages,S-16,6,6.08
+P-1040,Arabic coffee 500 g,Beverages,S-17,24,8.72
+P-1041,Arabic coffee 500 g,Beverages,S-18,12,16.15
+P-1042,Arabic coffee 500 g,Beverages,S-06,12,43.1
+P-1043,Black tea 100 bags,Beverages,S-16,6,33.3
+P-1044,Black tea 100 bags,Beverages,S-17,24,42.72
+P-1045,Black tea 100 bags,Beverages,S-06,6,19.13
+P-1046,Laban 1 l,Beverages,S-16,12,9.71
+P-1047,Laban 1 l,Beverages,S-17,24,3.32
+P-1048,Laban 1 l,Beverages,S-06,6,24.15
+P-1049,Dish soap 1 l,Cleaning,S-08,24,38.97
+P-1050,Dish soap 1 l,Cleaning,S-06,6,58.81
+P-1051,Laundry powder 3 kg,Cleaning,S-08,24,48.91
+P-1052,Bleach 2 l,Cleaning,S-06,6,7.07
+P-1053,Floor cleaner 3 l,Cleaning,S-06,24,17.36
+P-1054,Paper towels 6 rolls,Paper and packaging,S-05,6,34.27
+P-1055,Paper towels 6 rolls,Paper and packaging,S-13,12,16.08
+P-1056,Aluminium foil 30 m,Paper and packaging,S-05,12,35.93
+P-1057,Aluminium foil 30 m,Paper and packaging,S-13,12,4.06
+P-1058,Napkins 500,Paper and packaging,S-05,6,9.96

@@ -1,0 +1,25 @@
+[project]
+name = "modern-data-engineering-labs"
+version = "2027.1.0"
+description = "Lab notebooks for the SDAIA Academy course AE-306 Modern Data Engineering (case: Qafila Trading)"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "duckdb>=1.4",
+    "polars>=1.30",
+    "pyarrow>=18",
+    "pandas>=2.2",
+    "pyyaml>=6.0",
+    "requests>=2.32",
+    "dlt[duckdb]>=1.30",
+    "sqlmesh>=0.200",
+    "pyiceberg[sql-sqlite,pyarrow,pyiceberg-core]>=0.10",
+    "dagster>=1.10",
+    "dask[distributed,dataframe]>=2025.1",
+    "psutil>=6.0",
+    "jupyterlab>=4.2",
+    "nbconvert>=7.16",
+    "ipykernel>=6.29",
+]
+
+[tool.uv]
+package = false

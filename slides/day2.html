@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="deck" data-track="ai-engineering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 2 · Ingest and clean · Modern Data Engineering</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<link rel="icon" href="../_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="day2.md">
+<link rel="describedby" href="../llms.txt">
+<link rel="stylesheet" href="../_engine/academy.css">
+</head>
+<body>
+<div class="deck" data-course="Modern Data Engineering" data-track="ai-engineering" data-day="Day 2">
+<section class="slide title" id="title" data-auto="title" data-label="Welcome" data-n="1">
+  <div class="kicker">SDAIA Academy · Modern Data Engineering</div>
+  <h1>Ingest and clean</h1>
+  <p class="lead mt">Day 2</p>
+  <div class="meta"><span class="track">AI Engineering Track</span><span>4 teaching days + capstone day</span><span>4 sessions · 4 labs</span><span>AE-306</span></div>
+  <aside class="notes"><p>Yesterday the data sat still in extracts. Today it moves: an API that pages and throttles, a change feed that repeats itself and arrives out of order, and supplier prices that need cleaning before anyone can add them up. The outcome of the day is LO2: loads that add nothing on a re-run, and history with correct validity ranges.</p></aside>
+</section>
+
+<section class="slide" id="agenda" data-auto="agenda" data-label="Agenda" data-n="2">
+  <div class="kicker">Today</div>
+  <h2>Ingest and clean</h2>
+  <div class="agenda"><div class="item"><div><b>Session 1 · Ingesting from APIs</b><small>Pages, cursors, rate limits and loads that can run twice</small></div></div><div class="item"><div><b>Session 2 · Declarative ingestion pipelines</b><small>The same load as a declared resource: cursor, merge, schema evolution and load state</small></div></div><div class="item"><div><b>Session 3 · Change data capture, merge and history</b><small>Change events, ordering by log position, MERGE, and supplier history as a type 2 dimension</small></div></div><div class="item"><div><b>Session 4 · Cleaning with dataframes</b><small>Expressions, lazy plans and cleaning rules kept as data, with a log of what each rule changed</small></div></div></div>
+  <aside class="notes"><p>Every lab today starts from its own reference state, so a participant who did not finish Day 1 is not behind.</p></aside>
+</section>
+
+<section class="slide" id="review-day-1" data-lo="LO1" data-n="3">
+  <div class="kicker">Review of Day 1</div>
+  <h2>The re-sent batch, one day later</h2>
+  <div class="quiz" data-type="single" data-lo="LO1" data-id="review-day-1-q1">
+    <p class="lead">Tonight's extract re-sends the lines of 2 November, as it did for 14 September. Which rule in your margin query keeps the report right without anyone noticing?</p>
+    <div class="opts">
+      <div class="opt" data-why="Filters the symptom on one day; the next re-sent day is a different date" data-k="A">Exclude the lines of 14 September</div>
+      <div class="opt" data-ok data-k="B">Keep one row per order and line number</div>
+      <div class="opt" data-why="Confuses the two defects; status removes cancelled orders, not repeated lines" data-k="C">Keep confirmed orders only</div>
+      <div class="opt" data-why="Hides the extra rows in a ratio; the riyal totals stay inflated" data-k="D">Report the margin percentage only</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A rule stated on the grain (one row per order line) catches every re-sent batch, on any date, before it reaches a sum.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. Today's loads apply the same idea at ingestion: a key that makes a repeated record harmless.</p></aside>
+</section>
+
+<!-- ======================= SESSION 1 ======================= -->
+<section class="slide section" id="s1" data-auto="section" data-session="1" data-n="4">
+  <div class="kicker">Session 1</div>
+  <h1>Ingesting from APIs</h1>
+  <ul class="bullets outcomes"><li>Follow every page of a cursor-paginated API</li><li>Back off on 429 responses</li><li>Store load state with the data so a re-run adds nothing</li></ul>
+  <div class="sess-no">01</div>
+</section>
+
+<section class="slide" data-label="The API" id="supplier-api-shape" data-lo="LO2" data-n="5" data-session="1">
+  <div class="kicker">Qafila's supplier price API</div>
+  <h2>Twenty records a page, a cursor to the next, and a 429 every few calls</h2>
+  <pre class="code s" data-file="GET /prices?updated_since=…"><code class="language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;price_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;PR-00009&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;product_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;P-1006&quot;</span><span class="hljs-punctuation">,</span>
+           <span class="hljs-attr">&quot;supplier_name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;مؤسسة حبوب الحجاز&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;cost&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;81.22&quot;</span><span class="hljs-punctuation">,</span>
+           <span class="hljs-attr">&quot;currency&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;SAR&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;unit&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;carton&quot;</span><span class="hljs-punctuation">,</span>
+           <span class="hljs-attr">&quot;valid_from&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-07-01&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;updated_at&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-06-24T20:17:00+03:00&quot;</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> …<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;next_cursor&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;WyIiLCAyMF0=&quot;</span><span class="hljs-punctuation">}</span></code></pre>
+  <ul class="bullets small">
+    <li>Corrections come back later with the same <code>price_id</code> and a newer <code>updated_at</code>.</li>
+    <li>The cursor is opaque: send it back, never parse it.</li>
+  </ul>
+  <aside class="notes"><p>The API runs inside the notebook (Q.SupplierAPI) so no participant depends on a network or a key. It behaves like a real one: pagination, a Retry-After header on 429, and from October a new field. Show one request live in Lab 2.1 step 1.</p></aside>
+</section>
+
+<section class="slide" data-label="Paging" id="paging-and-backoff" data-lo="LO2" data-n="6" data-session="1">
+  <div class="kicker">Lab 2.1 · step 2</div>
+  <h2>Follow every page; on a 429, wait and repeat the same request</h2>
+  <pre class="code s" data-file="fetch_since"><code class="language-python"><span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:
+    resp = requests.get(<span class="hljs-string">f&quot;<span class="hljs-subst">{base}</span>/prices&quot;</span>, params=params, timeout=<span class="hljs-number">10</span>)
+    <span class="hljs-keyword">if</span> resp.status_code == <span class="hljs-number">429</span>:
+        time.sleep(<span class="hljs-built_in">float</span>(resp.headers.get(<span class="hljs-string">&quot;Retry-After&quot;</span>, <span class="hljs-string">&quot;1&quot;</span>)))
+        <span class="hljs-keyword">continue</span>                       <span class="hljs-comment"># same params: same page</span>
+    resp.raise_for_status()
+    page = resp.json(); records += page[<span class="hljs-string">&quot;data&quot;</span>]
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> page[<span class="hljs-string">&quot;next_cursor&quot;</span>]:
+        <span class="hljs-keyword">break</span>
+    params = {<span class="hljs-string">&quot;cursor&quot;</span>: page[<span class="hljs-string">&quot;next_cursor&quot;</span>]}</code></pre>
+  <aside class="notes"><p>Release 1 of the API: 99 records in five pages; the run met one 429 and made seven requests. Real APIs vary: some page by offset, some by link headers, some return 503 under load. A production client adds a cap on retries and exponential backoff with jitter; say so, the lab keeps it short.</p></aside>
+</section>
+
+<section class="slide" data-label="Idempotent" id="two-decisions-idempotent" data-lo="LO2" data-n="7" data-session="1">
+  <div class="kicker">Loads that can run twice</div>
+  <h2>A key and a stored cursor make a load safe to repeat</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal"><h4>A key for one record version</h4><p class="small mb0"><code>(price_id, updated_at)</code>, enforced on insert. A version loaded twice is stored once.</p></div>
+    <div class="card c-cyan"><h4>The cursor stored with the data</h4><p class="small mb0">The highest <code>updated_at</code> loaded, in a table of the same database. The next run asks only for what is newer.</p></div>
+  </div>
+  <div class="callout tip small mt"><b>Idempotent</b> means running it again changes nothing. Retries, restarts and backfills all depend on it.</div>
+  <aside class="notes"><p>Ask why both are needed. The cursor alone: a crash after inserting rows and before saving the cursor re-fetches those rows, and without a key they are inserted twice. The key alone: correct but re-reads the whole API every run.</p></aside>
+</section>
+
+<section class="slide" data-label="Measured" id="rerun-adds-nothing" data-lo="LO2" data-n="8" data-session="1">
+  <div class="kicker">Lab 2.1 · step 4</div>
+  <h2>The second run adds nothing; new data adds exactly the new versions</h2>
+  <table class="t">
+    <tr><th>Run</th><th>Rows inserted</th><th>Requests</th></tr>
+    <tr><td>First, API as of 15 October</td><td>99</td><td>7</td></tr>
+    <tr><td>Again, nothing new</td><td>0</td><td>1</td></tr>
+    <tr><td>After 31 October</td><td>28: 3 new prices, 25 corrections</td><td>2</td></tr>
+  </table>
+  <p class="small mt">Raw keeps both versions of each corrected price: 102 prices, 127 versions.</p>
+  <aside class="notes"><p>From the course's run of Lab 2.1. Ask why raw keeps the first version of a corrected price: it is what the report used at the time, and an auditor will ask why last month's margin changed.</p></aside>
+</section>
+
+<section class="slide" data-label="One transaction" id="rows-and-cursor-together" data-lo="LO2" data-n="9" data-session="1">
+  <div class="kicker">The failure in between</div>
+  <h2>Store the rows and the cursor in one transaction</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>BEGIN</b></div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Insert</b>new versions</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Update</b>the cursor</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>COMMIT</b></div>
+  </div>
+  <p class="small mt">Cursor first and a crash loses data silently. Rows first and a crash re-reads, which the key absorbs. Both together and neither can happen.</p>
+  <aside class="notes"><p>The stretch of Lab 2.1 kills the load between the two steps and shows that the rollback leaves 99 rows and no new cursor. Object stores have no transactions across files: that is one of the reasons table formats exist (Day 4).</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO2" data-n="10" data-session="1">
+  <div class="kicker">Checkpoint</div>
+  <h2>The doubled table</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="checkpoint-1-q1">
+    <p class="lead">A colleague's supplier load stores the cursor correctly, but after a crash and a re-run the table holds twice the rows for one day. Which decision was missing?</p>
+    <div class="opts">
+      <div class="opt" data-why="Treats speed as the problem; a smaller page size changes how many requests, not how many copies" data-k="A">A smaller page size</div>
+      <div class="opt" data-why="Moves the cursor somewhere else; it was already correct, the duplicates come from re-fetching" data-k="B">Keeping the cursor in a file</div>
+      <div class="opt" data-why="Retries the request more; the duplicates were fetched successfully, twice" data-k="C">More retries on 429</div>
+      <div class="opt" data-ok data-k="D">A key on the record version, enforced on insert</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A crash between inserting and storing the cursor makes the next run fetch the same records. Only a key turns that repeat into nothing.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. Link to the review question at the start of the day: the same idea, one layer earlier.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-1" data-auto="lab" data-lab="2.1" data-label="Lab 2.1" data-n="11" data-session="1">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.1 · 25 min</div><h2>An incremental, idempotent API load</h2><p class="lead small">Load the paginated supplier price API into DuckDB with a stored cursor, survive rate limits, and show that a re-run adds no duplicates.</p><a class="nb" href="../labs/D2_1_api_ingestion.ipynb">D2_1_api_ingestion.ipynb</a></div><ul class="checklist"><li>One request: read the page and the cursor <span class="min">4 min</span></li><li>Follow every page, back off on 429 <span class="min">7 min</span></li><li>Load with a key and a stored cursor <span class="min">8 min</span></li><li>Run it twice, then after new data <span class="min">6 min</span></li><li class="stretch">✱ Stretch: Keep the rows and the cursor in one transaction</li></ul></div>
+  <aside class="notes"><p>Common failures: forgetting continue after a 429 (the loop moves to the next page and loses one); parsing the cursor; storing the cursor before inserting. If a participant's first run inserts fewer than 99, ask them to print the number of 429s.</p></aside>
+</section>
+
+<!-- ======================= SESSION 2 ======================= -->
+<section class="slide section" id="s2" data-auto="section" data-session="2" data-n="12">
+  <div class="kicker">Session 2</div>
+  <h1>Declarative ingestion pipelines</h1>
+  <ul class="bullets outcomes"><li>Declare a REST resource with an incremental cursor and a primary key</li><li>Absorb a new source column and find it in the schema</li><li>Read a pipeline's load state and load history</li></ul>
+  <div class="sess-no">02</div>
+</section>
+
+<section class="slide" data-label="Declared" id="declare-not-write" data-lo="LO2" data-n="13" data-session="2">
+  <div class="kicker">Declarative ingestion</div>
+  <h2>Declare the key, the cursor and the merge; the library does the rest</h2>
+  <pre class="code s" data-file="Lab 2.2 · step 1"><code class="language-python"><span class="hljs-meta">@dlt.resource(<span class="hljs-params">name=<span class="hljs-string">&quot;supplier_prices&quot;</span>, primary_key=<span class="hljs-string">&quot;price_id&quot;</span>,
+              write_disposition=<span class="hljs-string">&quot;merge&quot;</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">supplier_prices</span>(<span class="hljs-params">base_url,
+                    updated_at=dlt.sources.incremental(<span class="hljs-params"><span class="hljs-string">&quot;updated_at&quot;</span>, initial_value=<span class="hljs-string">&quot;&quot;</span></span>)</span>):
+    params = {<span class="hljs-string">&quot;updated_since&quot;</span>: updated_at.last_value}
+    … <span class="hljs-comment"># the same paging loop as Lab 2.1</span>
+    <span class="hljs-keyword">yield</span> page[<span class="hljs-string">&quot;data&quot;</span>]
+
+pipeline.run(supplier_prices(api.url))</code></pre>
+  <aside class="notes"><p>dlt is the course's example; Airbyte, Meltano and Fivetran are others (connectors run by a service or a platform). The comparison that matters: what each one stores about a load and where. dlt 1.31 was the version run for this course.</p></aside>
+</section>
+
+<section class="slide" data-label="What it stores" id="dlt-state-and-loads" data-lo="LO2" data-n="14" data-session="2">
+  <div class="kicker">Lab 2.2 · step 2</div>
+  <h2>The library stores what you wrote by hand: state and load history</h2>
+  <table class="t small">
+    <tr><th>Table in the destination</th><th>Holds</th><th>In Lab 2.1</th></tr>
+    <tr><td><code>supplier_prices</code></td><td>the data, plus <code>_dlt_load_id</code> on each row</td><td>raw.supplier_prices</td></tr>
+    <tr><td><code>_dlt_pipeline_state</code></td><td>the cursor (<code>last_value</code>)</td><td>raw._load_state</td></tr>
+    <tr><td><code>_dlt_loads</code></td><td>one row per load package, with its status</td><td>nothing</td></tr>
+    <tr><td><code>_dlt_version</code></td><td>each version of the schema</td><td>nothing</td></tr>
+  </table>
+  <aside class="notes"><p>The load history is what you did not write in Lab 2.1: which load brought which row. When finance asks why a price changed on 17 October, _dlt_load_id answers. The state lives in the destination, so a fresh machine resumes where the data says, not where a laptop's file says.</p></aside>
+</section>
+
+<section class="slide" data-label="New column" id="schema-evolution" data-lo="LO2" data-n="15" data-session="2">
+  <div class="kicker">Lab 2.2 · step 3</div>
+  <h2>In October the supplier adds a column, and the table grows one</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>First run (API as of September): 93 prices, no <code>incoterm</code>.</li>
+      <li>Second run: the column appears in the table and in a new schema version.</li>
+      <li>Older rows hold NULL: no value existed when they were sent.</li>
+    </ul>
+    <table class="t small">
+      <tr><th>incoterm</th><th>prices</th></tr>
+      <tr><td>CIF</td><td>10</td></tr>
+      <tr><td>DAP</td><td>9</td></tr>
+      <tr><td>FOB</td><td>15</td></tr>
+      <tr><td>NULL</td><td>68</td></tr>
+    </table>
+  </div>
+  <aside class="notes"><p>Ask whether a NULL incoterm on a September price means "unknown" or "none". It means "not sent": a modelling decision for Day 3. Incoterm matters to margin: under FOB Qafila pays the sea freight, under DAP the supplier does.</p></aside>
+</section>
+
+<section class="slide" data-label="Contracts" id="evolve-or-freeze" data-lo="LO2 LO4" data-n="16" data-session="2">
+  <div class="kicker">What should a pipeline do with a new column?</div>
+  <h2>Evolve in raw; decide on purpose everywhere after it</h2>
+  <div class="cols cols-4 gap-s">
+    <div class="card c-teal"><h4>evolve</h4><p class="small mb0">Add the column. Nothing is lost. The default.</p></div>
+    <div class="card c-coral"><h4>freeze</h4><p class="small mb0">Fail the load. Someone decides.</p></div>
+    <div class="card c-cyan"><h4>discard value</h4><p class="small mb0">Load the row, drop the field.</p></div>
+    <div class="card c-purple"><h4>discard row</h4><p class="small mb0">Skip the whole record.</p></div>
+  </div>
+  <p class="small mt">The stretch of Lab 2.2 freezes the columns: a record with an unknown field fails the load and the table is unchanged.</p>
+  <aside class="notes"><p>These are dlt's four schema-contract modes. Day 3's data contract goes further: it states the columns, types and rules that the producer promises, and a broken promise blocks the mart while raw still records what arrived.</p></aside>
+</section>
+
+<section class="slide" data-label="Merge" id="merge-proves-itself" data-lo="LO2" data-n="17" data-session="2">
+  <div class="kicker">Lab 2.2 · step 4</div>
+  <h2>Prove the merge against the source, not against the library's word</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">102</div><div class="lbl">prices stored</div></div>
+    <div class="stat center"><div class="big">0</div><div class="lbl">duplicate price ids</div></div>
+    <div class="stat center"><div class="big">0</div><div class="lbl">prices not at their latest version</div></div>
+  </div>
+  <p class="small mt">The reference is computed from the source file: the latest version of each price id. The 25 corrections are applied.</p>
+  <aside class="notes"><p>A load report that says "loaded" is not evidence. Two queries are: no key twice, and every stored value equal to the latest source value. Lab 3.3 turns both into tests.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO2" data-n="18" data-session="2">
+  <div class="kicker">Checkpoint</div>
+  <h2>The column that appeared</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="checkpoint-2-q1">
+    <p class="lead">The supplier API starts sending <code>incoterm</code>. Qafila's raw layer and its margin mart both read the feed. What should happen in each?</p>
+    <div class="opts">
+      <div class="opt" data-ok data-k="A">Raw adds the column; the mart waits until a model uses it</div>
+      <div class="opt" data-why="Throws away evidence at the layer meant to keep everything as received" data-k="B">Raw drops it; the mart adds it</div>
+      <div class="opt" data-why="Stops every load for a change that breaks nothing yet" data-k="C">Both fail until someone approves</div>
+      <div class="opt" data-why="Lets an unreviewed field change the meaning of finance's tables" data-k="D">Both add it automatically</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Raw keeps what arrived, so nothing is lost. The mart changes only through a reviewed model, so its meaning never changes by accident.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. Contrast with a renamed column (Day 3): that breaks a model, and the contract must stop the mart.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-2" data-auto="lab" data-lab="2.2" data-label="Lab 2.2" data-n="19" data-session="2">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.2 · 25 min</div><h2>The supplier load with dlt</h2><p class="lead small">Rebuild the supplier price load with dlt, absorb the new incoterm column, and inspect the stored state and load history.</p><a class="nb" href="../labs/D2_2_dlt_pipeline.ipynb">D2_2_dlt_pipeline.ipynb</a></div><ul class="checklist"><li>Declare the resource and run the pipeline <span class="min">7 min</span></li><li>Read what was created: tables, columns, state <span class="min">5 min</span></li><li>New data with a new column: run again <span class="min">7 min</span></li><li>Prove the merge: no duplicates, corrections applied <span class="min">6 min</span></li><li class="stretch">✱ Stretch: Freeze the schema and watch the next new column fail</li></ul></div>
+  <aside class="notes"><p>dlt keeps working files in a folder; the lab points DLT_DATA_DIR and pipelines_dir into labs/artifacts so nothing lands in the home folder. If a second run loads zero rows, the participant created a new SupplierAPI with release 1 again. The first run of dlt on Colab takes about a minute to import.</p></aside>
+</section>
+
+<!-- ======================= SESSION 3 ======================= -->
+<section class="slide section" id="s3" data-auto="section" data-session="3" data-n="20">
+  <div class="kicker">Session 3</div>
+  <h1>Change data capture, merge and history</h1>
+  <ul class="bullets outcomes"><li>Read a change event envelope and order events by log position</li><li>Apply updates and deletes to a copy with MERGE</li><li>Keep history as a type 2 dimension with valid ranges</li></ul>
+  <div class="sess-no">03</div>
+</section>
+
+<section class="slide" data-label="CDC" id="log-based-cdc" data-lo="LO2" data-n="21" data-session="3">
+  <div class="kicker">Change data capture</div>
+  <h2>Read the database's log, not its tables</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>Supplier table</b>procurement edits</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>Write-ahead log</b>every committed change</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Change events</b>c, u, d with before and after</div>
+    <div class="arrow">→</div>
+    <div class="step c-purple"><b>Your copy</b>merged, and history</div>
+  </div>
+  <p class="small mt">Polling the table with "changed since" misses deletes and every change between two polls. The log has all of them, in commit order.</p>
+  <aside class="notes"><p>Debezium is the common open-source example (on Kafka Connect); managed databases offer their own change streams. The course's feed has Debezium's envelope so the shape transfers: op, before, after, source with the log position, ts_ms.</p></aside>
+</section>
+
+<section class="slide" data-label="Envelope" id="change-event-envelope" data-lo="LO2" data-n="22" data-session="3">
+  <div class="kicker">One change event</div>
+  <h2>The envelope carries the row before, the row after and the log position</h2>
+  <pre class="code s" data-file="supplier_changes.jsonl"><code class="language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;op&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;u&quot;</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;before&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;supplier_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;S-07&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;country&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AE&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;currency&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AED&quot;</span><span class="hljs-punctuation">,</span> …<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;after&quot;</span><span class="hljs-punctuation">:</span>  <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;supplier_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;S-07&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;country&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;SA&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;currency&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;SAR&quot;</span><span class="hljs-punctuation">,</span> …<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-attr">&quot;table&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;suppliers&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;lsn&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">7006317</span><span class="hljs-punctuation">,</span> <span class="hljs-attr">&quot;ts_ms&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1788242880000</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+ <span class="hljs-attr">&quot;ts_ms&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1788242880298</span><span class="hljs-punctuation">}</span></code></pre>
+  <ul class="bullets small">
+    <li><code>source.lsn</code>: the order the database committed. <code>ts_ms</code> outside: when the event was sent.</li>
+    <li>A delete has <code>after</code> null; a create has <code>before</code> null.</li>
+  </ul>
+  <aside class="notes"><p>This is the planted move: Jumeirah Canning (S-07) moves from the UAE to Saudi Arabia on 1 September. Every order before that date belongs to "AE" in finance's question 3, every order after to "SA". The values are the real event from the feed.</p></aside>
+</section>
+
+<section class="slide" data-label="Order" id="order-by-log-position" data-lo="LO2" data-n="23" data-session="3">
+  <div class="kicker">Lab 2.3 · step 1</div>
+  <h2>Delivery repeats and reorders; the log position does not</h2>
+  <table class="t small">
+    <tr><th>Arrival</th><th>lsn</th><th>Change to supplier S-15</th></tr>
+    <tr><td>11</td><td>7,005,180</td><td>e-mail becomes accounts6@…</td></tr>
+    <tr><td>12</td><td><b>7,004,499</b></td><td>payment terms 30 days (older)</td></tr>
+    <tr><td>13</td><td>7,005,956</td><td>e-mail becomes accounts7@…</td></tr>
+  </table>
+  <p class="small mt">38 events: 3 delivered twice, 1 after a newer change. Applied by arrival, event 12 would put the old e-mail back.</p>
+  <aside class="notes"><p>At-least-once delivery is the normal guarantee of change feeds: duplicates are expected, and so is reordering across partitions. Deduplicate on lsn, order by lsn, and the copy never goes backwards.</p></aside>
+</section>
+
+<section class="slide" data-label="MERGE" id="merge-latest-state" data-lo="LO2" data-n="24" data-session="3">
+  <div class="kicker">Lab 2.3 · step 2</div>
+  <h2>MERGE applies the latest change per supplier in one statement</h2>
+  <pre class="code s" data-file="DuckDB"><code class="language-sql"><span class="hljs-keyword">MERGE</span> <span class="hljs-keyword">INTO</span> suppliers <span class="hljs-keyword">AS</span> t <span class="hljs-keyword">USING</span> latest <span class="hljs-keyword">AS</span> s
+  <span class="hljs-keyword">ON</span> t.supplier_id <span class="hljs-operator">=</span> s.sid
+<span class="hljs-keyword">WHEN</span> MATCHED <span class="hljs-keyword">AND</span> s.op <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;d&#x27;</span> <span class="hljs-keyword">THEN</span> <span class="hljs-keyword">DELETE</span>
+<span class="hljs-keyword">WHEN</span> MATCHED <span class="hljs-keyword">THEN</span> <span class="hljs-keyword">UPDATE</span> <span class="hljs-keyword">SET</span> name_en <span class="hljs-operator">=</span> s.name_en, country <span class="hljs-operator">=</span> s.country, …
+<span class="hljs-keyword">WHEN</span> <span class="hljs-keyword">NOT</span> MATCHED <span class="hljs-keyword">AND</span> s.op <span class="hljs-operator">&lt;&gt;</span> <span class="hljs-string">&#x27;d&#x27;</span> <span class="hljs-keyword">THEN</span> <span class="hljs-keyword">INSERT</span> (…) <span class="hljs-keyword">VALUES</span> (…)</code></pre>
+  <p class="small">18 suppliers, S-12 deleted, S-19 and S-20 created: 19 rows, and <code>EXCEPT</code> both ways against the source finds nothing.</p>
+  <aside class="notes"><p>latest is one row per supplier: the highest lsn, which also removes the duplicates. MERGE is in DuckDB since 1.4, and in every warehouse. Reconciliation with the source is the test that matters; without it the copy can drift for months.</p></aside>
+</section>
+
+<section class="slide" data-label="SCD2" id="scd-type-2" data-lo="LO2 LO3" data-n="25" data-session="3">
+  <div class="kicker">History</div>
+  <h2>A type 2 dimension keeps one row per version, with a validity range</h2>
+  <table class="t small">
+    <tr><th>supplier</th><th>country</th><th>valid_from</th><th>valid_to</th></tr>
+    <tr><td>S-07</td><td>AE</td><td>1 Aug</td><td>1 Sep</td></tr>
+    <tr><td>S-07</td><td>SA</td><td>1 Sep</td><td>(current)</td></tr>
+    <tr><td>S-12</td><td>TR</td><td>1 Aug</td><td>10 Oct (deleted)</td></tr>
+  </table>
+  <p class="small mt">52 versions, 19 current, no overlapping ranges. <code>valid_from</code> inclusive, <code>valid_to</code> exclusive: every moment belongs to one version.</p>
+  <aside class="notes"><p>Type 1 overwrites (the MERGE copy); type 2 adds a version. A delete ends the last version; nothing is removed, so October orders of S-12 still find their supplier. The test: no two versions of one supplier overlap, and exactly one is current per live supplier.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO2" data-n="26" data-session="3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Two events, which one wins?</h2>
+  <div class="quiz" data-type="single" data-lo="LO2" data-id="checkpoint-3-q1">
+    <p class="lead">Two updates for supplier S-15 reach your pipeline. The second to arrive has a lower log position than the first. Which one should your copy keep?</p>
+    <div class="opts">
+      <div class="opt" data-why="Trusts arrival order, which the transport can change" data-k="A">The one that arrived last</div>
+      <div class="opt" data-why="Trusts the send time, which records when the event left, not when the change committed" data-k="B">The one with the later outer ts_ms</div>
+      <div class="opt" data-ok data-k="C">The one with the higher log position</div>
+      <div class="opt" data-why="Avoids the decision; the copy then holds an arbitrary version" data-k="D">Either: they will reconcile later</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The log position is the order in which the source database committed the changes. Only that order reproduces the source table.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. The outer ts_ms was in fact the one the generator reordered: it is when the connector sent the event.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-3" data-auto="lab" data-lab="2.3" data-label="Lab 2.3" data-n="27" data-session="3">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.3 · 25 min</div><h2>Supplier changes and their history</h2><p class="lead small">Apply the supplier change feed of updates and deletes, reconcile with the source, and keep supplier history as a slowly changing dimension with correct validity ranges.</p><a class="nb" href="../labs/D2_3_cdc_scd.ipynb">D2_3_cdc_scd.ipynb</a></div><ul class="checklist"><li>Read the feed: duplicates and out-of-order events <span class="min">5 min</span></li><li>Latest state per supplier with MERGE <span class="min">7 min</span></li><li>Reconcile with the source snapshot <span class="min">4 min</span></li><li>Type 2 history with valid ranges <span class="min">9 min</span></li><li class="stretch">✱ Stretch: As-of join: margin by supplier country at order time</li></ul></div>
+  <aside class="notes"><p>Step 4 is the hardest of the day. Hint ladder: list the versions (snapshot plus each create and update), add the deletes as markers, compute valid_to with lead over the lsn, drop the markers. The reference file data/reference/dim_supplier.csv is the answer; the check compares with it.</p></aside>
+</section>
+
+<!-- ======================= SESSION 4 ======================= -->
+<section class="slide section" id="s4" data-auto="section" data-session="4" data-n="28">
+  <div class="kicker">Session 4</div>
+  <h1>Cleaning with dataframes</h1>
+  <ul class="bullets outcomes"><li>Write cleaning steps as Polars expressions</li><li>Convert currencies and units to one cost per piece in SAR</li><li>Normalise Arabic names and log every rule with the rows it changed</li></ul>
+  <div class="sess-no">04</div>
+</section>
+
+<section class="slide" data-label="Dataframes" id="polars-expressions" data-lo="LO3" data-n="29" data-session="4">
+  <div class="kicker">Cleaning with dataframes</div>
+  <h2>A Polars expression is a rule you can name, run and log</h2>
+  <pre class="code s" data-file="Lab 2.4 · step 2"><code class="language-python">RULES = [
+  (<span class="hljs-string">&quot;digits&quot;</span>, <span class="hljs-string">&quot;cost_text&quot;</span>, pl.col(<span class="hljs-string">&quot;cost&quot;</span>).<span class="hljs-built_in">str</span>.strip_chars()
+      .<span class="hljs-built_in">str</span>.replace_many(<span class="hljs-built_in">list</span>(<span class="hljs-string">&quot;٠١٢٣٤٥٦٧٨٩٫&quot;</span>), <span class="hljs-built_in">list</span>(<span class="hljs-string">&quot;0123456789.&quot;</span>))
+      .<span class="hljs-built_in">str</span>.replace(<span class="hljs-string">&quot;,&quot;</span>, <span class="hljs-string">&quot;.&quot;</span>, literal=<span class="hljs-literal">True</span>)),
+  (<span class="hljs-string">&quot;to_sar&quot;</span>, <span class="hljs-string">&quot;cost_sar&quot;</span>, pl.col(<span class="hljs-string">&quot;cost_text&quot;</span>).cast(pl.Float64)
+      * pl.col(<span class="hljs-string">&quot;currency&quot;</span>).replace_strict(RATES, return_dtype=pl.Float64)),
+]</code></pre>
+  <aside class="notes"><p>Polars 2.0 ran for the course. pandas works too; Polars is the example because expressions are values you can store in a list, and because its lazy mode optimises the whole plan (the stretch). DuckDB SQL is the other way to write the same rules.</p></aside>
+</section>
+
+<section class="slide" data-label="What arrives" id="raw-prices-profile" data-lo="LO3" data-n="30" data-session="4">
+  <div class="kicker">Lab 2.4 · step 1</div>
+  <h2>102 prices, three currencies, two units, 56 spellings of 18 suppliers</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Cost as sent</th><th>Means</th></tr>
+      <tr><td><code>81.22</code></td><td>81.22</td></tr>
+      <tr><td><code>٣٫٣٣</code></td><td>3.33, Arabic-Indic digits</td></tr>
+      <tr><td><code>36,09</code></td><td>36.09, decimal comma</td></tr>
+    </table>
+    <ul class="bullets small">
+      <li>21 costs are not plain decimals.</li>
+      <li>USD at 3.75 and AED at 1.0211 riyals: the course's fixed rates.</li>
+      <li>Most prices are per carton; cost per piece needs the product's units per carton.</li>
+    </ul>
+  </div>
+  <aside class="notes"><p>The fixed rates are a course simplification; a real pipeline takes the rate valid on the price's date from a rates table, which is the same as-of join as Day 1. The riyal's peg to the dollar at 3.75 is why USD is stable here.</p></aside>
+</section>
+
+<section class="slide" data-label="Arabic names" id="arabic-normalisation" data-lo="LO3" data-n="31" data-session="4">
+  <div class="kicker">Lab 2.4 · step 4</div>
+  <h2>Five rules turn 56 spellings into 18 supplier ids</h2>
+  <table class="t small">
+    <tr><th>Rule</th><th>Example</th></tr>
+    <tr><td>Trim spaces</td><td>"  أرز كيرلا " to "أرز كيرلا"</td></tr>
+    <tr><td>Drop a company prefix</td><td>"شركة", "مؤسسة"</td></tr>
+    <tr><td>Remove tatweel</td><td>"كيرلـا" to "كيرلا"</td></tr>
+    <tr><td>One alef</td><td>أ إ آ to ا</td></tr>
+    <tr><td>One final taa</td><td>ة to ه</td></tr>
+  </table>
+  <p class="small">Normalise both sides the same way, then join. Every record must map, and to its product's supplier.</p>
+  <aside class="notes"><p>Arabic text normalisation is a whole field; these five rules are the ones the clerks' spellings need. Never fuzzy-match an id: a wrong supplier moves margin between suppliers without failing anything. An unmatched name stops and is reported.</p></aside>
+</section>
+
+<section class="slide" data-label="Rule log" id="rule-log-reconcile" data-lo="LO3" data-n="32" data-session="4">
+  <div class="kicker">Lab 2.4 · step 5</div>
+  <h2>The rule log says what changed; the reconciliation says it was right</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Rule</th><th>Rows changed</th></tr>
+      <tr><td>digits</td><td>21</td></tr>
+      <tr><td>to_sar</td><td>102</td></tr>
+      <tr><td>per_piece</td><td>102</td></tr>
+      <tr><td>supplier_id</td><td>102 mapped</td></tr>
+    </table>
+    <div class="card c-teal flat"><h4>Against the ERP price list</h4><p class="small mb0">All 102 prices match procurement's cost per piece; one differs by one halala of rounding.</p></div>
+  </div>
+  <aside class="notes"><p>Ask the room to break a rule on purpose (round before dividing by the units) and watch the reconciliation move. That one-halala difference is the rounding question of the checkpoint.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO3" data-n="33" data-session="4">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where rounding goes</h2>
+  <div class="quiz" data-type="single" data-lo="LO3" data-id="checkpoint-4-q1">
+    <p class="lead">A price is 61.99 USD per carton of 6. Your colleague converts to riyals, rounds to two decimals, then divides by 6 and rounds again. The ERP shows a different halala. What do you change?</p>
+    <div class="opts">
+      <div class="opt" data-why="Treats the order of two multiplications as the cause; they commute" data-k="A">Divide by 6 before converting the currency</div>
+      <div class="opt" data-ok data-k="B">Round once, after both steps</div>
+      <div class="opt" data-why="Changes the data to hide the rule; the ERP is the reference, not the error" data-k="C">Round the ERP's value the same way</div>
+      <div class="opt" data-why="Moves the problem to a wider type; the double rounding remains" data-k="D">Store the cost as a 64-bit float</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Currency and unit are both multiplications, so their order does not matter. Rounding in between does: each rounding can move the result by half a unit of the last digit.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. The order of conversion is a common debate in the room and the wrong one to have.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-2-4" data-auto="lab" data-lab="2.4" data-label="Lab 2.4" data-n="34" data-session="4">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 2.4 · 25 min</div><h2>Currencies, units and Arabic names</h2><p class="lead small">Clean the supplier prices with Polars: currencies, units, Arabic supplier names and Arabic-Indic digits, logging every rule applied, then reconcile with the ERP price list.</p><a class="nb" href="../labs/D2_4_cleaning.ipynb">D2_4_cleaning.ipynb</a></div><ul class="checklist"><li>Profile the raw prices <span class="min">4 min</span></li><li>Digits and currencies <span class="min">6 min</span></li><li>Units: cartons to pieces <span class="min">5 min</span></li><li>Arabic supplier names to one id <span class="min">6 min</span></li><li>The rule log and the reconciliation <span class="min">4 min</span></li><li class="stretch">✱ Stretch: The same rules as a lazy plan: read the optimised plan</li></ul></div>
+  <aside class="notes"><p>Polars 2 renamed or tightened a few functions; replace_strict needs return_dtype. If a participant's names map to fewer than 18 ids, print the name_key values that did not join. The decimal comma is the rule most often forgotten.</p></aside>
+</section>
+
+<section class="slide" data-label="Recap" id="day-2-recap" data-lo="LO2" data-n="35" data-session="4">
+  <div class="kicker">Day 2</div>
+  <h2>Three things to keep from today</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Loads that can run twice</h4><p class="small mb0">A key on the version and a cursor stored with the data, in one transaction.</p></div>
+    <div class="card c-cyan"><h4>The log decides the order</h4><p class="small mb0">Deduplicate and order change events by log position; keep history as versions with ranges.</p></div>
+    <div class="card c-coral"><h4>Rules you can count</h4><p class="small mb0">Each cleaning rule named, logged and reconciled with a reference.</p></div>
+  </div>
+  <aside class="notes"><p>Ask one participant to state Qafila's supplier history in one sentence: "52 versions, 19 current, no overlaps, equal to the source." That sentence is the evidence of LO2.</p></aside>
+</section>
+
+<section class="slide dark" data-label="Tomorrow" id="tomorrow-model-test" data-n="36" data-session="4">
+  <div class="kicker">Day 3 · Model and test</div>
+  <h2>Tomorrow the cleaned data becomes finance's star schema, tested and scheduled</h2>
+  <ul class="bullets">
+    <li>Grain first: one row per line of a confirmed order</li>
+    <li>Models as SQL files in git, rebuilt only where they changed</li>
+    <li>A contract on the supplier feed that holds when the feed breaks at night</li>
+  </ul>
+  <p class="small">Before tomorrow: read finance's five margin questions in <code>labs/data/reference/finance_answers.json</code>.</p>
+  <aside class="notes"><p>The five questions drive Lab 3.1: monthly margin; by customer type and city; by supplier country at order time; by category and month; by city after freight.</p></aside>
+</section>
+</div>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T03:18:58Z","version":"2027.1.0","commit":"11f877b"},"course":{"id":"ae-306","code":"AE-306","title":"Modern Data Engineering","track":"ai-engineering","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ae-306/","repo":"SDAIAAcademy/ae-306","home":"../index.html"},"deck":{"id":"day2","kind":"day","day":2,"label":"Day 2","title":"Ingest and clean","prev":"day1.html","next":"day3.html","md":"day2.md","alt":{}},"sessions":[{"n":1,"label":"Session 1","title":"Ingesting from APIs","slide":"s1","outcomes":["Follow every page of a cursor-paginated API","Back off on 429 responses","Store load state with the data so a re-run adds nothing"],"minutes":50,"lab":{"id":"2.1","title":"An incremental, idempotent API load","minutes":25,"href":"../labs/D2_1_api_ingestion.ipynb"}},{"n":2,"label":"Session 2","title":"Declarative ingestion pipelines","slide":"s2","outcomes":["Declare a REST resource with an incremental cursor and a primary key","Absorb a new source column and find it in the schema","Read a pipeline's load state and load history"],"minutes":50,"lab":{"id":"2.2","title":"The supplier load with dlt","minutes":25,"href":"../labs/D2_2_dlt_pipeline.ipynb"}},{"n":3,"label":"Session 3","title":"Change data capture, merge and history","slide":"s3","outcomes":["Read a change event envelope and order events by log position","Apply updates and deletes to a copy with MERGE","Keep history as a type 2 dimension with valid ranges"],"minutes":50,"lab":{"id":"2.3","title":"Supplier changes and their history","minutes":25,"href":"../labs/D2_3_cdc_scd.ipynb"}},{"n":4,"label":"Session 4","title":"Cleaning with dataframes","slide":"s4","outcomes":["Write cleaning steps as Polars expressions","Convert currencies and units to one cost per piece in SAR","Normalise Arabic names and log every rule with the rows it changed"],"minutes":50,"lab":{"id":"2.4","title":"Currencies, units and Arabic names","minutes":25,"href":"../labs/D2_4_cleaning.ipynb"}}],"slides":[{"id":"title","n":1,"title":"Ingest and clean","kind":"title","session":0,"hash":"1cc3ec6e","md":"#### [day2#title] Ingest and clean\n\n*SDAIA Academy · Modern Data Engineering*\n\nDay 2\n\nAI Engineering Track · 4 teaching days + capstone day · 4 sessions · 4 labs · AE-306","notes":"Yesterday the data sat still in extracts. Today it moves: an API that pages and throttles, a change feed that repeats itself and arrives out of order, and supplier prices that need cleaning before anyone can add them up. The outcome of the day is LO2: loads that add nothing on a re-run, and history with correct validity ranges.","minutes":null,"lo":[]},{"id":"agenda","n":2,"title":"Ingest and clean","kind":"content","session":0,"hash":"f6468e47","md":"#### [day2#agenda] Ingest and clean\n\n*Today*\n\n- **Session 1 · Ingesting from APIs**: Pages, cursors, rate limits and loads that can run twice\n- **Session 2 · Declarative ingestion pipelines**: The same load as a declared resource: cursor, merge, schema evolution and load state\n- **Session 3 · Change data capture, merge and history**: Change events, ordering by log position, MERGE, and supplier history as a type 2 dimension\n- **Session 4 · Cleaning with dataframes**: Expressions, lazy plans and cleaning rules kept as data, with a log of what each rule changed","notes":"Every lab today starts from its own reference state, so a participant who did not finish Day 1 is not behind.","minutes":null,"lo":[]},{"id":"review-day-1","n":3,"title":"The re-sent batch, one day later","kind":"quiz","session":0,"hash":"ab57c04f","md":"#### [day2#review-day-1] The re-sent batch, one day later\n\n*Review of Day 1*\n\n**Question:** Tonight's extract re-sends the lines of 2 November, as it did for 14 September. Which rule in your margin query keeps the report right without anyone noticing?\n\n- A. Exclude the lines of 14 September\n- B. Keep one row per order and line number\n- C. Keep confirmed orders only\n- D. Report the margin percentage only","notes":"Answer: B. Today's loads apply the same idea at ingestion: a key that makes a repeated record harmless.","minutes":null,"lo":["LO1"]},{"id":"s1","n":4,"title":"Ingesting from APIs","kind":"section","session":1,"hash":"327ae1e9","md":"#### [day2#s1] Ingesting from APIs\n\n*Session 1*\n\n- Follow every page of a cursor-paginated API\n- Back off on 429 responses\n- Store load state with the data so a re-run adds nothing","notes":"","minutes":null,"lo":["LO2"]},{"id":"supplier-api-shape","n":5,"title":"Twenty records a page, a cursor to the next, and a 429 every few calls","kind":"content","session":1,"hash":"b4752c7d","md":"#### [day2#supplier-api-shape] Twenty records a page, a cursor to the next, and a 429 every few calls\n\n*Qafila's supplier price API*\n\n```json\n// file: GET /prices?updated_since=…\n{\"data\": [{\"price_id\": \"PR-00009\", \"product_id\": \"P-1006\",\n           \"supplier_name\": \"مؤسسة حبوب الحجاز\", \"cost\": \"81.22\",\n           \"currency\": \"SAR\", \"unit\": \"carton\",\n           \"valid_from\": \"2026-07-01\", \"updated_at\": \"2026-06-24T20:17:00+03:00\"}, …],\n \"next_cursor\": \"WyIiLCAyMF0=\"}\n```\n\n- Corrections come back later with the same `price_id` and a newer `updated_at`.\n- The cursor is opaque: send it back, never parse it.","notes":"The API runs inside the notebook (Q.SupplierAPI) so no participant depends on a network or a key. It behaves like a real one: pagination, a Retry-After header on 429, and from October a new field. Show one request live in Lab 2.1 step 1.","minutes":null,"lo":["LO2"]},{"id":"paging-and-backoff","n":6,"title":"Follow every page; on a 429, wait and repeat the same request","kind":"content","session":1,"hash":"ce969634","md":"#### [day2#paging-and-backoff] Follow every page; on a 429, wait and repeat the same request\n\n*Lab 2.1 · step 2*\n\n```python\n# file: fetch_since\nwhile True:\n    resp = requests.get(f\"{base}/prices\", params=params, timeout=10)\n    if resp.status_code == 429:\n        time.sleep(float(resp.headers.get(\"Retry-After\", \"1\")))\n        continue                       # same params: same page\n    resp.raise_for_status()\n    page = resp.json(); records += page[\"data\"]\n    if not page[\"next_cursor\"]:\n        break\n    params = {\"cursor\": page[\"next_cursor\"]}\n```","notes":"Release 1 of the API: 99 records in five pages; the run met one 429 and made seven requests. Real APIs vary: some page by offset, some by link headers, some return 503 under load. A production client adds a cap on retries and exponential backoff with jitter; say so, the lab keeps it short.","minutes":null,"lo":["LO2"]},{"id":"two-decisions-idempotent","n":7,"title":"A key and a stored cursor make a load safe to repeat","kind":"content","session":1,"hash":"39714556","md":"#### [day2#two-decisions-idempotent] A key and a stored cursor make a load safe to repeat\n\n*Loads that can run twice*\n\n- **A key for one record version.** `(price_id, updated_at)`, enforced on insert. A version loaded twice is stored once.\n- **The cursor stored with the data.** The highest `updated_at` loaded, in a table of the same database. The next run asks only for what is newer.\n\n> **Idempotent** means running it again changes nothing. Retries, restarts and backfills all depend on it.","notes":"Ask why both are needed. The cursor alone: a crash after inserting rows and before saving the cursor re-fetches those rows, and without a key they are inserted twice. The key alone: correct but re-reads the whole API every run.","minutes":null,"lo":["LO2"]},{"id":"rerun-adds-nothing","n":8,"title":"The second run adds nothing; new data adds exactly the new versions","kind":"content","session":1,"hash":"aca43e29","md":"#### [day2#rerun-adds-nothing] The second run adds nothing; new data adds exactly the new versions\n\n*Lab 2.1 · step 4*\n\n| Run | Rows inserted | Requests |\n| --- | --- | --- |\n| First, API as of 15 October | 99 | 7 |\n| Again, nothing new | 0 | 1 |\n| After 31 October | 28: 3 new prices, 25 corrections | 2 |\n\nRaw keeps both versions of each corrected price: 102 prices, 127 versions.","notes":"From the course's run of Lab 2.1. Ask why raw keeps the first version of a corrected price: it is what the report used at the time, and an auditor will ask why last month's margin changed.","minutes":null,"lo":["LO2"]},{"id":"rows-and-cursor-together","n":9,"title":"Store the rows and the cursor in one transaction","kind":"content","session":1,"hash":"e12035a1","md":"#### [day2#rows-and-cursor-together] Store the rows and the cursor in one transaction\n\n*The failure in between*\n\n**BEGIN** → **Insert** new versions → **Update** the cursor → **COMMIT**\n\nCursor first and a crash loses data silently. Rows first and a crash re-reads, which the key absorbs. Both together and neither can happen.","notes":"The stretch of Lab 2.1 kills the load between the two steps and shows that the rollback leaves 99 rows and no new cursor. Object stores have no transactions across files: that is one of the reasons table formats exist (Day 4).","minutes":null,"lo":["LO2"]},{"id":"checkpoint-1","n":10,"title":"The doubled table","kind":"quiz","session":1,"hash":"590ad266","md":"#### [day2#checkpoint-1] The doubled table\n\n*Checkpoint*\n\n**Question:** A colleague's supplier load stores the cursor correctly, but after a crash and a re-run the table holds twice the rows for one day. Which decision was missing?\n\n- A. A smaller page size\n- B. Keeping the cursor in a file\n- C. More retries on 429\n- D. A key on the record version, enforced on insert","notes":"Answer: D. Link to the review question at the start of the day: the same idea, one layer earlier.","minutes":null,"lo":["LO2"]},{"id":"lab-2-1","n":11,"title":"An incremental, idempotent API load","kind":"lab","session":1,"hash":"ccbff848","md":"#### [day2#lab-2-1] An incremental, idempotent API load\n\nLab 2.1 · 25 min\n\nLoad the paginated supplier price API into DuckDB with a stored cursor, survive rate limits, and show that a re-run adds no duplicates.\n\n[D2_1_api_ingestion.ipynb](https://sdaiaacademy.github.io/ae-306/labs/D2_1_api_ingestion.ipynb)\n\n- [ ] One request: read the page and the cursor (4 min)\n- [ ] Follow every page, back off on 429 (7 min)\n- [ ] Load with a key and a stored cursor (8 min)\n- [ ] Run it twice, then after new data (6 min)\n- [ ] ✱ Stretch: Keep the rows and the cursor in one transaction","notes":"Common failures: forgetting continue after a 429 (the loop moves to the next page and loses one); parsing the cursor; storing the cursor before inserting. If a participant's first run inserts fewer than 99, ask them to print the number of 429s.","minutes":null,"lo":[]},{"id":"s2","n":12,"title":"Declarative ingestion pipelines","kind":"section","session":2,"hash":"292fd269","md":"#### [day2#s2] Declarative ingestion pipelines\n\n*Session 2*\n\n- Declare a REST resource with an incremental cursor and a primary key\n- Absorb a new source column and find it in the schema\n- Read a pipeline's load state and load history","notes":"","minutes":null,"lo":["LO2"]},{"id":"declare-not-write","n":13,"title":"Declare the key, the cursor and the merge; the library does the rest","kind":"content","session":2,"hash":"c6781a29","md":"#### [day2#declare-not-write] Declare the key, the cursor and the merge; the library does the rest\n\n*Declarative ingestion*\n\n```python\n# file: Lab 2.2 · step 1\n@dlt.resource(name=\"supplier_prices\", primary_key=\"price_id\",\n              write_disposition=\"merge\")\ndef supplier_prices(base_url,\n                    updated_at=dlt.sources.incremental(\"updated_at\", initial_value=\"\")):\n    params = {\"updated_since\": updated_at.last_value}\n    … # the same paging loop as Lab 2.1\n    yield page[\"data\"]\n\npipeline.run(supplier_prices(api.url))\n```","notes":"dlt is the course's example; Airbyte, Meltano and Fivetran are others (connectors run by a service or a platform). The comparison that matters: what each one stores about a load and where. dlt 1.31 was the version run for this course.","minutes":null,"lo":["LO2"]},{"id":"dlt-state-and-loads","n":14,"title":"The library stores what you wrote by hand: state and load history","kind":"content","session":2,"hash":"d62e37d6","md":"#### [day2#dlt-state-and-loads] The library stores what you wrote by hand: state and load history\n\n*Lab 2.2 · step 2*\n\n| Table in the destination | Holds | In Lab 2.1 |\n| --- | --- | --- |\n| `supplier_prices` | the data, plus `_dlt_load_id` on each row | raw.supplier_prices |\n| `_dlt_pipeline_state` | the cursor (`last_value`) | raw._load_state |\n| `_dlt_loads` | one row per load package, with its status | nothing |\n| `_dlt_version` | each version of the schema | nothing |","notes":"The load history is what you did not write in Lab 2.1: which load brought which row. When finance asks why a price changed on 17 October, _dlt_load_id answers. The state lives in the destination, so a fresh machine resumes where the data says, not where a laptop's file says.","minutes":null,"lo":["LO2"]},{"id":"schema-evolution","n":15,"title":"In October the supplier adds a column, and the table grows one","kind":"content","session":2,"hash":"522401cb","md":"#### [day2#schema-evolution] In October the supplier adds a column, and the table grows one\n\n*Lab 2.2 · step 3*\n\n- First run (API as of September): 93 prices, no `incoterm`.\n- Second run: the column appears in the table and in a new schema version.\n- Older rows hold NULL: no value existed when they were sent.\n\n| incoterm | prices |\n| --- | --- |\n| CIF | 10 |\n| DAP | 9 |\n| FOB | 15 |\n| NULL | 68 |","notes":"Ask whether a NULL incoterm on a September price means \"unknown\" or \"none\". It means \"not sent\": a modelling decision for Day 3. Incoterm matters to margin: under FOB Qafila pays the sea freight, under DAP the supplier does.","minutes":null,"lo":["LO2"]},{"id":"evolve-or-freeze","n":16,"title":"Evolve in raw; decide on purpose everywhere after it","kind":"content","session":2,"hash":"50c6db74","md":"#### [day2#evolve-or-freeze] Evolve in raw; decide on purpose everywhere after it\n\n*What should a pipeline do with a new column?*\n\n- **evolve.** Add the column. Nothing is lost. The default.\n- **freeze.** Fail the load. Someone decides.\n- **discard value.** Load the row, drop the field.\n- **discard row.** Skip the whole record.\n\nThe stretch of Lab 2.2 freezes the columns: a record with an unknown field fails the load and the table is unchanged.","notes":"These are dlt's four schema-contract modes. Day 3's data contract goes further: it states the columns, types and rules that the producer promises, and a broken promise blocks the mart while raw still records what arrived.","minutes":null,"lo":["LO2","LO4"]},{"id":"merge-proves-itself","n":17,"title":"Prove the merge against the source, not against the library's word","kind":"content","session":2,"hash":"aabd0a87","md":"#### [day2#merge-proves-itself] Prove the merge against the source, not against the library's word\n\n*Lab 2.2 · step 4*\n\n- **102** prices stored\n- **0** duplicate price ids\n- **0** prices not at their latest version\n\nThe reference is computed from the source file: the latest version of each price id. The 25 corrections are applied.","notes":"A load report that says \"loaded\" is not evidence. Two queries are: no key twice, and every stored value equal to the latest source value. Lab 3.3 turns both into tests.","minutes":null,"lo":["LO2"]},{"id":"checkpoint-2","n":18,"title":"The column that appeared","kind":"quiz","session":2,"hash":"67532c39","md":"#### [day2#checkpoint-2] The column that appeared\n\n*Checkpoint*\n\n**Question:** The supplier API starts sending `incoterm`. Qafila's raw layer and its margin mart both read the feed. What should happen in each?\n\n- A. Raw adds the column; the mart waits until a model uses it\n- B. Raw drops it; the mart adds it\n- C. Both fail until someone approves\n- D. Both add it automatically","notes":"Answer: A. Contrast with a renamed column (Day 3): that breaks a model, and the contract must stop the mart.","minutes":null,"lo":["LO2"]},{"id":"lab-2-2","n":19,"title":"The supplier load with dlt","kind":"lab","session":2,"hash":"31107823","md":"#### [day2#lab-2-2] The supplier load with dlt\n\nLab 2.2 · 25 min\n\nRebuild the supplier price load with dlt, absorb the new incoterm column, and inspect the stored state and load history.\n\n[D2_2_dlt_pipeline.ipynb](https://sdaiaacademy.github.io/ae-306/labs/D2_2_dlt_pipeline.ipynb)\n\n- [ ] Declare the resource and run the pipeline (7 min)\n- [ ] Read what was created: tables, columns, state (5 min)\n- [ ] New data with a new column: run again (7 min)\n- [ ] Prove the merge: no duplicates, corrections applied (6 min)\n- [ ] ✱ Stretch: Freeze the schema and watch the next new column fail","notes":"dlt keeps working files in a folder; the lab points DLT_DATA_DIR and pipelines_dir into labs/artifacts so nothing lands in the home folder. If a second run loads zero rows, the participant created a new SupplierAPI with release 1 again. The first run of dlt on Colab takes about a minute to import.","minutes":null,"lo":[]},{"id":"s3","n":20,"title":"Change data capture, merge and history","kind":"section","session":3,"hash":"fe0f7f3b","md":"#### [day2#s3] Change data capture, merge and history\n\n*Session 3*\n\n- Read a change event envelope and order events by log position\n- Apply updates and deletes to a copy with MERGE\n- Keep history as a type 2 dimension with valid ranges","notes":"","minutes":null,"lo":["LO2"]},{"id":"log-based-cdc","n":21,"title":"Read the database's log, not its tables","kind":"content","session":3,"hash":"775fcb35","md":"#### [day2#log-based-cdc] Read the database's log, not its tables\n\n*Change data capture*\n\n1. **Supplier table** procurement edits\n2. **Write-ahead log** every committed change\n3. **Change events** c, u, d with before and after\n4. **Your copy** merged, and history\n\nPolling the table with \"changed since\" misses deletes and every change between two polls. The log has all of them, in commit order.","notes":"Debezium is the common open-source example (on Kafka Connect); managed databases offer their own change streams. The course's feed has Debezium's envelope so the shape transfers: op, before, after, source with the log position, ts_ms.","minutes":null,"lo":["LO2"]},{"id":"change-event-envelope","n":22,"title":"The envelope carries the row before, the row after and the log position","kind":"content","session":3,"hash":"60046e01","md":"#### [day2#change-event-envelope] The envelope carries the row before, the row after and the log position\n\n*One change event*\n\n```json\n// file: supplier_changes.jsonl\n{\"op\": \"u\",\n \"before\": {\"supplier_id\": \"S-07\", \"country\": \"AE\", \"currency\": \"AED\", …},\n \"after\":  {\"supplier_id\": \"S-07\", \"country\": \"SA\", \"currency\": \"SAR\", …},\n \"source\": {\"table\": \"suppliers\", \"lsn\": 7006317, \"ts_ms\": 1788242880000},\n \"ts_ms\": 1788242880298}\n```\n\n- `source.lsn`: the order the database committed. `ts_ms` outside: when the event was sent.\n- A delete has `after` null; a create has `before` null.","notes":"This is the planted move: Jumeirah Canning (S-07) moves from the UAE to Saudi Arabia on 1 September. Every order before that date belongs to \"AE\" in finance's question 3, every order after to \"SA\". The values are the real event from the feed.","minutes":null,"lo":["LO2"]},{"id":"order-by-log-position","n":23,"title":"Delivery repeats and reorders; the log position does not","kind":"content","session":3,"hash":"fc4176ea","md":"#### [day2#order-by-log-position] Delivery repeats and reorders; the log position does not\n\n*Lab 2.3 · step 1*\n\n| Arrival | lsn | Change to supplier S-15 |\n| --- | --- | --- |\n| 11 | 7,005,180 | e-mail becomes accounts6@… |\n| 12 | **7,004,499** | payment terms 30 days (older) |\n| 13 | 7,005,956 | e-mail becomes accounts7@… |\n\n38 events: 3 delivered twice, 1 after a newer change. Applied by arrival, event 12 would put the old e-mail back.","notes":"At-least-once delivery is the normal guarantee of change feeds: duplicates are expected, and so is reordering across partitions. Deduplicate on lsn, order by lsn, and the copy never goes backwards.","minutes":null,"lo":["LO2"]},{"id":"merge-latest-state","n":24,"title":"MERGE applies the latest change per supplier in one statement","kind":"content","session":3,"hash":"cf6d96ac","md":"#### [day2#merge-latest-state] MERGE applies the latest change per supplier in one statement\n\n*Lab 2.3 · step 2*\n\n```sql\n-- file: DuckDB\nMERGE INTO suppliers AS t USING latest AS s\n  ON t.supplier_id = s.sid\nWHEN MATCHED AND s.op = 'd' THEN DELETE\nWHEN MATCHED THEN UPDATE SET name_en = s.name_en, country = s.country, …\nWHEN NOT MATCHED AND s.op \u003c> 'd' THEN INSERT (…) VALUES (…)\n```\n\n18 suppliers, S-12 deleted, S-19 and S-20 created: 19 rows, and `EXCEPT` both ways against the source finds nothing.","notes":"latest is one row per supplier: the highest lsn, which also removes the duplicates. MERGE is in DuckDB since 1.4, and in every warehouse. Reconciliation with the source is the test that matters; without it the copy can drift for months.","minutes":null,"lo":["LO2"]},{"id":"scd-type-2","n":25,"title":"A type 2 dimension keeps one row per version, with a validity range","kind":"content","session":3,"hash":"03bcf424","md":"#### [day2#scd-type-2] A type 2 dimension keeps one row per version, with a validity range\n\n*History*\n\n| supplier | country | valid_from | valid_to |\n| --- | --- | --- | --- |\n| S-07 | AE | 1 Aug | 1 Sep |\n| S-07 | SA | 1 Sep | (current) |\n| S-12 | TR | 1 Aug | 10 Oct (deleted) |\n\n52 versions, 19 current, no overlapping ranges. `valid_from` inclusive, `valid_to` exclusive: every moment belongs to one version.","notes":"Type 1 overwrites (the MERGE copy); type 2 adds a version. A delete ends the last version; nothing is removed, so October orders of S-12 still find their supplier. The test: no two versions of one supplier overlap, and exactly one is current per live supplier.","minutes":null,"lo":["LO2","LO3"]},{"id":"checkpoint-3","n":26,"title":"Two events, which one wins?","kind":"quiz","session":3,"hash":"bf9e066a","md":"#### [day2#checkpoint-3] Two events, which one wins?\n\n*Checkpoint*\n\n**Question:** Two updates for supplier S-15 reach your pipeline. The second to arrive has a lower log position than the first. Which one should your copy keep?\n\n- A. The one that arrived last\n- B. The one with the later outer ts_ms\n- C. The one with the higher log position\n- D. Either: they will reconcile later","notes":"Answer: C. The outer ts_ms was in fact the one the generator reordered: it is when the connector sent the event.","minutes":null,"lo":["LO2"]},{"id":"lab-2-3","n":27,"title":"Supplier changes and their history","kind":"lab","session":3,"hash":"1673043b","md":"#### [day2#lab-2-3] Supplier changes and their history\n\nLab 2.3 · 25 min\n\nApply the supplier change feed of updates and deletes, reconcile with the source, and keep supplier history as a slowly changing dimension with correct validity ranges.\n\n[D2_3_cdc_scd.ipynb](https://sdaiaacademy.github.io/ae-306/labs/D2_3_cdc_scd.ipynb)\n\n- [ ] Read the feed: duplicates and out-of-order events (5 min)\n- [ ] Latest state per supplier with MERGE (7 min)\n- [ ] Reconcile with the source snapshot (4 min)\n- [ ] Type 2 history with valid ranges (9 min)\n- [ ] ✱ Stretch: As-of join: margin by supplier country at order time","notes":"Step 4 is the hardest of the day. Hint ladder: list the versions (snapshot plus each create and update), add the deletes as markers, compute valid_to with lead over the lsn, drop the markers. The reference file data/reference/dim_supplier.csv is the answer; the check compares with it.","minutes":null,"lo":[]},{"id":"s4","n":28,"title":"Cleaning with dataframes","kind":"section","session":4,"hash":"af76d270","md":"#### [day2#s4] Cleaning with dataframes\n\n*Session 4*\n\n- Write cleaning steps as Polars expressions\n- Convert currencies and units to one cost per piece in SAR\n- Normalise Arabic names and log every rule with the rows it changed","notes":"","minutes":null,"lo":["LO3"]},{"id":"polars-expressions","n":29,"title":"A Polars expression is a rule you can name, run and log","kind":"content","session":4,"hash":"5df96541","md":"#### [day2#polars-expressions] A Polars expression is a rule you can name, run and log\n\n*Cleaning with dataframes*\n\n```python\n# file: Lab 2.4 · step 2\nRULES = [\n  (\"digits\", \"cost_text\", pl.col(\"cost\").str.strip_chars()\n      .str.replace_many(list(\"٠١٢٣٤٥٦٧٨٩٫\"), list(\"0123456789.\"))\n      .str.replace(\",\", \".\", literal=True)),\n  (\"to_sar\", \"cost_sar\", pl.col(\"cost_text\").cast(pl.Float64)\n      * pl.col(\"currency\").replace_strict(RATES, return_dtype=pl.Float64)),\n]\n```","notes":"Polars 2.0 ran for the course. pandas works too; Polars is the example because expressions are values you can store in a list, and because its lazy mode optimises the whole plan (the stretch). DuckDB SQL is the other way to write the same rules.","minutes":null,"lo":["LO3"]},{"id":"raw-prices-profile","n":30,"title":"102 prices, three currencies, two units, 56 spellings of 18 suppliers","kind":"content","session":4,"hash":"e7df1bd2","md":"#### [day2#raw-prices-profile] 102 prices, three currencies, two units, 56 spellings of 18 suppliers\n\n*Lab 2.4 · step 1*\n\n| Cost as sent | Means |\n| --- | --- |\n| `81.22` | 81.22 |\n| `٣٫٣٣` | 3.33, Arabic-Indic digits |\n| `36,09` | 36.09, decimal comma |\n\n- 21 costs are not plain decimals.\n- USD at 3.75 and AED at 1.0211 riyals: the course's fixed rates.\n- Most prices are per carton; cost per piece needs the product's units per carton.","notes":"The fixed rates are a course simplification; a real pipeline takes the rate valid on the price's date from a rates table, which is the same as-of join as Day 1. The riyal's peg to the dollar at 3.75 is why USD is stable here.","minutes":null,"lo":["LO3"]},{"id":"arabic-normalisation","n":31,"title":"Five rules turn 56 spellings into 18 supplier ids","kind":"content","session":4,"hash":"c8680244","md":"#### [day2#arabic-normalisation] Five rules turn 56 spellings into 18 supplier ids\n\n*Lab 2.4 · step 4*\n\n| Rule | Example |\n| --- | --- |\n| Trim spaces | \" أرز كيرلا \" to \"أرز كيرلا\" |\n| Drop a company prefix | \"شركة\", \"مؤسسة\" |\n| Remove tatweel | \"كيرلـا\" to \"كيرلا\" |\n| One alef | أ إ آ to ا |\n| One final taa | ة to ه |\n\nNormalise both sides the same way, then join. Every record must map, and to its product's supplier.","notes":"Arabic text normalisation is a whole field; these five rules are the ones the clerks' spellings need. Never fuzzy-match an id: a wrong supplier moves margin between suppliers without failing anything. An unmatched name stops and is reported.","minutes":null,"lo":["LO3"]},{"id":"rule-log-reconcile","n":32,"title":"The rule log says what changed; the reconciliation says it was right","kind":"content","session":4,"hash":"4566f432","md":"#### [day2#rule-log-reconcile] The rule log says what changed; the reconciliation says it was right\n\n*Lab 2.4 · step 5*\n\n| Rule | Rows changed |\n| --- | --- |\n| digits | 21 |\n| to_sar | 102 |\n| per_piece | 102 |\n| supplier_id | 102 mapped |\n\n- **Against the ERP price list.** All 102 prices match procurement's cost per piece; one differs by one halala of rounding.","notes":"Ask the room to break a rule on purpose (round before dividing by the units) and watch the reconciliation move. That one-halala difference is the rounding question of the checkpoint.","minutes":null,"lo":["LO3"]},{"id":"checkpoint-4","n":33,"title":"Where rounding goes","kind":"quiz","session":4,"hash":"62677450","md":"#### [day2#checkpoint-4] Where rounding goes\n\n*Checkpoint*\n\n**Question:** A price is 61.99 USD per carton of 6. Your colleague converts to riyals, rounds to two decimals, then divides by 6 and rounds again. The ERP shows a different halala. What do you change?\n\n- A. Divide by 6 before converting the currency\n- B. Round once, after both steps\n- C. Round the ERP's value the same way\n- D. Store the cost as a 64-bit float","notes":"Answer: B. The order of conversion is a common debate in the room and the wrong one to have.","minutes":null,"lo":["LO3"]},{"id":"lab-2-4","n":34,"title":"Currencies, units and Arabic names","kind":"lab","session":4,"hash":"f04d33d9","md":"#### [day2#lab-2-4] Currencies, units and Arabic names\n\nLab 2.4 · 25 min\n\nClean the supplier prices with Polars: currencies, units, Arabic supplier names and Arabic-Indic digits, logging every rule applied, then reconcile with the ERP price list.\n\n[D2_4_cleaning.ipynb](https://sdaiaacademy.github.io/ae-306/labs/D2_4_cleaning.ipynb)\n\n- [ ] Profile the raw prices (4 min)\n- [ ] Digits and currencies (6 min)\n- [ ] Units: cartons to pieces (5 min)\n- [ ] Arabic supplier names to one id (6 min)\n- [ ] The rule log and the reconciliation (4 min)\n- [ ] ✱ Stretch: The same rules as a lazy plan: read the optimised plan","notes":"Polars 2 renamed or tightened a few functions; replace_strict needs return_dtype. If a participant's names map to fewer than 18 ids, print the name_key values that did not join. The decimal comma is the rule most often forgotten.","minutes":null,"lo":[]},{"id":"day-2-recap","n":35,"title":"Three things to keep from today","kind":"content","session":4,"hash":"2367d74e","md":"#### [day2#day-2-recap] Three things to keep from today\n\n*Day 2*\n\n- **Loads that can run twice.** A key on the version and a cursor stored with the data, in one transaction.\n- **The log decides the order.** Deduplicate and order change events by log position; keep history as versions with ranges.\n- **Rules you can count.** Each cleaning rule named, logged and reconciled with a reference.","notes":"Ask one participant to state Qafila's supplier history in one sentence: \"52 versions, 19 current, no overlaps, equal to the source.\" That sentence is the evidence of LO2.","minutes":null,"lo":["LO2"]},{"id":"tomorrow-model-test","n":36,"title":"Tomorrow the cleaned data becomes finance's star schema, tested and scheduled","kind":"content","session":4,"hash":"17266134","md":"#### [day2#tomorrow-model-test] Tomorrow the cleaned data becomes finance's star schema, tested and scheduled\n\n*Day 3 · Model and test*\n\n- Grain first: one row per line of a confirmed order\n- Models as SQL files in git, rebuilt only where they changed\n- A contract on the supplier feed that holds when the feed breaks at night\n\nBefore tomorrow: read finance's five margin questions in `labs/data/reference/finance_answers.json`.","notes":"The five questions drive Lab 3.1: monthly margin; by customer type and city; by supplier country at order time; by category and month; by city after freight.","minutes":null,"lo":[]}],"activities":[{"id":"review-day-1-q1","slide":"review-day-1","type":"single","prompt":"Tonight's extract re-sends the lines of 2 November, as it did for 14 September. Which rule in your margin query keeps the report right without anyone noticing?","options":[{"key":"A","text":"Exclude the lines of 14 September"},{"key":"B","text":"Keep one row per order and line number"},{"key":"C","text":"Keep confirmed orders only"},{"key":"D","text":"Report the margin percentage only"}],"correct":[1],"explanation":"A rule stated on the grain (one row per order line) catches every re-sent batch, on any date, before it reaches a sum.","misconceptions":["Filters the symptom on one day; the next re-sent day is a different date","","Confuses the two defects; status removes cancelled orders, not repeated lines","Hides the extra rows in a ratio; the riyal totals stay inflated"],"lo":["LO1"]},{"id":"checkpoint-1-q1","slide":"checkpoint-1","type":"single","prompt":"A colleague's supplier load stores the cursor correctly, but after a crash and a re-run the table holds twice the rows for one day. Which decision was missing?","options":[{"key":"A","text":"A smaller page size"},{"key":"B","text":"Keeping the cursor in a file"},{"key":"C","text":"More retries on 429"},{"key":"D","text":"A key on the record version, enforced on insert"}],"correct":[3],"explanation":"A crash between inserting and storing the cursor makes the next run fetch the same records. Only a key turns that repeat into nothing.","misconceptions":["Treats speed as the problem; a smaller page size changes how many requests, not how many copies","Moves the cursor somewhere else; it was already correct, the duplicates come from re-fetching","Retries the request more; the duplicates were fetched successfully, twice",""],"lo":["LO2"]},{"id":"checkpoint-2-q1","slide":"checkpoint-2","type":"single","prompt":"The supplier API starts sending incoterm. Qafila's raw layer and its margin mart both read the feed. What should happen in each?","options":[{"key":"A","text":"Raw adds the column; the mart waits until a model uses it"},{"key":"B","text":"Raw drops it; the mart adds it"},{"key":"C","text":"Both fail until someone approves"},{"key":"D","text":"Both add it automatically"}],"correct":[0],"explanation":"Raw keeps what arrived, so nothing is lost. The mart changes only through a reviewed model, so its meaning never changes by accident.","misconceptions":["","Throws away evidence at the layer meant to keep everything as received","Stops every load for a change that breaks nothing yet","Lets an unreviewed field change the meaning of finance's tables"],"lo":["LO2"]},{"id":"checkpoint-3-q1","slide":"checkpoint-3","type":"single","prompt":"Two updates for supplier S-15 reach your pipeline. The second to arrive has a lower log position than the first. Which one should your copy keep?","options":[{"key":"A","text":"The one that arrived last"},{"key":"B","text":"The one with the later outer ts_ms"},{"key":"C","text":"The one with the higher log position"},{"key":"D","text":"Either: they will reconcile later"}],"correct":[2],"explanation":"The log position is the order in which the source database committed the changes. Only that order reproduces the source table.","misconceptions":["Trusts arrival order, which the transport can change","Trusts the send time, which records when the event left, not when the change committed","","Avoids the decision; the copy then holds an arbitrary version"],"lo":["LO2"]},{"id":"checkpoint-4-q1","slide":"checkpoint-4","type":"single","prompt":"A price is 61.99 USD per carton of 6. Your colleague converts to riyals, rounds to two decimals, then divides by 6 and rounds again. The ERP shows a different halala. What do you change?","options":[{"key":"A","text":"Divide by 6 before converting the currency"},{"key":"B","text":"Round once, after both steps"},{"key":"C","text":"Round the ERP's value the same way"},{"key":"D","text":"Store the cost as a 64-bit float"}],"correct":[1],"explanation":"Currency and unit are both multiplications, so their order does not matter. Rounding in between does: each rounding can move the result by half a unit of the last digit.","misconceptions":["Treats the order of two multiplications as the cause; they commute","","Changes the data to hide the rule; the ERP is the reference, not the error","Moves the problem to a wider type; the double rounding remains"],"lo":["LO3"]}],"ai":{"context":{"course":"../context/course.md","courseJs":"../context/course.js","day":"day2.md","llms":"../llms.txt"},"tasks":[],"tools":[]},"bridge":{"allowedOrigins":[]},"features":{},"strings":{}}</script>
+<script src="../_engine/academy.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+# Data contract for Qafila's supplier price feed, in the Open Data Contract Standard (ODCS) format.
+# Producer: the suppliers' price API, owned in procurement by Ammar Basri. Consumer: the margin mart.
+# Lab 3.3 compiles the quality rules below to SQL checks; Lab 3.4 runs them as a blocking check.
+apiVersion: v3.1.0
+kind: DataContract
+id: qafila-supplier-prices
+name: Supplier prices
+version: 1.0.0
+status: active
+domain: procurement
+description:
+  purpose: Supplier cost per price version, the input of the cost side of the monthly margin.
+  usage: Read by the staging model of supplier prices; never by reports directly.
+team:
+  - username: ammar.basri
+    role: data owner
+schema:
+  - name: supplier_prices
+    physicalType: table
+    quality:
+      - id: price_versions_unique
+        metric: duplicateValues
+        arguments:
+          properties: [price_id, updated_at]
+        mustBe: 0
+      - id: batch_not_empty
+        metric: rowCount
+        mustBeGreaterThan: 0
+    properties:
+      - name: price_id
+        logicalType: string
+        required: true
+        quality:
+          - id: price_id_not_null
+            metric: nullValues
+            mustBe: 0
+      - name: product_id
+        logicalType: string
+        required: true
+        quality:
+          - id: product_known
+            type: sql
+            query: SELECT count(*) FROM {object} WHERE {property} NOT IN (SELECT product_id FROM products)
+            mustBe: 0
+      - name: supplier_name
+        logicalType: string
+        required: true
+      - name: cost
+        logicalType: string
+        required: true
+        classification: restricted   # a supplier's quoted price: classified before it is loaded (Lab 4.4)
+        description: A positive decimal; Arabic-Indic digits and a decimal comma are accepted.
+        quality:
+          - id: cost_positive_number
+            type: sql
+            query: SELECT count(*) FROM {object} WHERE num({property}) IS NULL OR num({property}) <= 0
+            mustBe: 0
+      - name: currency
+        logicalType: string
+        required: true
+        quality:
+          - id: currency_accepted
+            metric: invalidValues
+            arguments:
+              validValues: [SAR, USD, AED]
+            mustBe: 0
+      - name: unit
+        logicalType: string
+        required: true
+        quality:
+          - id: unit_accepted
+            metric: invalidValues
+            arguments:
+              validValues: [carton, piece]
+            mustBe: 0
+      - name: valid_from
+        logicalType: date
+        required: true
+      - name: updated_at
+        logicalType: timestamp
+        required: true
+      - name: incoterm
+        logicalType: string
+        required: false

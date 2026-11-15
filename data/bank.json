@@ -1,0 +1,1276 @@
+{
+  "format": "academy-bank",
+  "version": 1,
+  "course": {
+    "id": "ae-306",
+    "code": "AE-306",
+    "title": "Modern Data Engineering",
+    "lang": "en",
+    "version": "2027.1.0"
+  },
+  "questions": [
+    {
+      "id": "checkpoint-1-q1",
+      "type": "single",
+      "prompt": "Finance points a dashboard at Qafila's order database and refreshes the monthly margin every five minutes. What breaks first?",
+      "options": [
+        "Nothing: the dashboard only reads",
+        "The sales app slows down while the scans run",
+        "The database runs out of disk",
+        "The margin becomes correct because it is live"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A transactional database is tuned for short reads and writes by key. Repeated full scans take its memory and locks from the orders being placed.",
+      "misconceptions": [
+        "Assumes reads cannot hurt writes; long scans compete with the order flow for the same database",
+        "",
+        "Blames the storage size; three months of orders is small, the access pattern is the problem",
+        "Confuses freshness with correctness; a live query still counts the cancelled orders"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 1,
+      "slide": "checkpoint-1",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-2-q1",
+      "type": "single",
+      "prompt": "Your September revenue is 7 percent above finance's reference and the margin percentage is almost the same. Which check do you run first?",
+      "options": [
+        "Compare every price with the ERP",
+        "Check the currency conversion",
+        "Count rows against distinct order-line keys",
+        "Round each line before summing"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Revenue and cost inflated by the same factor means extra rows. Rows against distinct keys at the expected grain finds them in one query.",
+      "misconceptions": [
+        "Starts from the prices; a wrong price moves cost alone and would shift the percentage",
+        "Starts from the currency; Qafila sells in riyals only, so no conversion touches revenue",
+        "",
+        "Starts from rounding; rounding moves riyals, not millions"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 2,
+      "slide": "checkpoint-2",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-3-q1",
+      "type": "single",
+      "prompt": "Your margin-to-date keeps growing across August, September and October instead of restarting on the first of each month. What is missing?",
+      "options": [
+        "PARTITION BY month in the window",
+        "ORDER BY month instead of order_date",
+        "A GROUP BY month around the query",
+        "ROWS BETWEEN 30 PRECEDING AND CURRENT ROW"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The partition decides where a window starts again. Without it the whole table is one partition, so the total runs from the first day to the last.",
+      "misconceptions": [
+        "",
+        "Confuses order with partition; ordering decides 'so far', not where the total restarts",
+        "Moves the problem to GROUP BY, which collapses the days the running total needs",
+        "Treats the frame as the restart; the frame sets how far back, inside a partition"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 3,
+      "slide": "checkpoint-3",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-4-q1",
+      "type": "single",
+      "prompt": "The lines are partitioned by month, yet a query for September still scans all three folders. The filter is WHERE strftime(order_date, '%Y-%m') = '2026-09'. Why?",
+      "options": [
+        "Parquet cannot prune folders",
+        "The row groups are not sorted",
+        "Three folders are too few to prune",
+        "The filter is on order_date, not on the partition column month"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The reader prunes folders by the partition column's value. A filter on another column, even one that implies the month, cannot be matched to folder names.",
+      "misconceptions": [
+        "Blames the file format; Parquet partitions prune when the filter names them",
+        "Blames the row groups; statistics work inside a file, the folders are skipped before that",
+        "Blames the size; pruning does not depend on how big the folders are",
+        ""
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 1,
+      "session": 4,
+      "slide": "checkpoint-4",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "review-day-1-q1",
+      "type": "single",
+      "prompt": "Tonight's extract re-sends the lines of 2 November, as it did for 14 September. Which rule in your margin query keeps the report right without anyone noticing?",
+      "options": [
+        "Exclude the lines of 14 September",
+        "Keep one row per order and line number",
+        "Keep confirmed orders only",
+        "Report the margin percentage only"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A rule stated on the grain (one row per order line) catches every re-sent batch, on any date, before it reaches a sum.",
+      "misconceptions": [
+        "Filters the symptom on one day; the next re-sent day is a different date",
+        "",
+        "Confuses the two defects; status removes cancelled orders, not repeated lines",
+        "Hides the extra rows in a ratio; the riyal totals stay inflated"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 2,
+      "slide": "review-day-1",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-1-q1",
+      "type": "single",
+      "prompt": "A colleague's supplier load stores the cursor correctly, but after a crash and a re-run the table holds twice the rows for one day. Which decision was missing?",
+      "options": [
+        "A smaller page size",
+        "Keeping the cursor in a file",
+        "More retries on 429",
+        "A key on the record version, enforced on insert"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A crash between inserting and storing the cursor makes the next run fetch the same records. Only a key turns that repeat into nothing.",
+      "misconceptions": [
+        "Treats speed as the problem; a smaller page size changes how many requests, not how many copies",
+        "Moves the cursor somewhere else; it was already correct, the duplicates come from re-fetching",
+        "Retries the request more; the duplicates were fetched successfully, twice",
+        ""
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 1,
+      "slide": "checkpoint-1",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-2-q1",
+      "type": "single",
+      "prompt": "The supplier API starts sending incoterm. Qafila's raw layer and its margin mart both read the feed. What should happen in each?",
+      "options": [
+        "Raw adds the column; the mart waits until a model uses it",
+        "Raw drops it; the mart adds it",
+        "Both fail until someone approves",
+        "Both add it automatically"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Raw keeps what arrived, so nothing is lost. The mart changes only through a reviewed model, so its meaning never changes by accident.",
+      "misconceptions": [
+        "",
+        "Throws away evidence at the layer meant to keep everything as received",
+        "Stops every load for a change that breaks nothing yet",
+        "Lets an unreviewed field change the meaning of finance's tables"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 2,
+      "slide": "checkpoint-2",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-3-q1",
+      "type": "single",
+      "prompt": "Two updates for supplier S-15 reach your pipeline. The second to arrive has a lower log position than the first. Which one should your copy keep?",
+      "options": [
+        "The one that arrived last",
+        "The one with the later outer ts_ms",
+        "The one with the higher log position",
+        "Either: they will reconcile later"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The log position is the order in which the source database committed the changes. Only that order reproduces the source table.",
+      "misconceptions": [
+        "Trusts arrival order, which the transport can change",
+        "Trusts the send time, which records when the event left, not when the change committed",
+        "",
+        "Avoids the decision; the copy then holds an arbitrary version"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 3,
+      "slide": "checkpoint-3",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-4-q1",
+      "type": "single",
+      "prompt": "A price is 61.99 USD per carton of 6. Your colleague converts to riyals, rounds to two decimals, then divides by 6 and rounds again. The ERP shows a different halala. What do you change?",
+      "options": [
+        "Divide by 6 before converting the currency",
+        "Round once, after both steps",
+        "Round the ERP's value the same way",
+        "Store the cost as a 64-bit float"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Currency and unit are both multiplications, so their order does not matter. Rounding in between does: each rounding can move the result by half a unit of the last digit.",
+      "misconceptions": [
+        "Treats the order of two multiplications as the cause; they commute",
+        "",
+        "Changes the data to hide the rule; the ERP is the reference, not the error",
+        "Moves the problem to a wider type; the double rounding remains"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 2,
+      "session": 4,
+      "slide": "checkpoint-4",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "review-day-2-q1",
+      "type": "single",
+      "prompt": "Jumeirah Canning moved from the UAE to Saudi Arabia on 1 September. Finance asks for August's margin by supplier country. Which supplier table gives the right answer?",
+      "options": [
+        "The type 2 history, joined on the order's creation time",
+        "The merged copy of the supplier table",
+        "The snapshot of 1 August",
+        "The change feed itself"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Only the history knows which version was valid when each order was placed. The copy knows only the present.",
+      "misconceptions": [
+        "",
+        "Uses today's state for last month's orders: August's orders move to Saudi Arabia",
+        "Uses the state before every change, wrong for any order after a change",
+        "Reads raw events, which hold changes, not the state at a moment"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 3,
+      "slide": "review-day-2",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-1-q1",
+      "type": "single",
+      "prompt": "Freight is charged per shipment, one shipment per order, and finance wants margin after freight by product category. What do you add to the star?",
+      "options": [
+        "Join shipments to the fact in each report",
+        "Freight as an attribute of the customer",
+        "A freight fact on the line, allocated by a stated rule",
+        "One freight total per month, outside the star"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A category is a property of the line, so freight must reach the line's grain. Allocation does that, and the rule is written down where finance can agree to it.",
+      "misconceptions": [
+        "Repeats the shipment's freight on every line: the sum multiplies it",
+        "Puts a measure in a dimension, where it cannot be summed by category",
+        "",
+        "Answers a different question; the total is right but no category can be computed"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 1,
+      "slide": "checkpoint-1",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-2-q1",
+      "type": "single",
+      "prompt": "You change the rows stg.orders returns. Qafila's project has eleven models. Which ones does a state-aware plan rebuild?",
+      "options": [
+        "All eleven",
+        "stg.orders and the models downstream of it",
+        "stg.orders only",
+        "stg.orders and the raw tables it reads"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A change to the rows of a model can change every model that reads it, directly or not. Models that do not depend on it cannot change.",
+      "misconceptions": [
+        "Rebuilds everything like a scheduler without state; correct but wasteful",
+        "",
+        "Treats every change as non-breaking: the fact would keep the old orders",
+        "Confuses downstream with upstream; raw tables are inputs, not models"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 2,
+      "slide": "checkpoint-2",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-3-q1",
+      "type": "single",
+      "prompt": "The contract fails on a renamed column during the night run, and finance opens the margin report in the morning. What should they find?",
+      "options": [
+        "A margin computed from whatever columns matched",
+        "An empty report until the feed is fixed",
+        "A margin with unit_cost mapped to cost automatically",
+        "Yesterday's margin, labelled with its last refresh"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Failing safely means the last good state stays in place and says how old it is, while the owner named in the contract is alerted.",
+      "misconceptions": [
+        "Lets a batch that broke its contract reach the report",
+        "Removes a correct report to signal a problem upstream",
+        "Guesses the producer's intent without the producer",
+        ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 3,
+      "slide": "checkpoint-3",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-4-q1",
+      "type": "single",
+      "prompt": "Four failures in last week's runs. Which one should a retry policy handle?",
+      "options": [
+        "The supplier API timed out after 30 seconds",
+        "The contract found a negative cost",
+        "A model divides by a column that was renamed",
+        "The warehouse disk is full"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A retry helps only when a second attempt can succeed with nothing changed. A timeout can; a bad batch, a broken model or a full disk cannot.",
+      "misconceptions": [
+        "",
+        "Retries a data problem; the same batch fails the same rule again",
+        "Retries a code defect; the model fails the same way every time",
+        "Retries a capacity problem with more load on the same disk"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 4,
+      "slide": "checkpoint-4",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "review-day-3-q1",
+      "type": "single",
+      "prompt": "Last night the supplier API timed out twice and then answered, and the contract check failed on the November batch. What should the run log show?",
+      "options": [
+        "The supplier load failed; nothing else ran",
+        "Everything refreshed, with two warnings",
+        "The load succeeded after retries; the check failed; the prices and the mart were not refreshed",
+        "The check was retried three times and then skipped"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Retries absorb the transport's failure; the blocking check stops everything downstream of the broken batch. The log must say both, and what stayed in place.",
+      "misconceptions": [
+        "Treats the retried timeout as the failure; it succeeded on the third attempt",
+        "Lets the mart refresh past a failed blocking check",
+        "",
+        "Retries a data failure that a second read cannot fix"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 4,
+      "slide": "review-day-3",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-1-q1",
+      "type": "single",
+      "prompt": "An analyst renames cost to unit_cost in the Iceberg margin table. What happens to the Parquet files written in August?",
+      "options": [
+        "They are rewritten with the new name",
+        "Nothing: they are read by column id under the new name",
+        "They read the column as null from now on",
+        "They are dropped with the old snapshots"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Iceberg tracks each column by an id stored in the data files' metadata. A rename changes the name attached to the id, so no file changes.",
+      "misconceptions": [
+        "Assumes a schema change rewrites data, as an ALTER on some databases does",
+        "",
+        "Matches columns by name, which is what table formats avoid",
+        "Confuses the schema with the snapshot: renames do not expire history"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 4,
+      "session": 1,
+      "slide": "checkpoint-1",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-2-q1",
+      "type": "single",
+      "prompt": "Your largest table is 3 GB of order lines and your laptop has 16 GB of memory. A colleague proposes a Spark cluster for the nightly margin. What do you answer?",
+      "options": [
+        "Yes: Spark is the standard for data engineering",
+        "Yes, once the table passes 4 GB",
+        "Wait until finance complains about speed",
+        "One node, and measure again when the data grows"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "3 GB fits in memory with room for the query. A single engine has no shuffle and no scheduling. The measurement, repeated as data grows, tells you when that changes.",
+      "misconceptions": [
+        "Chooses by habit: the data fits one machine several times over",
+        "Assumes memory is the only limit; the measurement decides, not a rule of thumb",
+        "Avoids the decision; the nightly job runs today and needs an engine",
+        ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 4,
+      "session": 2,
+      "slide": "checkpoint-2",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-3-q1",
+      "type": "single",
+      "prompt": "Operations wants yesterday's deliveries on the screen each morning; finance closes the month from the batch. Which watermark fits operations?",
+      "options": [
+        "Short, with the late events logged and the batch reconciling",
+        "Three days, so nothing is ever dropped",
+        "No watermark: count events as they arrive",
+        "Replace the stream with the nightly batch"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Operations values speed and accepts a small, known shortfall. Finance's completeness comes from the batch, and the reconciliation keeps the two honest.",
+      "misconceptions": [
+        "",
+        "Waits for completeness that finance's batch already provides",
+        "Uses arrival time, which puts late deliveries on the wrong day",
+        "Discards the stream's purpose; the batch is a day behind operations"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 4,
+      "session": 3,
+      "slide": "checkpoint-3",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "checkpoint-4-q1",
+      "type": "single",
+      "prompt": "A customer asked to be erased. The row is gone from today's table, but last month's Iceberg snapshot still holds the contact data. What removes it?",
+      "options": [
+        "A masked view on the current table",
+        "Moving the snapshot to cheaper storage",
+        "Expire the snapshots that hold it and delete their files",
+        "Reclassifying the old snapshot as Restricted"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Time travel keeps every snapshot readable. Only expiring them, and deleting the files no snapshot references, removes the data.",
+      "misconceptions": [
+        "Masks the view while the data stays readable through time travel",
+        "Moves the data to a less used place without removing it",
+        "",
+        "Classifies without acting; a label does not erase anything"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": 4,
+      "session": 4,
+      "slide": "checkpoint-4",
+      "pool": "checkpoint",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo1-cancelled",
+      "type": "single",
+      "prompt": "The old margin report shows August revenue 4% above finance's figure. The order lines carry an order status. What should you check first?",
+      "options": [
+        "Whether DuckDB reads the CSV dates in the wrong time zone",
+        "Whether the August file is missing its last day of orders",
+        "Whether the report rounds each line before summing it",
+        "Whether cancelled orders are still counted as revenue"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A gap of several percent in one direction points to rows that should be excluded; cancelled orders were 913,673 SAR of August in the lab.",
+      "misconceptions": [
+        "A time-zone shift moves a few orders across a midnight, not 4% of a month, and it moves them both ways.",
+        "A missing day would make the report lower than finance, not higher.",
+        "Rounding moves totals by halalas, not by four percent.",
+        ""
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 2,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo1-running",
+      "type": "single",
+      "prompt": "You need each customer's running total of revenue by order date. Which query shape gives it without collapsing the rows?",
+      "options": [
+        "GROUP BY customer_id, order_date with sum(revenue)",
+        "sum(revenue) OVER (PARTITION BY customer_id ORDER BY order_date)",
+        "sum(revenue) OVER (ORDER BY customer_id, order_date)",
+        "A self-join of orders on customer_id and an earlier order_date"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A window function partitioned by customer and ordered by date keeps every row and accumulates within each customer.",
+      "misconceptions": [
+        "GROUP BY returns one total per customer and day, not a running total.",
+        "",
+        "Without PARTITION BY the running total carries over from one customer to the next.",
+        "The self-join works but multiplies rows and is far slower; it is what window functions replace."
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo1-prune",
+      "type": "single",
+      "prompt": "The same order lines are written to two Parquet files. A query for one date reads 2 of 15 row groups in the file sorted by date, and 7 of 7 in the unsorted file. Why?",
+      "options": [
+        "DuckDB caches the sorted file in memory after the first read",
+        "Sorting compresses the file so that fewer row groups exist",
+        "Min and max statistics per row group only exclude groups when values are clustered",
+        "Unsorted files have no statistics, so DuckDB must read everything"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Each row group keeps min and max values; when dates are scattered every group's range covers the date, so none can be skipped.",
+      "misconceptions": [
+        "Both runs read from disk; caching does not explain which row groups are opened.",
+        "The sorted file has more row groups, not fewer; compression is not what skips them.",
+        "",
+        "Both files have statistics; in the unsorted file they are too wide to exclude anything."
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 4,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo1-incremental",
+      "type": "tf",
+      "prompt": "An incremental load that selects rows with updated_at greater than the last stored value can miss rows that arrive late with an older updated_at.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A strict high-water mark skips any row stamped before the stored value, which is why loads keep a look-back window or a key-based merge.",
+      "misconceptions": [
+        "",
+        "A row written late can carry an earlier timestamp than rows already loaded; the predicate never selects it again."
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": 1,
+      "session": 2,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo2-rerun",
+      "type": "single",
+      "prompt": "The supplier API pipeline is re-run after a crash halfway through. Which design guarantees the re-run adds no duplicate price versions?",
+      "options": [
+        "Sorting the API pages by price_id before inserting them",
+        "Deleting the table before each run and loading everything again",
+        "Storing the cursor before the rows are inserted",
+        "Inserting with a key of (price_id, updated_at) and ignoring rows that exist"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A key per version makes each insert idempotent, so pages loaded before the crash are skipped on the re-run.",
+      "misconceptions": [
+        "Order does not stop the same row from being inserted twice.",
+        "A full reload avoids duplicates but discards the history of versions the API no longer serves.",
+        "Saving the cursor first loses the rows of the failed page: they are never requested again.",
+        ""
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo2-scd",
+      "type": "single",
+      "prompt": "A supplier changes its payment terms on 14 September. In a type 2 supplier dimension, what happens?",
+      "options": [
+        "The old row is closed at 14 September and a new row starts then",
+        "The supplier's row is updated in place with the new terms",
+        "A new column holds the previous payment terms",
+        "The supplier is deleted and inserted with a new supplier_id"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Type 2 keeps every version with a validity range, so an order from August still joins the terms it was placed under.",
+      "misconceptions": [
+        "",
+        "Updating in place is type 1: August orders would then show September's terms.",
+        "A previous-value column is type 3; it keeps one earlier value, not the full history.",
+        "Changing the business key breaks every join from orders and history to the supplier."
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo2-lsn",
+      "type": "single",
+      "prompt": "Two change events for supplier S-15 arrive out of order: the update at log position 812 arrives before the one at 790. How should the merge decide which is current?",
+      "options": [
+        "By the event's source timestamp rounded to the minute",
+        "By the event with more non-null fields",
+        "By arrival order, since the latest arrival is the newest change",
+        "By the larger log position, since the log records the commit order"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The log sequence number orders commits in the source database; arrival order depends on the network.",
+      "misconceptions": [
+        "Rounded timestamps can tie, and clocks can differ; the log position cannot.",
+        "Field counts say nothing about which change happened later.",
+        "Arrival order is what went wrong here: 812 arrived first but 790 committed first.",
+        ""
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 3,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo2-delete",
+      "type": "tf",
+      "prompt": "In a change feed, a delete event carries the deleted row's values in its 'before' field, not its 'after' field.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A delete has no after-image; the before-image is the only place the key of the deleted row appears.",
+      "misconceptions": [
+        "",
+        "The after field of a delete is empty; reading it loses the key of the deleted supplier."
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": 2,
+      "session": 3,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo3-freight",
+      "type": "single",
+      "prompt": "Freight is recorded per shipment, and a shipment carries several order lines. After joining shipments to order lines, total freight is 3.9 times the shipments table. What went wrong?",
+      "options": [
+        "Freight is in a different currency from revenue",
+        "Some shipments have no order lines",
+        "The join should have been a left join",
+        "Freight was repeated on every line of the shipment instead of allocated"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Joining a coarser grain to a finer one repeats the coarse value on each row; it must be allocated across the lines.",
+      "misconceptions": [
+        "A currency mismatch would scale every row by one rate, not by the number of lines.",
+        "Shipments with no lines would lower the total, not multiply it.",
+        "Join type changes which rows survive, not how often freight repeats.",
+        ""
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo3-grain",
+      "type": "single",
+      "prompt": "Finance asks for margin by product category and by customer city. What is the coarsest grain of the fact that answers both?",
+      "options": [
+        "One row per order",
+        "One row per order line",
+        "One row per customer and month",
+        "One row per product and month"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Category belongs to the product on the line and city to the customer on the order, so only the line carries both.",
+      "misconceptions": [
+        "An order mixes products of several categories, so its margin cannot be split by category.",
+        "",
+        "Aggregating by customer loses which products were sold.",
+        "Aggregating by product loses which customers bought them."
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo3-asof",
+      "type": "single",
+      "prompt": "A line ordered on 3 August must be costed at the supplier price valid that day. Which join condition finds it in the price history?",
+      "options": [
+        "price.valid_from <= order_date and (price.valid_to > order_date or valid_to is null)",
+        "price.valid_from >= order_date, taking the earliest match",
+        "price.valid_from = order_date",
+        "the price row with the latest valid_from overall"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The valid row is the one whose range contains the order date; an open range means it is still current.",
+      "misconceptions": [
+        "",
+        "That picks the first price after the order, a price the line was never sold under.",
+        "Prices rarely change on the exact day of an order, so most lines would find no cost.",
+        "The latest price is today's; it re-prices every past line at the current cost."
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo3-state",
+      "type": "tf",
+      "prompt": "In a state-aware transformation tool, a change to one model's SQL that does not change its output columns forces every model in the project to rebuild.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Only the changed model and its downstream models are affected, and a non-breaking change can rebuild only the model itself, as Lab 3.2 showed with one rebuild.",
+      "misconceptions": [
+        "The tool compares versions of each model and skips those whose definition and inputs are unchanged.",
+        ""
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": 3,
+      "session": 2,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo4-block",
+      "type": "single",
+      "prompt": "The November supplier batch arrives with a negative cost on one product. The contract check fails. What should the pipeline do?",
+      "options": [
+        "Drop the bad row silently and load the rest",
+        "Load the batch and flag the row for finance to review",
+        "Replace the negative cost with the product's average cost",
+        "Stop the refresh so yesterday's mart stays in place, and alert the feed's owner"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A blocking check keeps a broken feed from reaching the mart; the owner fixes the feed and the month is backfilled.",
+      "misconceptions": [
+        "Silent drops hide the defect from the feed's owner, so it returns next month.",
+        "Once loaded, the wrong cost reaches finance's report before anyone reviews it.",
+        "An invented cost is still wrong, and now nobody can tell it was invented.",
+        ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo4-retry",
+      "type": "single",
+      "prompt": "The supplier API answers 429 Too Many Requests on the third page. What is the right response in the pipeline?",
+      "options": [
+        "Restart the load from the first page",
+        "Skip the page and continue with the next cursor",
+        "Wait for the Retry-After interval, then request the same page again",
+        "Fail the run and alert the team immediately"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A 429 is temporary: retrying the same page after the stated wait loses nothing and duplicates nothing.",
+      "misconceptions": [
+        "Restarting wastes requests, and the limit will be hit again at the same place.",
+        "Skipping a page loses its rows for good, since the cursor has moved past them.",
+        "",
+        "Failing on a temporary limit makes the pipeline fragile for no reason."
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 4,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo4-backfill",
+      "type": "single",
+      "prompt": "October's supplier batch was blocked for three days and is now fixed. The mart is partitioned by month. What should be re-run?",
+      "options": [
+        "Nothing: tomorrow's scheduled run will pick it up",
+        "Only the ingestion step for October",
+        "The whole pipeline for all months since August",
+        "Only the October partition and the models downstream of it"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A backfill of the affected partition rebuilds what the fix changed and leaves the other months untouched.",
+      "misconceptions": [
+        "Tomorrow's run processes tomorrow's partition, not October's.",
+        "Ingesting the batch without rebuilding the models leaves the mart unchanged.",
+        "Rebuilding every month costs more and risks changing figures finance has signed off.",
+        ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 4,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo4-owner",
+      "type": "tf",
+      "prompt": "A data contract is only useful if the producer of the feed agrees to it and is told when it is broken.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A contract is an agreement between producer and consumer; a check the producer never hears about only blocks, it never fixes.",
+      "misconceptions": [
+        "",
+        "Without the producer, the same violation returns with every batch and the mart stays blocked."
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 3,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo5-hidden",
+      "type": "single",
+      "prompt": "The Iceberg mart is partitioned by month(order_date). An analyst filters on order_date between 1 and 15 September. What must the analyst add to the query to skip other months?",
+      "options": [
+        "A filter on the order_month partition column",
+        "A hint naming the September data files",
+        "Nothing: the engine derives the partition from the order_date filter",
+        "A cast of order_date to a month string"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Hidden partitioning stores the transform in the table metadata, so a filter on the source column prunes partitions by itself.",
+      "misconceptions": [
+        "Iceberg exposes no partition column to filter; the transform is applied for you.",
+        "Readers never name data files; the metadata lists them.",
+        "",
+        "Casting the column hides the predicate from the planner and can stop pruning."
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 4,
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo5-snapshot",
+      "type": "single",
+      "prompt": "Finance asks why the September margin changed since last week's report. The mart is an Iceberg table. What answers it fastest?",
+      "options": [
+        "Restore last week's backup into a second database",
+        "Query the table as of last week's snapshot and compare",
+        "Re-run the pipeline on last week's raw files",
+        "Read the transformation code's commit history"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Each commit leaves a snapshot, so the table as it was last week can be read directly and compared.",
+      "misconceptions": [
+        "A restore works but takes far longer and needs a backup to exist.",
+        "",
+        "Re-running assumes the raw files and code are unchanged, which is the question.",
+        "Code history shows what changed in the logic, not in the data."
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 4,
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo5-evolve",
+      "type": "tf",
+      "prompt": "Adding a column to an Iceberg table rewrites every existing data file.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Schema changes are metadata operations; old files return null for the new column when they are read.",
+      "misconceptions": [
+        "Column ids in the metadata let readers map old files to the new schema without rewriting them.",
+        ""
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 4,
+      "session": 1,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo5-engines",
+      "type": "single",
+      "prompt": "PyIceberg writes the mart and DuckDB reads it. DuckDB returns fewer rows than PyIceberg reports. What is the most likely cause?",
+      "options": [
+        "DuckDB reads an older metadata file than the latest snapshot",
+        "DuckDB cannot read Parquet written by PyIceberg",
+        "DuckDB applies a default row limit to Iceberg scans",
+        "Iceberg tables lose rows when read by a second engine"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Each engine reads the snapshot its metadata pointer names; pointing it at a stale metadata file shows an earlier state.",
+      "misconceptions": [
+        "",
+        "Both use standard Parquet; an unreadable file would raise an error, not return fewer rows.",
+        "There is no default row limit on a scan; a limit would appear in the query.",
+        "Engines read the same files; Lab 4.1 showed identical results at both snapshots."
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": 4,
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo6-contact",
+      "type": "single",
+      "prompt": "Under the national classification levels, how is the mobile number of a customer's contact person classified?",
+      "options": [
+        "Public, because the customer is a business",
+        "Restricted, because it is personally identifiable",
+        "Top Secret, because it is personal data",
+        "It needs no classification, because it is not a government record"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The policy's examples of Restricted data include personally identifiable information such as names and phone numbers.",
+      "misconceptions": [
+        "The business is not the person: the number identifies an individual.",
+        "",
+        "Top Secret is for damage to national interests; personal data alone does not reach it.",
+        "The policy applies to all data the entity holds, whatever its origin."
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": 4,
+      "session": 4,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo6-minimise",
+      "type": "single",
+      "prompt": "The margin mart needs customer city and type. The raw customer table also has contact name, mobile and e-mail. What does minimisation require?",
+      "options": [
+        "Leaving the three contact fields out of the mart altogether",
+        "Encrypting the whole mart at rest",
+        "Masking the three contact fields in the mart",
+        "Restricting the mart to the finance team"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The PDPL limits personal data to the minimum necessary for the purpose; fields the margin does not need should not be there at all.",
+      "misconceptions": [
+        "",
+        "Encryption protects data at rest but keeps fields the purpose does not need.",
+        "Masking is for fields a role needs in some form; these are not needed.",
+        "Access rules limit who sees the data, not how much of it is collected."
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": 4,
+      "session": 4,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo6-access",
+      "type": "single",
+      "prompt": "The analyst's database has a masked customers view. Which test shows the analyst cannot reach the raw mobile numbers?",
+      "options": [
+        "Checking that the view's mobile column contains asterisks",
+        "Reviewing the SQL that defines the masked view",
+        "Attempting to read the raw customers table from the analyst's connection and expecting it to fail",
+        "Counting the rows of the masked view"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A masked view proves nothing if the raw table is still readable; the access test must try the raw table and fail.",
+      "misconceptions": [
+        "The view can be masked while the raw table beside it is open.",
+        "Reading the code is a review, not a test of what the role can actually reach.",
+        "",
+        "Row counts say nothing about which columns are exposed."
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": 4,
+      "session": 4,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo6-erasure",
+      "type": "tf",
+      "prompt": "After a customer is deleted from the source table, its data can still be read from type 2 history rows and from earlier table snapshots.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "History tables and snapshots keep old versions by design, so erasure must also close history and expire snapshots.",
+      "misconceptions": [
+        "",
+        "Deleting the current row leaves every earlier version in history and in each snapshot until they are expired."
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": 4,
+      "session": 4,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="page" data-track="ai-engineering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Data Engineering · SDAIA Academy</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<meta name="description" content="Build one batch pipeline from raw extracts to a tested, governed open table that two engines read">
+<link rel="icon" href="_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="index.md">
+<link rel="describedby" href="llms.txt">
+<link rel="stylesheet" href="_engine/academy.css">
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="top"><div class="logo" id="logo"></div><nav><a href="slides/day1.html">Slides</a><a href="practice.html">Practice</a><a href="index.md" type="text/markdown">Markdown</a></nav></div>
+<div class="kicker">AI Engineering Track · SDAIA Academy · AE-306</div>
+<h1>Modern Data Engineering<span class="sub ar" lang="ar" dir="rtl">هندسة البيانات الحديثة</span></h1>
+<p>Build one batch pipeline from raw extracts to a tested, governed open table that two engines read</p>
+<div class="meta"><span class="track">AI Engineering Track</span><span>4 teaching days + capstone day</span><span>26 hours</span><span>Level 300</span><span>AI Engineering · Associate badge</span></div>
+</div>
+</header>
+<main class="wrap">
+<h2>About the course</h2>
+<p>Participants build one batch pipeline end to end for Qafila, the fictional trading company of the Academy's data engineering course, whose margin report nobody trusts. They query raw extracts with analytical SQL, ingest an API and a database change feed incrementally, clean with dataframes, model a star schema with a slowly changing supplier dimension, write tested transformations and a data contract, orchestrate them, and land the result in an open table format that a second engine reads. Day four adds distributed processing, streaming and governance.</p>
+<p><b>Who it is for:</b> Practitioners: engineers and analysts who already write SQL and work with Python dataframes, and who now need a batch pipeline that is incremental, tested, held by a contract and governed.</p>
+<p><b>Format:</b> Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task</p>
+<h2>The case study</h2>
+<div class="note info"><b>Qafila Trading.</b> Qafila Trading is a fictional importer and wholesaler of food and household goods in Jeddah, Riyadh and Dammam, selling to 240 shops, restaurants and hotels and buying from 18 suppliers in five countries. Its finance controller, Lujain Al-Zamil, does not trust the monthly margin report. Participants rebuild it as one pipeline: order extracts, a paginated supplier price API, a supplier change feed and a shipment event stream, all synthetic, generated with a fixed seed and planted with the problems the labs find.</div>
+<h2>The course</h2>
+<div class="day">
+<div class="day-head c-teal"><div><div class="t">Day 1 · 4 sessions · 4 labs</div><h3>Store and query</h3></div><a class="btn" href="slides/day1.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Platform shapes</b><br>Transactional and analytical systems, ELT, and the layers of a lakehouse, placed on Qafila's workloads<ul><li>Tell a transactional workload from an analytical one by its access pattern</li><li>Measure a point lookup and an aggregate on a row store and a column store</li><li>Place a workload in a layer and justify it in one sentence</li></ul></td><td><a href="labs/D1_1_platform_shapes.ipynb">Lab 1.1 · Ten workloads, three layers</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_1_platform_shapes.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Analytical SQL on a single node</b><br>Query extracts in place with an in-process engine and reproduce a number before trusting it<ul><li>Query CSV and JSON files in place with DuckDB</li><li>Join lines to a price list valid on the order date</li><li>Reproduce a reference figure and explain each difference</li></ul></td><td><a href="labs/D1_2_margin_sql.ipynb">Lab 1.2 · Reproduce the monthly margin</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_2_margin_sql.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Window functions</b><br>Running totals, changes from the previous row and first and last per group, without collapsing rows<ul><li>Write a running total with a window frame</li><li>Detect changes with LAG over an ordered partition</li><li>Keep one row per group with ROW_NUMBER and QUALIFY</li></ul></td><td><a href="labs/D1_3_windows.ipynb">Lab 1.3 · Running margin, price changes, first and last orders</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_3_windows.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Columnar files and partitioning</b><br>Parquet, row-group statistics and partitions, measured in time and bytes<ul><li>Convert row files to Parquet and compare size and scan time</li><li>Read row-group statistics and see which groups a filter skips</li><li>Partition by month and measure what a one-month query reads</li></ul></td><td><a href="labs/D1_4_columnar.ipynb">Lab 1.4 · Partitioned columnar files, measured</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_4_columnar.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-cyan"><div><div class="t">Day 2 · 4 sessions · 4 labs</div><h3>Ingest and clean</h3></div><a class="btn" href="slides/day2.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Ingesting from APIs</b><br>Pages, cursors, rate limits and loads that can run twice<ul><li>Follow every page of a cursor-paginated API</li><li>Back off on 429 responses</li><li>Store load state with the data so a re-run adds nothing</li></ul></td><td><a href="labs/D2_1_api_ingestion.ipynb">Lab 2.1 · An incremental, idempotent API load</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_1_api_ingestion.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Declarative ingestion pipelines</b><br>The same load as a declared resource: cursor, merge, schema evolution and load state<ul><li>Declare a REST resource with an incremental cursor and a primary key</li><li>Absorb a new source column and find it in the schema</li><li>Read a pipeline's load state and load history</li></ul></td><td><a href="labs/D2_2_dlt_pipeline.ipynb">Lab 2.2 · The supplier load with dlt</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_2_dlt_pipeline.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Change data capture, merge and history</b><br>Change events, ordering by log position, MERGE, and supplier history as a type 2 dimension<ul><li>Read a change event envelope and order events by log position</li><li>Apply updates and deletes to a copy with MERGE</li><li>Keep history as a type 2 dimension with valid ranges</li></ul></td><td><a href="labs/D2_3_cdc_scd.ipynb">Lab 2.3 · Supplier changes and their history</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_3_cdc_scd.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Cleaning with dataframes</b><br>Expressions, lazy plans and cleaning rules kept as data, with a log of what each rule changed<ul><li>Write cleaning steps as Polars expressions</li><li>Convert currencies and units to one cost per piece in SAR</li><li>Normalise Arabic names and log every rule with the rows it changed</li></ul></td><td><a href="labs/D2_4_cleaning.ipynb">Lab 2.4 · Currencies, units and Arabic names</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_4_cleaning.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-coral"><div><div class="t">Day 3 · 4 sessions · 4 labs</div><h3>Model and test</h3></div><a class="btn" href="slides/day3.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Dimensional modelling</b><br>State the grain, then facts and dimensions that answer finance's questions<ul><li>State the grain of a fact table in one sentence and test it</li><li>Build dimensions with an unknown member and a type 2 supplier</li><li>Find and fix a fan-out before it reaches a report</li></ul></td><td><a href="labs/D3_1_star_schema.ipynb">Lab 3.1 · The margin star schema</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_1_star_schema.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Transformations as code</b><br>SQL models in git, environments, and plans that rebuild only what changed<ul><li>Write staging and mart models as SQL files under version control</li><li>Plan a change in a development environment before production</li><li>Show that a rebuild skips unchanged models</li></ul></td><td><a href="labs/D3_2_transformations.ipynb">Lab 3.2 · Models, environments and a state-aware rebuild</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_2_transformations.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Data quality tests and contracts</b><br>Tests on data, a contract with the producer, and a gate that holds when the feed breaks<ul><li>Write not-null, unique, accepted-value and relationship tests</li><li>Write a data contract for a feed and compile it to SQL checks</li><li>Block a refresh when the contract fails, and say why</li></ul></td><td><a href="labs/D3_3_contracts.ipynb">Lab 3.3 · A contract that holds</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_3_contracts.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Orchestration</b><br>Assets with dependencies, partitions, retries, blocking checks and backfills<ul><li>Declare the pipeline as assets with dependencies and monthly partitions</li><li>Retry a flaky source and block on a failed check</li><li>Backfill one month after a fix</li></ul></td><td><a href="labs/D3_4_orchestration.ipynb">Lab 3.4 · Assets, a failure, a retry and a backfill</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_4_orchestration.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-purple"><div><div class="t">Day 4 · 4 sessions · 4 labs</div><h3>Scale and production</h3></div><a class="btn" href="slides/day4.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Open table formats</b><br>Snapshots, schema evolution, partition specs and time travel, read by more than one engine<ul><li>Write a table in an open format with a partition spec</li><li>Evolve its schema without rewriting data</li><li>Query an earlier snapshot from a second engine</li></ul></td><td><a href="labs/D4_1_table_format.ipynb">Lab 4.1 · The mart as an Iceberg table</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_1_table_format.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Distributed processing when measured</b><br>Partitions, shuffles and stages, and the measurement that decides whether you need them<ul><li>Explain partitions, shuffles and stages in a distributed engine</li><li>Run the same transformation on a local cluster and a single node</li><li>Decide from measured time and memory, not from habit</li></ul></td><td><a href="labs/D4_2_distributed.ipynb">Lab 4.2 · One node or a local cluster</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_2_distributed.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Streaming fundamentals</b><br>Logs, offsets, delivery guarantees, event time, windows and watermarks, reconciled with batch<ul><li>Consume a log by offset and commit progress</li><li>Make a consumer idempotent under at-least-once delivery</li><li>Window by event time with a watermark and reconcile with batch</li></ul></td><td><a href="labs/D4_3_streaming.ipynb">Lab 4.3 · Shipment events with a watermark</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_3_streaming.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Governance with PDPL and NDMO</b><br>Classification levels, minimisation, masking and access rules, and erasure against history<ul><li>Classify every field under the national classification levels</li><li>Drop what the report does not need and mask the rest per role</li><li>Test that a role cannot read what it must not</li></ul></td><td><a href="labs/D4_4_governance.ipynb">Lab 4.4 · Classification, masking and access tests</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_4_governance.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-amber"><div><div class="t">Capstone</div><h3>Capstone: the margin mart and its defence</h3></div><a class="btn" href="slides/day5.html">Open the slides</a></div>
+<div class="scroll"><table><tr><td>The margin mart from raw sources to an Apache Iceberg table, built on the course's Qafila capstone starter (labs/capstone/): incremental ingestion of the supplier API and the change feed with supplier history, a star schema at order-line grain, tested transformations and a data contract, an orchestrated run that blocks on a broken feed and backfills after the fix, and classification and masking of customer and supplier fields.</td></tr></table></div>
+</div>
+<h2>Capstone</h2>
+<div class="two">
+<div><p>The margin mart from raw sources to an Apache Iceberg table, built on the course's Qafila capstone starter (labs/capstone/): incremental ingestion of the supplier API and the change feed with supplier history, a star schema at order-line grain, tested transformations and a data contract, an orchestrated run that blocks on a broken feed and backfills after the fix, and classification and masking of customer and supplier fields.</p><p><b>What you submit:</b> A public GitHub repository link. The assessor re-runs the pipeline from a clean checkout; the README reports row counts, test results and run times, and the commit history and run logs are in the repository. Then an eight-minute defence of one modelling decision, in which the participant also explains one transformation the assessor selects.</p><p><b>Format:</b> 8 min talk and demo</p></div>
+<div><h3>Rubric</h3><div class="bar c-teal"><span>Correctness of the mart<i style="--w:100%"></i></span><b>25%</b></div><div class="bar c-cyan"><span>Ingestion and history<i style="--w:80%"></i></span><b>20%</b></div><div class="bar c-coral"><span>Tests and contract<i style="--w:80%"></i></span><b>20%</b></div><div class="bar c-purple"><span>Orchestration and recovery<i style="--w:60%"></i></span><b>15%</b></div><div class="bar c-amber"><span>Table format and governance<i style="--w:40%"></i></span><b>10%</b></div><div class="bar c-green"><span>Reproducibility<i style="--w:40%"></i></span><b>10%</b></div></div>
+</div>
+<h2>Outcomes</h2>
+<p>By the end of the course, participants can:</p>
+<div class="day"><div class="scroll"><table>
+<tr><th></th><th>Outcomes</th><th>Level</th><th>Evidence</th></tr>
+<tr><td><b>LO1</b></td><td>Analyse raw transactional extracts with analytical SQL, including window functions and incremental predicates, given three months of synthetic orders, shipments and prices in columnar files</td><td>Applied</td><td>queries that reproduce the reference monthly margin and a note on two defects found</td></tr>
+<tr><td><b>LO2</b></td><td>Implement incremental ingestion from an API and a change feed, keeping supplier history as a slowly changing dimension, given a paginated API and a feed with updates and deletes</td><td>Applied</td><td>loads that add no duplicates on re-run and correct validity ranges</td></tr>
+<tr><td><b>LO3</b></td><td>Design a dimensional model at a stated grain and build it as tested, version-controlled transformations, given the finance team's five margin questions</td><td>Performance</td><td>a star schema, passing tests and a rebuild that skips unchanged models</td></tr>
+<tr><td><b>LO4</b></td><td>Build an orchestrated pipeline with a data contract, quality gates, retries and backfills that fails safely when an upstream feed breaks, given a supplier feed that changes its schema without notice</td><td>Performance</td><td>a run log showing the violation caught, the mart left unrefreshed and a backfill after the fix</td></tr>
+<tr><td><b>LO5</b></td><td>Configure an open table format with partitioning, schema evolution and time travel, and read it from a second engine, given the margin mart and one schema change</td><td>Applied</td><td>identical results from two engines and a query against an earlier snapshot</td></tr>
+<tr><td><b>LO6</b></td><td>Classify every field under the national classification levels and apply minimisation, masking and access rules, given the customer and supplier tables</td><td>Applied</td><td>a classification register and a masked view that passes access tests</td></tr>
+</table></div></div>
+<h2>Tools</h2>
+<div class="grid">
+<div class="card c-teal"><h3>Single-node analytical engine and dataframes</h3><p>DuckDB · Polars</p></div>
+<div class="card c-cyan"><h3>Ingestion</h3><p>dlt · plain Python with stored load state</p></div>
+<div class="card c-coral"><h3>Transformation framework with tests</h3><p>SQLMesh · dbt · plain SQL files with Pandera checks</p></div>
+<div class="card c-purple"><h3>Data contract specification</h3><p>Open Data Contract Standard · contract checks compiled to SQL tests</p></div>
+<div class="card c-green"><h3>Orchestrator</h3><p>Dagster · Apache Airflow</p></div>
+<div class="card c-teal"><h3>Open table format and catalogue</h3><p>Apache Iceberg with a REST catalogue · Delta Lake · DuckLake</p></div>
+<div class="card c-cyan"><h3>Distributed engine</h3><p>Apache Spark · Trino</p></div>
+<div class="card c-coral"><h3>Event streaming and lineage</h3><p>Apache Kafka · Apache Flink · OpenLineage</p></div>
+</div>
+<h2>Before you start</h2>
+<h3>Prerequisites</h3>
+<ul><li>FN-102 Command Line, Git and Reproducible Projects</li><li>FN-104 SQL and Data Wrangling</li><li>Writes SQL joins, grouping and simple window functions</li><li>Filters and joins tables with a Python dataframe library</li><li>Commits with Git from a shell</li><li>Setup: a laptop CPU with uv, or Google Colab. No model, no key, no Docker, no cloud account. Run 00_setup_check before Day 1; see labs/README.md.</li></ul>
+<div class="note tip">The labs are notebooks. Open each one in Google Colab from the table above, or clone the repository and run them locally.</div>
+<h2>Sources</h2>
+<h3>National references</h3>
+<ul><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf">SDAIA: Data Classification Policy</a></li><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf">SDAIA: Personal Data Protection Law</a></li></ul>
+<h3>Modelling, change and contracts</h3>
+<ul><li><a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/type-2/">Kimball Group: Type 2, add new row</a></li><li><a href="https://debezium.io/documentation/reference/stable/connectors/postgresql.html">Debezium: PostgreSQL connector, change event structure</a></li><li><a href="https://bitol-io.github.io/open-data-contract-standard/latest/">Bitol: Open Data Contract Standard (ODCS)</a></li><li><a href="https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/">Bitol: ODCS data quality</a></li></ul>
+<h3>Files and table formats</h3>
+<ul><li><a href="https://parquet.apache.org/docs/file-format/">Apache Parquet: file format</a></li><li><a href="https://iceberg.apache.org/spec/">Apache Iceberg: table specification</a></li><li><a href="https://py.iceberg.apache.org/">PyIceberg documentation</a></li></ul>
+<h3>Tools used in the labs</h3>
+<ul><li><a href="https://duckdb.org/docs/">DuckDB documentation</a></li><li><a href="https://docs.pola.rs/">Polars documentation</a></li><li><a href="https://dlthub.com/docs/intro">dlt documentation</a></li><li><a href="https://sqlmesh.readthedocs.io/en/stable/">SQLMesh documentation</a></li><li><a href="https://docs.dagster.io/">Dagster documentation</a></li><li><a href="https://docs.dask.org/en/stable/">Dask documentation</a></li></ul>
+<h2>Files and links</h2>
+<div class="files">
+<a href="practice.html"><b>practice.html</b><span>Practice questions with feedback</span></a>
+<a href="index.md"><b>index.md</b><span>This page as Markdown, for an AI assistant</span></a>
+<a href="llms.txt"><b>llms.txt</b><span>The course for AI assistants (llms.txt)</span></a>
+<a href="https://github.com/SDAIAAcademy/ae-306"><b>SDAIAAcademy/ae-306</b><span>The course repository</span></a>
+</div>
+</main>
+<footer><div class="wrap">SDAIA Academy · AI Engineering Track · Modern Data Engineering<br><span class="muted">Course version 2027.1.0 · engine 1.0.0 · built 2026-11-15 · commit 11f877b</span></div></footer>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T03:18:58Z","version":"2027.1.0","commit":"11f877b"},"course":{"id":"ae-306","code":"AE-306","title":"Modern Data Engineering","track":"ai-engineering","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ae-306/","repo":"SDAIAAcademy/ae-306","home":"index.html"},"ai":{"context":{"course":"context/course.md","courseJs":"context/course.js","day":null,"llms":"llms.txt"},"tasks":[],"tools":[]},"features":{},"strings":{}}</script>
+<script src="_engine/academy.js"></script>
+</body>
+</html>
