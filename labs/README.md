@@ -9,13 +9,13 @@ No lab uses a model, an API key, Docker or a cloud account. A laptop CPU or a Co
 ## Quick start
 
 **Google Colab**
-1. Open a notebook from the [course page](https://sdaiaacademy.github.io/data-engineering/), or directly:
-   `https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/<notebook>.ipynb`.
+1. Open a notebook from the [course page](https://sdaiaacademy.github.io/ae-306/), or directly:
+   `https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/<notebook>.ipynb`.
 2. Run the first cell. It clones this repository and installs `requirements-colab.txt`.
 
 **Local**
 ```bash
-git clone https://github.com/SDAIAAcademy/data-engineering
+git clone https://github.com/SDAIAAcademy/ae-306
 cd data-engineering/labs
 uv sync                        # creates .venv from pyproject.toml (uv.lock pins every version)
 uv run jupyter lab
@@ -29,23 +29,23 @@ Every answer the labs check stays the same.
 
 | Day | Session | Notebook |
 |---|---|---|
-| 0 | Setup | [`00_setup_check.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/00_setup_check.ipynb) |
-| 1 | Ten workloads, three layers | [`D1_1_platform_shapes.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D1_1_platform_shapes.ipynb) |
-| 1 | Reproduce the monthly margin (AI-off) | [`D1_2_margin_sql.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D1_2_margin_sql.ipynb) |
-| 1 | Running margin, price changes, first and last orders | [`D1_3_windows.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D1_3_windows.ipynb) |
-| 1 | Partitioned columnar files, measured | [`D1_4_columnar.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D1_4_columnar.ipynb) |
-| 2 | An incremental, idempotent API load | [`D2_1_api_ingestion.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D2_1_api_ingestion.ipynb) |
-| 2 | The supplier load with dlt | [`D2_2_dlt_pipeline.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D2_2_dlt_pipeline.ipynb) |
-| 2 | Supplier changes and their history | [`D2_3_cdc_scd.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D2_3_cdc_scd.ipynb) |
-| 2 | Currencies, units and Arabic names | [`D2_4_cleaning.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D2_4_cleaning.ipynb) |
-| 3 | The margin star schema | [`D3_1_star_schema.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D3_1_star_schema.ipynb) |
-| 3 | Models, environments and a state-aware rebuild | [`D3_2_transformations.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D3_2_transformations.ipynb) |
-| 3 | A contract that holds | [`D3_3_contracts.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D3_3_contracts.ipynb) |
-| 3 | Assets, a failure, a retry and a backfill | [`D3_4_orchestration.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D3_4_orchestration.ipynb) |
-| 4 | The mart as an Iceberg table | [`D4_1_table_format.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_1_table_format.ipynb) |
-| 4 | One node or a local cluster | [`D4_2_distributed.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_2_distributed.ipynb) |
-| 4 | Shipment events with a watermark | [`D4_3_streaming.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_3_streaming.ipynb) |
-| 4 | Classification, masking and access tests | [`D4_4_governance.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/data-engineering/blob/main/labs/D4_4_governance.ipynb) |
+| 0 | Setup | [`00_setup_check.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/00_setup_check.ipynb) |
+| 1 | Ten workloads, three layers | [`D1_1_platform_shapes.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_1_platform_shapes.ipynb) |
+| 1 | Reproduce the monthly margin (AI-off) | [`D1_2_margin_sql.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_2_margin_sql.ipynb) |
+| 1 | Running margin, price changes, first and last orders | [`D1_3_windows.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_3_windows.ipynb) |
+| 1 | Partitioned columnar files, measured | [`D1_4_columnar.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D1_4_columnar.ipynb) |
+| 2 | An incremental, idempotent API load | [`D2_1_api_ingestion.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_1_api_ingestion.ipynb) |
+| 2 | The supplier load with dlt | [`D2_2_dlt_pipeline.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_2_dlt_pipeline.ipynb) |
+| 2 | Supplier changes and their history | [`D2_3_cdc_scd.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_3_cdc_scd.ipynb) |
+| 2 | Currencies, units and Arabic names | [`D2_4_cleaning.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D2_4_cleaning.ipynb) |
+| 3 | The margin star schema | [`D3_1_star_schema.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_1_star_schema.ipynb) |
+| 3 | Models, environments and a state-aware rebuild | [`D3_2_transformations.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_2_transformations.ipynb) |
+| 3 | A contract that holds | [`D3_3_contracts.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_3_contracts.ipynb) |
+| 3 | Assets, a failure, a retry and a backfill | [`D3_4_orchestration.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D3_4_orchestration.ipynb) |
+| 4 | The mart as an Iceberg table | [`D4_1_table_format.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_1_table_format.ipynb) |
+| 4 | One node or a local cluster | [`D4_2_distributed.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_2_distributed.ipynb) |
+| 4 | Shipment events with a watermark | [`D4_3_streaming.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_3_streaming.ipynb) |
+| 4 | Classification, masking and access tests | [`D4_4_governance.ipynb`](https://colab.research.google.com/github/SDAIAAcademy/ae-306/blob/main/labs/D4_4_governance.ipynb) |
 
 **AI policy.** Lab 1.2 is done without an AI assistant. In the other labs an assistant may give hints; it does not
 write your queries, models or tests. The capstone allows coding agents: what they write must pass your own tests.

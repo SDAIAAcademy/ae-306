@@ -11,7 +11,7 @@ Participants build one batch pipeline end to end for Qafila, the fictional tradi
 
 **Format:** Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task
 
-**Course page:** https://sdaiaacademy.github.io/data-engineering/
+**Course page:** https://sdaiaacademy.github.io/ae-306/
 <!-- /academy:title -->
 
 ## Outcomes

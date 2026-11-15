@@ -1,7 +1,7 @@
 {
   "$schema": "https://sdaiaacademy.github.io/engine/schemas/course.schema.json",
   "engine": "1",
-  "id": "data-engineering",
+  "id": "ae-306",
   "code": "AE-306",
   "version": "2027.1.0",
   "lang": "en",
@@ -27,8 +27,8 @@
     "Setup: a laptop CPU with uv, or Google Colab. No model, no key, no Docker, no cloud account. Run 00_setup_check before Day 1; see labs/README.md."
   ],
   "site": {
-    "url": "https://sdaiaacademy.github.io/data-engineering/",
-    "repo": "SDAIAAcademy/data-engineering"
+    "url": "https://sdaiaacademy.github.io/ae-306/",
+    "repo": "SDAIAAcademy/ae-306"
   },
   "outcomes": [
     {
