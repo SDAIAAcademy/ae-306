@@ -3,7 +3,7 @@
   "engine": "1",
   "id": "ae-306",
   "code": "AE-306",
-  "version": "2027.1.0",
+  "version": "2027.2.0",
   "lang": "en",
   "title": {
     "en": "Modern Data Engineering",
@@ -862,6 +862,10 @@
         {
           "title": "Bitol: ODCS data quality",
           "url": "https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/"
+        },
+        {
+          "title": "Danilo Sato: Parallel Change (martinfowler.com)",
+          "url": "https://martinfowler.com/bliki/ParallelChange.html"
         }
       ]
     },

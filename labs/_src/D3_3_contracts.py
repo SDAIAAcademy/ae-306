@@ -18,6 +18,7 @@
 # - [ ] 3 · Compile the contract to SQL checks (6')
 # - [ ] 4 · Break the feed: the gate holds (7')
 # - [ ] ✱ Stretch · Quarantine the failing rows instead of blocking: when is that right?
+# - [ ] ✱ Stretch · The rename done right: both fields until cutover
 
 # %%
 import os, sys, subprocess
@@ -224,6 +225,62 @@ con.execute("CREATE OR REPLACE TABLE loadable AS SELECT * FROM mapped WHERE NOT 
 print(con.sql("SELECT (SELECT count(*) FROM loadable) AS loadable, (SELECT count(*) FROM quarantine) AS quarantined"))
 print("A renamed column is not a bad row: every row is affected, so the batch blocks until the producer fixes it.")
 # END SOLUTION
+
+# %% [markdown]
+# ## ✱ Stretch · The rename done right: both fields until cutover
+#
+# The producer still wants the new name. Done without breaking anyone, a rename has three phases: **expand**
+# (contract 1.1.0 adds `unit_cost` beside `cost`, both filled in every row), **migrate** (each consumer moves to
+# `unit_cost`, one at a time, while `cost` is still filled) and **contract** (2.0.0 drops `cost`, only after the
+# last consumer has moved). The cell below builds the producer's first 1.1.0 batch from the fixed batch, with the
+# producer's new code writing `unit_cost`.
+
+# %%
+FIXED = f"{API}/batch_2026-11-01_fixed.jsonl"
+# The producer's new writer turns Arabic-Indic digits into Western ones for unit_cost. Read what it does to "٫".
+con.execute(f"""CREATE OR REPLACE TABLE dual AS
+    SELECT *, translate(replace(cost, '٫', ''), '٠١٢٣٤٥٦٧٨٩', '0123456789') AS unit_cost
+    FROM read_json('{FIXED}', format = 'newline_delimited')""")
+CONSUMERS = {  # which field each reader of the supplier feed reads today
+    "current_prices refresh (this lab)": "cost",
+    "capstone margin mart": "cost",
+    "supplier price review sheet": "unit_cost",
+}
+old_contract = [r for r in G.run(con, contract, "dual") if not r["passed"]]
+print("the 1.0.0 contract on the 1.1.0 batch, failed checks:", [r["id"] for r in old_contract])
+Q.check(not old_contract, "expand is backward compatible: the 1.1.0 batch still passes the 1.0.0 contract")
+
+# %% [markdown]
+# ✏️ **Exercise** · Write `PARALLEL_CHECK`, the SQL that counts the rows of `dual` where the two fields disagree as
+# numbers (use `num()`). Then set `can_drop_cost`: may 2.0.0 drop `cost` today? Base it on the parallel check and
+# on `CONSUMERS`, not on a guess.
+
+# %%
+# BEGIN SOLUTION
+PARALLEL_CHECK = "SELECT count(*) FROM dual WHERE num(cost) IS DISTINCT FROM num(unit_cost)"
+mismatches = con.execute(PARALLEL_CHECK).fetchall()[0][0]
+can_drop_cost = mismatches == 0 and all(field == "unit_cost" for field in CONSUMERS.values())
+# END SOLUTION
+
+# %%
+try:
+    mismatches, can_drop_cost
+except NameError:  # safety net
+    mismatches = con.execute("SELECT count(*) FROM dual WHERE num(cost) IS DISTINCT FROM num(unit_cost)").fetchall()[0][0]
+    can_drop_cost = False
+print(f"rows where cost and unit_cost disagree: {mismatches} of {con.execute('SELECT count(*) FROM dual').fetchall()[0][0]}")
+print(con.sql("SELECT price_id, cost, unit_cost FROM dual WHERE num(cost) IS DISTINCT FROM num(unit_cost) ORDER BY price_id LIMIT 3"))
+print("still reading cost:", [name for name, field in CONSUMERS.items() if field == "cost"])
+Q.check(mismatches == 8, "8 rows disagree: every cost written with the Arabic decimal separator")
+Q.check(can_drop_cost is False, "2.0.0 waits: the values disagree and two consumers still read cost")
+
+# %% [markdown]
+# 🔍 What should happen next, in order? Who fixes the 8 rows, which check must stay at 0 and for how long, and what
+# must be true of `CONSUMERS` before `cost` goes?
+#    <details><summary>Answer</summary>The producer fixes its writer (the owner named in the contract), and the
+#    parallel check becomes a rule of contract 1.1.0 that must return 0. Each consumer then moves to `unit_cost` and
+#    runs one full cycle of its own schedule on it; the capstone mart moves too. Only when every consumer reads
+#    `unit_cost` and the check has stayed at 0 does 2.0.0 drop `cost`, announced as a major version.</details>
 
 # %% [markdown]
 # ## Checkpoint

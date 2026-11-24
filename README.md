@@ -139,6 +139,7 @@ The labs use DuckDB and Polars, dlt and plain Python, SQLMesh, the Open Data Con
 - [Debezium: PostgreSQL connector, change event structure](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
 - [Bitol: Open Data Contract Standard (ODCS)](https://bitol-io.github.io/open-data-contract-standard/latest/)
 - [Bitol: ODCS data quality](https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/)
+- [Danilo Sato: Parallel Change (martinfowler.com)](https://martinfowler.com/bliki/ParallelChange.html)
 
 ### Files and table formats
 

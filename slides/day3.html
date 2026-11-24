@@ -207,8 +207,8 @@ QUALIFY row_number() OVER (PARTITION BY order_id, line_no) = 1</code></pre>
     <div class="card c-coral"><h4>Accepted values</h4><p class="small mb0">SAR, USD or AED</p></div>
     <div class="card c-purple"><h4>Relationships</h4><p class="small mb0">every product exists</p></div>
   </div>
-  <p class="small mt">A test is a query returning the rows that break a rule: zero rows passes. One negative cost inserted on purpose trips both the unique and the positive-cost tests.</p>
-  <aside class="notes"><p>Severity matters: an error blocks, a warning reports. Decide per test, in the open. Tests are written by the consumer, about its own tables; a contract is the next step.</p></aside>
+  <p class="small mt">A test returns the rows that break a rule: zero rows passes.</p>
+  <aside class="notes"><p>In the lab, one negative cost inserted on purpose trips both the unique and the positive-cost tests. Severity matters: an error blocks, a warning reports. Decide per test, in the open. Tests are written by the consumer, about its own tables; a contract is the next step.</p></aside>
 </section>
 
 <section class="slide" data-label="Contract" id="data-contract-odcs" data-lo="LO4">
@@ -242,7 +242,7 @@ schema:
     <tr><td><code>required</code></td><td>the column exists in the batch</td></tr>
   </table>
   <p class="small">Seven quality rules and nine required columns: sixteen checks, all passing on the October feed.</p>
-  <aside class="notes"><p>Participants write the compiler for four metrics and compare with the course's (contract_gate.py). Tools such as the Data Contract CLI and Soda do the same against many databases; writing it once shows there is no magic.</p></aside>
+  <aside class="notes"><p>Participants write the compiler for four metrics and compare with the course's (contract_gate.py). Contract tools do the same against many databases; writing it once shows there is no magic. Keep this slide short: the time goes to the rename done right, two slides on.</p></aside>
 </section>
 
 <section class="slide" data-label="The gate" id="gate-holds" data-lo="LO4">
@@ -258,6 +258,38 @@ schema:
     <div class="card c-coral flat"><h4>What the margin reads</h4><p class="small mb0">102 prices before, 102 after the broken batch, unchanged to the halala. October's prices stay until the fix.</p></div>
   </div>
   <aside class="notes"><p>One failure can hide another: the rename stops the cost rule from running, so the negative cost appears only after mapping the column. The stretch quarantines it: 36 rows load, 1 waits. A renamed column is never quarantined; every row is affected.</p></aside>
+</section>
+
+<section class="slide" data-label="Parallel change" id="expand-migrate-contract" data-lo="LO4">
+  <div class="kicker">A rename that breaks no one</div>
+  <h2>Expand, migrate, then contract: both fields live until the last consumer moves</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>1.0.0</b>freight_sar only</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>1.1.0 expand</b>add freight_cost; fill both; a rule says they agree</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>Migrate</b>consumers move one at a time; freight_sar still filled</div>
+    <div class="arrow">→</div>
+    <div class="step c-coral"><b>2.0.0 contract</b>drop freight_sar</div>
+  </div>
+  <p class="small mt">Adding a field breaks nobody, so it is a minor version. Removing one breaks whoever still reads it, so it waits, and it is a major version.</p>
+  <aside class="notes"><p>The example is a parallel one: the shipment extract renaming freight_sar to freight_cost. The November supplier batch did all three phases in one night, unannounced, which is why the gate had to stop it. The version numbers are Qafila's rule for its contracts (minor for an addition, major for a removal); the contract's version field carries them. During the migrate phase the contract gains one quality rule: rows where the two fields differ must be 0. Sources: Danilo Sato, "Parallel Change" (martinfowler.com), which names the three phases expand, migrate and contract.</p></aside>
+</section>
+
+<section class="slide" data-label="Cutover" id="cutover-register" data-lo="LO4">
+  <div class="kicker">Read the register, then decide</div>
+  <h2>Can 2.0.0 drop freight_sar today?</h2>
+  <div class="cols cols-2">
+    <table class="t small">
+      <tr><th>Consumer of the shipment extract</th><th>Reads today</th></tr>
+      <tr><td>fct_order_line (freight allocation)</td><td><code>freight_cost</code></td></tr>
+      <tr><td>Carrier cost review</td><td><code>freight_cost</code></td></tr>
+      <tr><td>Monthly freight file for finance</td><td><code>freight_sar</code></td></tr>
+    </table>
+    <div class="card c-teal flat"><h4>Parallel check, 14 days of 1.1.0</h4><p class="small mb0">729 rows with both fields; 0 where they disagree.</p></div>
+  </div>
+  <div class="callout warn frag mt"><b>Not yet.</b> The values agree, but one consumer still reads <code>freight_sar</code>. Move it, watch one full cycle of its own run, then ship 2.0.0. Both conditions, every time.</div>
+  <aside class="notes"><p>Ask the room before the reveal. The tempting answer is "yes, 0 mismatches": the check proves the producer writes both fields correctly, not that every consumer has moved. A monthly consumer needs a full month on the new field before the old one goes. Numbers: labs/_tools/freight_cutover.py over the last 14 days of shipments in the data. Lab 3.3's second stretch does the same reading on the supplier feed.</p></aside>
 </section>
 
 <section class="slide" id="checkpoint-3" data-lo="LO4">
