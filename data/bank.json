@@ -6,7 +6,7 @@
     "code": "AE-306",
     "title": "Modern Data Engineering",
     "lang": "en",
-    "version": "2027.1.0"
+    "version": "2027.2.0"
   },
   "questions": [
     {
@@ -943,6 +943,36 @@
         "Once loaded, the wrong cost reaches finance's report before anyone reviews it.",
         "An invented cost is still wrong, and now nobody can tell it was invented.",
         ""
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": 3,
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "de-lo4-parallel-change",
+      "type": "single",
+      "prompt": "Qafila's order system will rename pack_size to pieces_per_carton in the products extract. Three models read pack_size, and each runs on its own schedule. Which plan keeps every model running through the change?",
+      "options": [
+        "Rename the column and change all three models in one release, deployed together on the same night",
+        "Add pieces_per_carton beside pack_size, fill both, move each model in turn, then drop pack_size",
+        "Rename the column and let the contract block each model until its owner has updated it",
+        "Add pieces_per_carton and fill both columns for good, so that no model ever has to move"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Expand, migrate, contract: the new column arrives beside the old one, a check confirms both hold the same value, each model moves when it is ready, and the old column goes only after the last one has moved.",
+      "misconceptions": [
+        "One release for producer and consumers breaks every model that is late, missed or run from another schedule.",
+        "",
+        "A blocking contract keeps bad data out; it does not keep the models running, and every one stops at once.",
+        "Never removing the old column leaves two names for one fact, and they drift apart."
       ],
       "lo": [
         "LO4"

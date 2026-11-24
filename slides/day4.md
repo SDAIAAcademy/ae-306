@@ -1,7 +1,7 @@
 ---
 course: "Modern Data Engineering"
 code: "AE-306"
-version: "2027.1.0"
+version: "2027.2.0"
 deck: "day4"
 day: 4
 language: "en"

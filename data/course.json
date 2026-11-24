@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T03:18:58Z",
-    "version": "2027.1.0",
-    "commit": "11f877b"
+    "at": "2026-11-24T16:23:26Z",
+    "version": "2027.2.0",
+    "commit": "b55d5bf"
   },
   "lang": "en",
   "dir": "ltr",
@@ -15,7 +15,7 @@
   "course": {
     "id": "ae-306",
     "code": "AE-306",
-    "version": "2027.1.0",
+    "version": "2027.2.0",
     "title": "Modern Data Engineering",
     "tagline": "Build one batch pipeline from raw extracts to a tested, governed open table that two engines read",
     "description": "Participants build one batch pipeline end to end for Qafila, the fictional trading company of the Academy's data engineering course, whose margin report nobody trusts. They query raw extracts with analytical SQL, ingest an API and a database change feed incrementally, clean with dataframes, model a star schema with a slowly changing supplier dimension, write tested transformations and a data contract, orchestrate them, and land the result in an open table format that a second engine reads. Day four adds distributed processing, streaming and governance.",
@@ -957,6 +957,10 @@
           {
             "title": "Bitol: ODCS data quality",
             "url": "https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/"
+          },
+          {
+            "title": "Danilo Sato: Parallel Change (martinfowler.com)",
+            "url": "https://martinfowler.com/bliki/ParallelChange.html"
           }
         ]
       },

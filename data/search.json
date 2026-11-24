@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T03:18:58Z",
-    "version": "2027.1.0",
-    "commit": "11f877b"
+    "at": "2026-11-24T16:23:26Z",
+    "version": "2027.2.0",
+    "commit": "b55d5bf"
   },
   "lang": "en",
   "dir": "ltr",
@@ -861,7 +861,7 @@
       "n": 21,
       "session": 3,
       "title": "Four kinds of test cover most of a staging table",
-      "text": "Tests on data Four kinds of test cover most of a staging table Not null every price has an id Unique one row per price id Accepted values SAR, USD or AED Relationships every product exists A test is a query returning the rows that break a rule: zero rows passes. One negative cost inserted on purpose trips both the unique and the positive-cost tests.",
+      "text": "Tests on data Four kinds of test cover most of a staging table Not null every price has an id Unique one row per price id Accepted values SAR, USD or AED Relationships every product exists A test returns the rows that break a rule: zero rows passes.",
       "href": "../slides/day3.html#four-test-kinds"
     },
     {
@@ -893,8 +893,26 @@
     },
     {
       "deck": "day3",
-      "id": "checkpoint-3",
+      "id": "expand-migrate-contract",
       "n": 25,
+      "session": 3,
+      "title": "Expand, migrate, then contract: both fields live until the last consumer moves",
+      "text": "A rename that breaks no one Expand, migrate, then contract: both fields live until the last consumer moves 1.0.0 freight_sar only → 1.1.0 expand add freight_cost; fill both; a rule says they agree → Migrate consumers move one at a time; freight_sar still filled → 2.0.0 contract drop freight_sar Adding a field breaks nobody, so it is a minor version. Removing one breaks whoever still reads it, so it waits, and it is a major version.",
+      "href": "../slides/day3.html#expand-migrate-contract"
+    },
+    {
+      "deck": "day3",
+      "id": "cutover-register",
+      "n": 26,
+      "session": 3,
+      "title": "Can 2.0.0 drop freight_sar today?",
+      "text": "Read the register, then decide Can 2.0.0 drop freight_sar today? Consumer of the shipment extract Reads today fct_order_line (freight allocation) freight_cost Carrier cost review freight_cost Monthly freight file for finance freight_sar Parallel check, 14 days of 1.1.0 729 rows with both fields; 0 where they disagree. Not yet. The values agree, but one consumer still reads freight_sar. Move it, watch one full cycle of its own run, then ship 2.0.0. Both conditions, every time.",
+      "href": "../slides/day3.html#cutover-register"
+    },
+    {
+      "deck": "day3",
+      "id": "checkpoint-3",
+      "n": 27,
       "session": 3,
       "title": "The night run",
       "text": "Checkpoint The night run The contract fails on a renamed column during the night run, and finance opens the margin report in the morning. What should they find? A margin computed from whatever columns matched An empty report until the feed is fixed A margin with unit_cost mapped to cost automatically Yesterday's margin, labelled with its last refresh",
@@ -903,7 +921,7 @@
     {
       "deck": "day3",
       "id": "lab-3-3",
-      "n": 26,
+      "n": 28,
       "session": 3,
       "title": "A contract that holds",
       "text": "Lab 3.3 · 25 min A contract that holds Write tests and an ODCS contract for the supplier feed, compile the contract to SQL checks, break the feed on purpose and watch the gate keep the mart unchanged. D3_3_contracts.ipynb Tests on the staged prices 6 min The contract in YAML 6 min Compile the contract to SQL checks 6 min Break the feed: the gate holds 7 min ✱ Stretch: Quarantine the failing rows instead of blocking: when is that right?",
@@ -912,7 +930,7 @@
     {
       "deck": "day3",
       "id": "s4",
-      "n": 27,
+      "n": 29,
       "session": 4,
       "title": "Orchestration",
       "text": "Session 4 Orchestration Declare the pipeline as assets with dependencies and monthly partitions Retry a flaky source and block on a failed check Backfill one month after a fix 04",
@@ -921,7 +939,7 @@
     {
       "deck": "day3",
       "id": "assets-graph",
-      "n": 28,
+      "n": 30,
       "session": 4,
       "title": "Declare the tables and what they depend on; the graph follows",
       "text": "Orchestration Declare the tables and what they depend on; the graph follows supplier_prices retry 3 times → november_batch contract check, blocking → current_prices → fct_order_line → margin_monthly by month",
@@ -930,7 +948,7 @@
     {
       "deck": "day3",
       "id": "retry-or-block",
-      "n": 29,
+      "n": 31,
       "session": 4,
       "title": "Retry the transport; block on the data",
       "text": "Lab 3.4 · steps 2 and 3 Retry the transport; block on the data Retried: the API answers 503 twice RetryPolicy(max_retries=3, delay=0.2). Two failures, two retries, 127 versions loaded. Blocked: the contract fails blocking=True. current_prices and fct_order_line: \"Not executing\". A second try can fix a timeout. It cannot fix a renamed column.",
@@ -939,7 +957,7 @@
     {
       "deck": "day3",
       "id": "partitions-backfill",
-      "n": 30,
+      "n": 32,
       "session": 4,
       "title": "Partition the margin by month and a backfill touches one month",
       "text": "Lab 3.4 · step 4 Partition the margin by month and a backfill touches one month Month Margin Built by run 2026-08 5,413,128 the first month's run 2026-09 4,807,938 the second month's run 2026-10 4,985,708 the backfill The backfill rebuilt October only; August and September keep the runs that built them.",
@@ -948,7 +966,7 @@
     {
       "deck": "day3",
       "id": "lineage-events",
-      "n": 31,
+      "n": 33,
       "session": 4,
       "title": "Every run can say what it read and what it wrote",
       "text": "Lineage Every run can say what it read and what it wrote {\"eventType\": \"COMPLETE\", \"run\": {\"runId\": \"6e655101-…\"}, \"job\": {\"namespace\": \"qafila\", \"name\": \"fct_order_line\"}, \"inputs\": [{\"namespace\": \"qafila\", \"name\": \"current_prices\"}], \"outputs\": [{\"namespace\": \"qafila\", \"name\": \"fct_order_line\"}]} Lineage answers the auditor's question: which run, from which inputs, produced the number on the report.",
@@ -957,7 +975,7 @@
     {
       "deck": "day3",
       "id": "checkpoint-4",
-      "n": 32,
+      "n": 34,
       "session": 4,
       "title": "Retry or block?",
       "text": "Checkpoint Retry or block? Four failures in last week's runs. Which one should a retry policy handle? The supplier API timed out after 30 seconds The contract found a negative cost A model divides by a column that was renamed The warehouse disk is full",
@@ -966,7 +984,7 @@
     {
       "deck": "day3",
       "id": "lab-3-4",
-      "n": 33,
+      "n": 35,
       "session": 4,
       "title": "Assets, a failure, a retry and a backfill",
       "text": "Lab 3.4 · 25 min Assets, a failure, a retry and a backfill Declare the pipeline as Dagster assets on a nightly schedule, watch a retry absorb a flaky API, let the contract check block the mart, fix the feed and backfill one month. D3_4_orchestration.ipynb Assets, their graph and a schedule 6 min A flaky source and a retry policy 5 min The broken feed: the check blocks the mart 7 min Fix, then backfill one month 7 min ✱ Stretch: Emit lineage events for each run",
@@ -975,7 +993,7 @@
     {
       "deck": "day3",
       "id": "day-3-recap",
-      "n": 34,
+      "n": 36,
       "session": 4,
       "title": "Three things to keep from today",
       "text": "Day 3 Three things to keep from today Grain, then the star One sentence, tested; facts at that grain; unknown members; history by version. Models with state Files in git, environments, rebuilds that reach only what changed. Fail safely A contract with an owner, a blocking check, retries for the transport, backfills by partition.",
@@ -984,7 +1002,7 @@
     {
       "deck": "day3",
       "id": "tomorrow-scale",
-      "n": 35,
+      "n": 37,
       "session": 4,
       "title": "Tomorrow the mart leaves DuckDB's file and becomes an open table",
       "text": "Day 4 · Scale and production Tomorrow the mart leaves DuckDB's file and becomes an open table An Iceberg table that a second engine reads, at today's snapshot and at last week's When a distributed engine pays, measured on a laptop Shipment events that arrive late, and the classification of every field Qafila holds Before tomorrow: run uv run python -c \"import pyiceberg, dask\", or open Lab 4.1 in Colab once.",

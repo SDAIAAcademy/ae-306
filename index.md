@@ -1,7 +1,7 @@
 ---
 course: "Modern Data Engineering"
 code: "AE-306"
-version: "2027.1.0"
+version: "2027.2.0"
 language: "en"
 view: "trainee"
 source: "https://sdaiaacademy.github.io/ae-306/index.html"
@@ -188,6 +188,7 @@ The margin mart from raw sources to an Apache Iceberg table, built on the course
 - [Debezium: PostgreSQL connector, change event structure](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
 - [Bitol: Open Data Contract Standard (ODCS)](https://bitol-io.github.io/open-data-contract-standard/latest/)
 - [Bitol: ODCS data quality](https://bitol-io.github.io/open-data-contract-standard/latest/data-quality/)
+- [Danilo Sato: Parallel Change (martinfowler.com)](https://martinfowler.com/bliki/ParallelChange.html)
 
 ### Files and table formats
 
@@ -208,4 +209,4 @@ The margin mart from raw sources to an Apache Iceberg table, built on the course
 
 SDAIA Academy · AI Engineering Track · Modern Data Engineering
 
-Course version 2027.1.0 · engine 1.0.0 · built 2026-11-15 · commit 11f877b
+Course version 2027.2.0 · engine 1.0.0 · built 2026-11-24 · commit b55d5bf

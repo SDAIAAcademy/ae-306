@@ -1,7 +1,7 @@
 ---
 course: "Modern Data Engineering"
 code: "AE-306"
-version: "2027.1.0"
+version: "2027.2.0"
 deck: "day3"
 day: 3
 language: "en"
@@ -234,7 +234,7 @@ Build Qafila's staging and mart models as version-controlled SQL with SQLMesh, p
 - **Accepted values.** SAR, USD or AED
 - **Relationships.** every product exists
 
-A test is a query returning the rows that break a rule: zero rows passes. One negative cost inserted on purpose trips both the unique and the positive-cost tests.
+A test returns the rows that break a rule: zero rows passes.
 
 #### [day3#data-contract-odcs] The producer and the consumer agree on the feed, in a file both can read
 
@@ -281,6 +281,31 @@ Seven quality rules and nine required columns: sixteen checks, all passing on th
 - The fixed batch passes and the refresh runs
 
 - **What the margin reads.** 102 prices before, 102 after the broken batch, unchanged to the halala. October's prices stay until the fix.
+
+#### [day3#expand-migrate-contract] Expand, migrate, then contract: both fields live until the last consumer moves
+
+*A rename that breaks no one*
+
+1. **1.0.0** freight_sar only
+2. **1.1.0 expand** add freight_cost; fill both; a rule says they agree
+3. **Migrate** consumers move one at a time; freight_sar still filled
+4. **2.0.0 contract** drop freight_sar
+
+Adding a field breaks nobody, so it is a minor version. Removing one breaks whoever still reads it, so it waits, and it is a major version.
+
+#### [day3#cutover-register] Can 2.0.0 drop freight_sar today?
+
+*Read the register, then decide*
+
+| Consumer of the shipment extract | Reads today |
+| --- | --- |
+| fct_order_line (freight allocation) | `freight_cost` |
+| Carrier cost review | `freight_cost` |
+| Monthly freight file for finance | `freight_sar` |
+
+- **Parallel check, 14 days of 1.1.0.** 729 rows with both fields; 0 where they disagree.
+
+> **Not yet.** The values agree, but one consumer still reads `freight_sar`. Move it, watch one full cycle of its own run, then ship 2.0.0. Both conditions, every time.
 
 #### [day3#checkpoint-3] The night run
 
